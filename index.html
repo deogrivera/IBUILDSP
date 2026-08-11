@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Data Viewer · Col A Valid (Row 3+)</title>
+    <title>Data Viewer · Clean Data (Row 3+)</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
@@ -288,8 +288,8 @@
     <header>
         <h1>
             <i class="fas fa-filter" style="color: #2d7aff;"></i>
-            Data Viewer · Col A Valid (Row 3+)
-            <span class="info-badge"><i class="fas fa-check-circle"></i> Row 3+ with data</span>
+            Data Viewer · Clean Data (Row 3+)
+            <span class="info-badge"><i class="fas fa-check-circle"></i> Row 3+ with valid No.</span>
         </h1>
         <div class="subhead">
             <div class="source-area">
@@ -328,7 +328,7 @@
             <tbody id="tableBody"></tbody>
         </table>
         <div id="emptyMessage" class="empty-state" style="display: none;">
-            <i class="fas fa-inbox"></i> No records found with valid data in Column A (Row 3+)
+            <i class="fas fa-inbox"></i> No records found with valid data (Row 3+ with valid No.)
         </div>
     </div>
 
@@ -359,7 +359,6 @@
         const toggleAllBtn = document.getElementById('toggleAllColumns');
 
         // ----- COLUMN MAPPING: Col A-L + R(17), S(18) -----
-        // 0=A, 1=B, 2=C, 3=D, 4=E, 5=F, 6=G, 7=H, 8=I, 9=J, 10=K, 11=L, 17=R, 18=S
         const COLUMN_MAP = [
             { index: 0, header: 'No.' },
             { index: 1, header: 'Cluster' },
@@ -409,7 +408,7 @@
             const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
             if (lines.length < 2) return { headers: [], rows: [] };
 
-            // Parse headers - handle quoted values properly
+            // Parse headers
             const headerLine = lines[0];
             const headers = [];
             let current = '';
@@ -428,7 +427,6 @@
             }
             headers.push(current.trim().replace(/^"|"$/g, ''));
             
-            // Clean up empty header names
             const cleanHeaders = headers.map((h, idx) => h ? h : `col_${idx}`);
 
             const rows = [];
@@ -463,14 +461,14 @@
         }
 
         // ----- Extract data starting from row 3 (index 2) -----
-        // Row 1 = headers (index 0), Row 2 = index 1, Row 3 = index 2
         function extractFromRow3(rows) {
             if (rows.length <= 2) return [];
-            return rows.slice(2); // Start from row 3 (index 2)
+            return rows.slice(2);
         }
 
-        // ----- Check if Column A (index 0) has a valid value -----
-        function hasValidColA(row) {
+        // ----- IMPROVED: Check if row is a valid data row -----
+        function isValidDataRow(row) {
+            // Get Column A value (No.)
             let colAValue = '';
             if (headerNames[0] && row[headerNames[0]] !== undefined) {
                 colAValue = row[headerNames[0]];
@@ -478,9 +476,55 @@
                 const values = Object.values(row);
                 colAValue = values[0] || '';
             }
-            return colAValue !== undefined && 
-                   colAValue !== null && 
-                   String(colAValue).trim() !== '';
+            
+            // Check if Column A has a value
+            const hasColA = colAValue !== undefined && 
+                            colAValue !== null && 
+                            String(colAValue).trim() !== '';
+            
+            if (!hasColA) return false;
+            
+            // Check if it's a numeric value (like "1", "2", "3") - typical for "No." column
+            const numValue = String(colAValue).trim();
+            const isNumeric = /^\d+$/.test(numValue);
+            
+            // Check if it's NOT a month/year or other text that shouldn't be in No. column
+            const isMonth = /^(january|february|march|april|may|june|july|august|september|october|november|december)/i.test(numValue);
+            const isYear = /^\d{4}$/.test(numValue);
+            const isTarget = /target/i.test(numValue);
+            const isQuarter = /quarter/i.test(numValue);
+            
+            // Reject rows with month names, years, "Target", "Quarter" in the No. column
+            if (isMonth || isYear || isTarget || isQuarter) {
+                return false;
+            }
+            
+            // For numeric values, also check if there's at least one other column with data
+            if (isNumeric) {
+                // Check if any other column has a value
+                let hasOtherData = false;
+                for (let i = 1; i < COLUMN_MAP.length; i++) {
+                    const col = COLUMN_MAP[i];
+                    const key = (col.index < headerNames.length) ? headerNames[col.index] : `col_${col.index}`;
+                    if (row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== '') {
+                        hasOtherData = true;
+                        break;
+                    }
+                }
+                return hasOtherData;
+            }
+            
+            // If Col A has a value but it's not numeric, still include it if it has other data
+            let hasOtherData = false;
+            for (let i = 1; i < COLUMN_MAP.length; i++) {
+                const col = COLUMN_MAP[i];
+                const key = (col.index < headerNames.length) ? headerNames[col.index] : `col_${col.index}`;
+                if (row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== '') {
+                    hasOtherData = true;
+                    break;
+                }
+            }
+            return hasOtherData;
         }
 
         // ----- Load data -----
@@ -546,7 +590,7 @@
 
                 headerNames = headers;
 
-                // Start from row 3 for CSV, or use all rows for JSON
+                // Start from row 3 for CSV
                 let dataRows = [];
                 if (isCSV) {
                     dataRows = extractFromRow3(rows);
@@ -554,18 +598,16 @@
                     dataRows = rows;
                 }
 
-                // Build allData: select columns A-L + R(17), S(18) AND filter by valid Col A
+                // Build allData: select columns A-L + R(17), S(18) AND filter by valid data row
                 allData = dataRows
-                    .filter(row => hasValidColA(row))
+                    .filter(row => isValidDataRow(row))
                     .map(row => {
                         const newRow = {};
                         COLUMN_MAP.forEach((col, idx) => {
                             const key = `col_${idx}`;
-                            // Try to get value by header name, or by index
                             if (col.index < headerNames.length && row[headerNames[col.index]] !== undefined) {
                                 newRow[key] = row[headerNames[col.index]];
                             } else {
-                                // Fallback: get by array index
                                 const values = Object.values(row);
                                 newRow[key] = (col.index < values.length) ? values[col.index] : '';
                             }
@@ -579,7 +621,6 @@
                 filterInput.value = '';
                 filteredData = allData.slice();
                 
-                // Build column controls and render
                 buildColumnControls();
                 renderTable();
 
@@ -705,7 +746,6 @@
             const sample = filteredData[0];
             availableKeys = Object.keys(sample);
 
-            // Build header row with custom headers
             const headerRow = document.createElement('tr');
             COLUMN_MAP.forEach((c, idx) => {
                 const key = `col_${idx}`;
@@ -722,7 +762,6 @@
             thead.innerHTML = '';
             thead.appendChild(headerRow);
 
-            // Build table body
             tbody.innerHTML = '';
             filteredData.forEach(item => {
                 const row = document.createElement('tr');
@@ -810,12 +849,11 @@
 </script>
 
 <!-- 
-    UPDATED: Now captures data starting from ROW 3 (instead of Row 4).
-    - Row 1 = Headers
-    - Row 2 = Data row 1 (skipped)
-    - Row 3+ = Data captured (if Col A has valid value)
+    FIXED: Extra rows (months, years, "Target", "Quarter") are now filtered out.
+    - Only rows with numeric "No." values are captured (like 1, 2, 3...)
+    - Rows with "August", "2026", "Target", "Quarter" in Col A are rejected.
+    - Data starts from Row 3.
     - Columns A-L + R(17), S(18) are displayed.
-    - Hide/Show columns feature included.
 -->
 
 </body>
