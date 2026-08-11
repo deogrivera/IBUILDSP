@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Grouped Tables · Row 4+</title>
+  <title>Grouped Tables · Custom Headers</title>
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
@@ -269,7 +269,7 @@
 
 <div class="card" id="app">
   <header>
-    <h1><i class="fas fa-table" style="color: #2d7aff;"></i> Grouped Tables · Row 4+</h1>
+    <h1><i class="fas fa-table" style="color: #2d7aff;"></i> Grouped Tables · Custom Headers</h1>
     <div class="subhead">
       <div class="source-area">
         <i class="fas fa-paste"></i>
@@ -317,11 +317,28 @@
     const errorText = document.getElementById('errorText');
     const statsDisplay = document.getElementById('statsDisplay');
 
-    // ----- GROUP CONFIG (column indices: 0=A, 1=B, ...) -----
+    // ----- GROUP CONFIG with CUSTOM HEADERS for Project Profile -----
+    // For Project Profile: map column indices to custom headers
     const GROUPS = [
-      { name: 'Project Profile', icon: 'fa-id-card', indices: [0, 1, 2, 3, 4] },   // A,B,C,D,E
-      { name: 'Physical',        icon: 'fa-dumbbell', indices: [5, 8] },          // F, I
-      { name: 'Financial',       icon: 'fa-coins', indices: [9, 10, 11, 12] }    // J,K,L,M
+      { 
+        name: 'Project Profile', 
+        icon: 'fa-id-card',
+        // column indices: 0=A, 1=B, 2=C, 3=D, 4=E
+        // custom headers in the same order
+        indices: [0, 1, 2, 3, 4],
+        customHeaders: ['No.', 'Muni/Prov', 'Name of Subproject', 'Type', 'Status']
+      },
+      { 
+        name: 'Physical', 
+        icon: 'fa-dumbbell', 
+        indices: [5, 8]  // F, I
+        // no custom headers → will use original column names
+      },
+      { 
+        name: 'Financial', 
+        icon: 'fa-coins', 
+        indices: [9, 10, 11, 12]  // J,K,L,M
+      }
     ];
 
     // Flatten for column selection & ordering
@@ -329,10 +346,10 @@
     const uniqueIndices = [...new Set(allIndices)].sort((a,b) => a - b);
 
     // state
-    let allData = [];        // array of row objects (each with keys = column names)
+    let allData = [];
     let filteredData = [];
     let currentSource = '';
-    let headerNames = [];    // original column names from CSV (row 1)
+    let headerNames = [];
 
     // helpers
     function showError(msg) {
@@ -346,18 +363,16 @@
       statsDisplay.innerHTML = `<i class="far fa-file-alt"></i> ${count} record${count !== 1 ? 's' : ''}`;
     }
 
-    // ----- CSV parser (simple, handles quoted values) -----
+    // ----- CSV parser -----
     function parseCSV(csvText) {
       const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
       if (lines.length < 2) return { headers: [], rows: [] };
 
-      // Parse headers
       const rawHeaders = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
       const headers = rawHeaders.map((h, idx) => h ? h : `col_${idx}`);
 
       const rows = [];
       for (let i = 1; i < lines.length; i++) {
-        // skip empty lines
         if (!lines[i].trim()) continue;
         const rawValues = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
         const obj = {};
@@ -371,10 +386,8 @@
 
     // ----- Extract data starting from row 4 (index 3) -----
     function extractFromRow4(rows) {
-      // rows is array of objects, each representing a CSV row
-      // row 1 = headers (index 0), row 2 = index 1, row 3 = index 2, row 4 = index 3
       if (rows.length <= 3) return [];
-      return rows.slice(3); // start at row 4 (0-based index 3)
+      return rows.slice(3);
     }
 
     // ----- Load data -----
@@ -386,7 +399,6 @@
       const trimmedUrl = url.trim();
       currentSource = trimmedUrl;
 
-      // reset UI
       loadingEl.style.display = 'flex';
       tablesContainer.innerHTML = '';
       hideError();
@@ -402,7 +414,6 @@
         const text = await response.text();
         const trimmedText = text.trim();
 
-        // detect CSV vs JSON
         const isCSV = trimmedText.includes(',') && 
                       (trimmedText.includes('\n') || trimmedText.includes('\r')) &&
                       !trimmedText.startsWith('{') && !trimmedText.startsWith('[');
@@ -422,15 +433,12 @@
                             (json.items && Array.isArray(json.items) ? json.items :
                             (json.results && Array.isArray(json.results) ? json.results : [json])));
             if (arrayData.length > 0) {
-              // For JSON, we assume rows are objects; we need to treat first row as data
-              // but we don't have a separate header row. We'll use object keys as headers.
               headers = Object.keys(arrayData[0]);
               rows = arrayData;
             } else {
               rows = [];
             }
           } catch (e) {
-            // fallback CSV
             if (trimmedText.includes(',') && trimmedText.includes('\n')) {
               const parsed = parseCSV(trimmedText);
               headers = parsed.headers;
@@ -441,17 +449,13 @@
           }
         }
 
-        // Store header names
         headerNames = headers;
 
-        // --- START from ROW 4 (index 3) ---
-        // For CSV: rows are objects, first row is header (index0), row2=index1, row3=index2, row4=index3
-        // For JSON: we don't have a header row, so we take all rows (no skipping)
+        // Start from row 4 for CSV, or use all rows for JSON
         let dataRows = [];
         if (isCSV) {
           dataRows = extractFromRow4(rows);
         } else {
-          // JSON: use all rows (no header row to skip)
           dataRows = rows;
         }
 
@@ -464,11 +468,9 @@
           const newRow = {};
           uniqueIndices.forEach((idx, pos) => {
             const key = selectedKeys[pos];
-            // if header exists in row, use it; else try by index
             if (headerNames[idx] && row[headerNames[idx]] !== undefined) {
               newRow[key] = row[headerNames[idx]];
             } else {
-              // fallback: if row is array-like (JSON array), get by index
               const values = Object.values(row);
               newRow[key] = (idx < values.length) ? values[idx] : '';
             }
@@ -476,10 +478,8 @@
           return newRow;
         });
 
-        // remove completely empty rows
         allData = allData.filter(row => Object.values(row).some(v => v !== '' && v !== undefined && v !== null));
 
-        // reset filter
         filterInput.value = '';
         filteredData = allData.slice();
         renderTables();
@@ -492,7 +492,7 @@
       }
     }
 
-    // ----- Render separate tables (one per group) -----
+    // ----- Render separate tables with custom headers for Project Profile -----
     function renderTables() {
       hideError();
       loadingEl.style.display = 'none';
@@ -510,23 +510,38 @@
 
       updateStats(filteredData.length);
 
-      // Build table for each group
       let html = '';
 
       GROUPS.forEach(group => {
-        // determine which keys (column names) belong to this group
-        const groupKeys = group.indices.map(idx => {
+        // Determine keys for this group
+        let groupKeys = group.indices.map(idx => {
           return (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
         }).filter(key => {
-          // check if key exists in any row
           return filteredData.some(row => row[key] !== undefined);
         });
 
-        if (groupKeys.length === 0) return; // skip empty groups
+        if (groupKeys.length === 0) return;
 
-        // Build table rows for this group
+        // If group has custom headers, use them (must match indices length)
+        let displayHeaders = groupKeys;
+        if (group.customHeaders && group.customHeaders.length === group.indices.length) {
+          // Map custom headers to the keys that exist
+          displayHeaders = group.indices.map((idx, pos) => {
+            const key = (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
+            // Only use custom header if the key exists in data
+            if (filteredData.some(row => row[key] !== undefined)) {
+              return group.customHeaders[pos] || key;
+            }
+            return key;
+          }).filter((_, idx) => {
+            const key = (group.indices[idx] < headerNames.length) ? headerNames[idx] : `col_${group.indices[idx]}`;
+            return filteredData.some(row => row[key] !== undefined);
+          });
+        }
+
+        // Build rows
         let rowsHtml = '';
-        filteredData.forEach((item, rowIdx) => {
+        filteredData.forEach((item) => {
           rowsHtml += `<tr>`;
           groupKeys.forEach(key => {
             let val = item[key];
@@ -541,16 +556,13 @@
           rowsHtml += `</tr>`;
         });
 
-        // Build header row for this group
+        // Build header row using displayHeaders
         let headerHtml = `<tr>`;
-        groupKeys.forEach(key => {
-          let display = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-          if (display.length > 25) display = display.substring(0, 22) + '…';
-          headerHtml += `<th>${display}</th>`;
+        displayHeaders.forEach(header => {
+          headerHtml += `<th>${header}</th>`;
         });
         headerHtml += `</tr>`;
 
-        // Build the section
         html += `
           <div class="table-section">
             <div class="section-title">
@@ -646,13 +658,15 @@
 </script>
 
 <!-- 
-  BEHAVIOR:
-  - Data is captured starting from ROW 4 (skips first 3 rows).
-  - Groups are displayed in SEPARATE TABLES:
-    • Project Profile (Col A,B,C,D,E)
-    • Physical (Col F,I)
-    • Financial (Col J,K,L,M)
-  - Filter searches across all groups.
+  CUSTOM HEADERS for Project Profile:
+  - Col A → "No."
+  - Col B → "Muni/Prov"
+  - Col C → "Name of Subproject"
+  - Col D → "Type"
+  - Col E → "Status"
+  
+  Data starts from ROW 4 (skips first 3 rows).
+  Groups displayed in separate tables.
 -->
 
 </body>
