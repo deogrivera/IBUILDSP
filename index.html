@@ -1,664 +1,658 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Viewer · Grouped Columns</title>
-    <!-- Font Awesome (icons) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-        }
-        body {
-            background: #f4f7fb;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem 1rem;
-        }
-        .card {
-            max-width: 1400px;
-            width: 100%;
-            background: white;
-            border-radius: 32px;
-            box-shadow: 0 20px 40px -12px rgba(0,20,30,0.25);
-            padding: 2rem 2rem 2.5rem;
-            transition: 0.2s;
-        }
-        h1 {
-            font-size: 1.9rem;
-            font-weight: 600;
-            color: #0b1e2b;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 0.2rem;
-        }
-        .subhead {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem 0.75rem;
-            margin-bottom: 1.8rem;
-            border-bottom: 1px solid #e9edf2;
-            padding-bottom: 1.2rem;
-        }
-        .source-area {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.8rem;
-            background: #f2f6fc;
-            padding: 0.4rem 1rem 0.4rem 1.4rem;
-            border-radius: 60px;
-            border: 1px solid #d5dee7;
-            flex: 1 1 300px;
-        }
-        .source-area i { color: #2d7aff; }
-        .source-area input {
-            border: none;
-            background: transparent;
-            padding: 0.5rem 0;
-            font-size: 0.9rem;
-            flex: 1;
-            min-width: 140px;
-            outline: none;
-            color: #0b1e2b;
-            font-weight: 450;
-        }
-        .source-area input::placeholder { color: #8ba0b3; font-weight: 350; }
-        .load-btn {
-            background: #2d7aff;
-            border: none;
-            color: white;
-            font-weight: 500;
-            padding: 0.5rem 1.5rem;
-            border-radius: 60px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: 0.15s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid #2d7aff;
-        }
-        .load-btn:hover { background: #1a5fd9; border-color: #1a5fd9; box-shadow: 0 4px 10px rgba(45,122,255,0.25); }
-        .load-btn:active { transform: scale(0.96); }
-        .stats {
-            background: #eef3f8;
-            padding: 0.35rem 1.2rem;
-            border-radius: 40px;
-            font-size: 0.9rem;
-            color: #1f3a4b;
-            font-weight: 500;
-            white-space: nowrap;
-        }
-        .toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .filter-group label {
-            font-weight: 500;
-            font-size: 0.9rem;
-            color: #1d3b4f;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .filter-group input {
-            padding: 0.5rem 1rem;
-            border: 1.5px solid #dbe1e9;
-            border-radius: 60px;
-            font-size: 0.9rem;
-            background: white;
-            min-width: 200px;
-            transition: 0.2s;
-            outline: none;
-        }
-        .filter-group input:focus {
-            border-color: #2d7aff;
-            box-shadow: 0 0 0 3px rgba(45,122,255,0.15);
-        }
-        .filter-group input::placeholder { color: #9aabb8; font-weight: 300; }
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: 20px;
-            border: 1px solid #e6ecf3;
-            background: white;
-            margin-top: 0.5rem;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.92rem;
-            min-width: 700px;
-        }
-        th {
-            text-align: left;
-            padding: 0.9rem 1rem;
-            background: #f8fafc;
-            color: #1d3b4f;
-            font-weight: 600;
-            border-bottom: 2px solid #dde4ed;
-            white-space: nowrap;
-        }
-        td {
-            padding: 0.8rem 1rem;
-            border-bottom: 1px solid #eaeef4;
-            color: #1e2f3e;
-            vertical-align: middle;
-        }
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background: #f6f9ff; }
-        .group-header {
-            background: #eef3f8;
-            font-weight: 600;
-            color: #0f2b3d;
-            text-align: center;
-            letter-spacing: 0.3px;
-            border-bottom: 2px solid #cbd6e2;
-        }
-        .group-header th {
-            background: #e2e9f2;
-            color: #0a2535;
-            font-weight: 600;
-            text-align: center;
-            padding: 0.5rem 0.5rem;
-        }
-        .empty-state {
-            padding: 3.5rem 1rem;
-            text-align: center;
-            color: #5f7485;
-            font-size: 1rem;
-            background: #fafcfe;
-        }
-        .empty-state i {
-            font-size: 2.2rem;
-            color: #b6c9db;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.8rem;
-            padding: 3rem 0;
-            color: #2a4a62;
-        }
-        .loading i {
-            font-size: 1.8rem;
-            color: #2d7aff;
-        }
-        .error-box {
-            background: #fff5f5;
-            border: 1px solid #ffc9c9;
-            border-radius: 60px;
-            padding: 0.8rem 1.6rem;
-            color: #b33c3c;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 500;
-            margin-top: 0.5rem;
-        }
-        .reload-btn {
-            background: white;
-            border: 1.5px solid #dbe1e9;
-            padding: 0.5rem 1.2rem;
-            border-radius: 60px;
-            font-weight: 500;
-            color: #1d3b4f;
-            cursor: pointer;
-            transition: 0.15s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .reload-btn:hover { background: #f2f6fc; border-color: #b0c2d4; }
-        .col-group-badge {
-            display: inline-block;
-            background: #dce6f0;
-            border-radius: 40px;
-            padding: 0.2rem 0.9rem;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #1a3a52;
-            letter-spacing: 0.3px;
-            margin-left: 6px;
-        }
-        @media (max-width: 700px) {
-            .card { padding: 1.5rem; }
-            h1 { font-size: 1.5rem; }
-            .toolbar { flex-direction: column; align-items: stretch; }
-            .filter-group { flex-direction: column; align-items: stretch; }
-            .filter-group input { min-width: unset; width: 100%; }
-            .stats { align-self: flex-start; }
-            .source-area { border-radius: 30px; padding: 0.4rem 0.8rem; }
-            .load-btn { width: 100%; justify-content: center; }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grouped Tables · Row 4+</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+    body {
+      background: #f4f7fb;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .card {
+      max-width: 1400px;
+      width: 100%;
+      background: white;
+      border-radius: 32px;
+      box-shadow: 0 20px 40px -12px rgba(0,20,30,0.25);
+      padding: 2rem 2rem 2.5rem;
+    }
+    h1 {
+      font-size: 1.9rem;
+      font-weight: 600;
+      color: #0b1e2b;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 0.2rem;
+    }
+    .subhead {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem 0.75rem;
+      margin-bottom: 1.8rem;
+      border-bottom: 1px solid #e9edf2;
+      padding-bottom: 1.2rem;
+    }
+    .source-area {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.8rem;
+      background: #f2f6fc;
+      padding: 0.4rem 1rem 0.4rem 1.4rem;
+      border-radius: 60px;
+      border: 1px solid #d5dee7;
+      flex: 1 1 300px;
+    }
+    .source-area i { color: #2d7aff; }
+    .source-area input {
+      border: none;
+      background: transparent;
+      padding: 0.5rem 0;
+      font-size: 0.9rem;
+      flex: 1;
+      min-width: 140px;
+      outline: none;
+      color: #0b1e2b;
+      font-weight: 450;
+    }
+    .source-area input::placeholder { color: #8ba0b3; font-weight: 350; }
+    .load-btn {
+      background: #2d7aff;
+      border: none;
+      color: white;
+      font-weight: 500;
+      padding: 0.5rem 1.5rem;
+      border-radius: 60px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #2d7aff;
+    }
+    .load-btn:hover { background: #1a5fd9; border-color: #1a5fd9; box-shadow: 0 4px 10px rgba(45,122,255,0.25); }
+    .load-btn:active { transform: scale(0.96); }
+    .stats {
+      background: #eef3f8;
+      padding: 0.35rem 1.2rem;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      color: #1f3a4b;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .filter-group label {
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: #1d3b4f;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .filter-group input {
+      padding: 0.5rem 1rem;
+      border: 1.5px solid #dbe1e9;
+      border-radius: 60px;
+      font-size: 0.9rem;
+      background: white;
+      min-width: 200px;
+      outline: none;
+    }
+    .filter-group input:focus {
+      border-color: #2d7aff;
+      box-shadow: 0 0 0 3px rgba(45,122,255,0.15);
+    }
+    .filter-group input::placeholder { color: #9aabb8; font-weight: 300; }
+    .reload-btn {
+      background: white;
+      border: 1.5px solid #dbe1e9;
+      padding: 0.5rem 1.2rem;
+      border-radius: 60px;
+      font-weight: 500;
+      color: #1d3b4f;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .reload-btn:hover { background: #f2f6fc; border-color: #b0c2d4; }
+
+    /* separate tables container */
+    .tables-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+      margin-top: 0.5rem;
+    }
+    .table-section {
+      background: white;
+      border-radius: 20px;
+      border: 1px solid #e6ecf3;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .table-section .section-title {
+      background: #f0f4fa;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: #0b2a3d;
+      border-bottom: 2px solid #dde4ed;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .table-section .section-title i {
+      color: #2d7aff;
+      font-size: 1rem;
+    }
+    .table-section .section-title .badge-count {
+      margin-left: auto;
+      background: #dce6f0;
+      border-radius: 40px;
+      padding: 0.15rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #1a3a52;
+    }
+    .table-wrapper {
+      overflow-x: auto;
+      padding: 0 0.2rem 0.2rem 0.2rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      min-width: 300px;
+    }
+    th {
+      text-align: left;
+      padding: 0.7rem 1rem;
+      background: #fafcfd;
+      color: #1d3b4f;
+      font-weight: 600;
+      border-bottom: 2px solid #e2e8f0;
+      white-space: nowrap;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    td {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid #eef2f6;
+      color: #1e2f3e;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f6faff; }
+
+    .empty-state {
+      padding: 3rem 1rem;
+      text-align: center;
+      color: #5f7485;
+      background: #fafcfe;
+    }
+    .empty-state i {
+      font-size: 2rem;
+      color: #b6c9db;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      padding: 3rem 0;
+      color: #2a4a62;
+    }
+    .loading i {
+      font-size: 1.8rem;
+      color: #2d7aff;
+    }
+    .error-box {
+      background: #fff5f5;
+      border: 1px solid #ffc9c9;
+      border-radius: 60px;
+      padding: 0.8rem 1.6rem;
+      color: #b33c3c;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 500;
+      margin-top: 0.5rem;
+    }
+    @media (max-width: 700px) {
+      .card { padding: 1.5rem; }
+      h1 { font-size: 1.5rem; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .filter-group { flex-direction: column; align-items: stretch; }
+      .filter-group input { min-width: unset; width: 100%; }
+      .stats { align-self: flex-start; }
+      .source-area { border-radius: 30px; padding: 0.4rem 0.8rem; }
+      .load-btn { width: 100%; justify-content: center; }
+      .table-section .section-title { font-size: 1rem; padding: 0.6rem 1rem; }
+    }
+  </style>
 </head>
 <body>
 
 <div class="card" id="app">
-    <header>
-        <h1>
-            <i class="fas fa-layer-group" style="color: #2d7aff;"></i>
-            Grouped Data View
-        </h1>
-        <div class="subhead">
-            <div class="source-area">
-                <i class="fas fa-paste"></i>
-                <input type="text" id="sourceInput" placeholder="Paste CSV or JSON URL..." 
-                       value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSKiPjvkcJeCP7VuAjjFsIvMskQUlF_FegjMFxaxv6Hg-tCKLNCjPWIo1jb_G3-TgRuEXs0BK6TxOq3/pub?gid=1826747769&single=true&output=csv">
-                <button class="load-btn" id="loadBtn"><i class="fas fa-arrow-right"></i> Load</button>
-            </div>
-            <span class="stats" id="statsDisplay"><i class="far fa-file-alt"></i> 0 records</span>
-        </div>
-    </header>
-
-    <div class="toolbar">
-        <div class="filter-group">
-            <label for="filterInput"><i class="fas fa-search" style="color: #5b7a93;"></i> Filter</label>
-            <input type="text" id="filterInput" placeholder="Search any field...">
-        </div>
-        <button class="reload-btn" id="reloadBtn"><i class="fas fa-sync-alt"></i> Reload</button>
+  <header>
+    <h1><i class="fas fa-table" style="color: #2d7aff;"></i> Grouped Tables · Row 4+</h1>
+    <div class="subhead">
+      <div class="source-area">
+        <i class="fas fa-paste"></i>
+        <input type="text" id="sourceInput" placeholder="Paste CSV or JSON URL..." 
+               value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSKiPjvkcJeCP7VuAjjFsIvMskQUlF_FegjMFxaxv6Hg-tCKLNCjPWIo1jb_G3-TgRuEXs0BK6TxOq3/pub?gid=1826747769&single=true&output=csv">
+        <button class="load-btn" id="loadBtn"><i class="fas fa-arrow-right"></i> Load</button>
+      </div>
+      <span class="stats" id="statsDisplay"><i class="far fa-file-alt"></i> 0 records</span>
     </div>
+  </header>
 
-    <div class="table-wrapper" id="tableWrapper">
-        <div class="loading" id="loadingIndicator">
-            <i class="fas fa-spinner fa-pulse"></i> Loading data…
-        </div>
-        <table id="dataTable" style="display: none;">
-            <thead id="tableHead">
-                <!-- dynamic headers with group rows -->
-            </thead>
-            <tbody id="tableBody">
-                <!-- rows -->
-            </tbody>
-        </table>
-        <div id="emptyMessage" class="empty-state" style="display: none;">
-            <i class="fas fa-inbox"></i>
-            No records found
-        </div>
+  <div class="toolbar">
+    <div class="filter-group">
+      <label for="filterInput"><i class="fas fa-search" style="color: #5b7a93;"></i> Filter</label>
+      <input type="text" id="filterInput" placeholder="Search any field...">
     </div>
+    <button class="reload-btn" id="reloadBtn"><i class="fas fa-sync-alt"></i> Reload</button>
+  </div>
 
-    <div id="errorMessage" class="error-box" style="display: none; margin-top: 1.2rem;">
-        <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
+  <!-- Container for separate tables -->
+  <div id="tablesContainer" class="tables-container">
+    <!-- dynamically filled -->
+    <div class="loading" id="loadingIndicator">
+      <i class="fas fa-spinner fa-pulse"></i> Loading data…
     </div>
+  </div>
+
+  <div id="errorMessage" class="error-box" style="display: none; margin-top: 1.2rem;">
+    <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
+  </div>
 </div>
 
 <script>
-    (function() {
-        "use strict";
+  (function() {
+    "use strict";
 
-        // ----- DOM refs -----
-        const sourceInput = document.getElementById('sourceInput');
-        const loadBtn = document.getElementById('loadBtn');
-        const reloadBtn = document.getElementById('reloadBtn');
-        const filterInput = document.getElementById('filterInput');
-        const table = document.getElementById('dataTable');
-        const thead = document.getElementById('tableHead');
-        const tbody = document.getElementById('tableBody');
-        const loadingEl = document.getElementById('loadingIndicator');
-        const emptyEl = document.getElementById('emptyMessage');
-        const errorEl = document.getElementById('errorMessage');
-        const errorText = document.getElementById('errorText');
-        const statsDisplay = document.getElementById('statsDisplay');
+    // DOM refs
+    const sourceInput = document.getElementById('sourceInput');
+    const loadBtn = document.getElementById('loadBtn');
+    const reloadBtn = document.getElementById('reloadBtn');
+    const filterInput = document.getElementById('filterInput');
+    const tablesContainer = document.getElementById('tablesContainer');
+    const loadingEl = document.getElementById('loadingIndicator');
+    const errorEl = document.getElementById('errorMessage');
+    const errorText = document.getElementById('errorText');
+    const statsDisplay = document.getElementById('statsDisplay');
 
-        // ----- column mapping -----
-        // Group definitions: column letters (0-index based) and group name
-        // Col A,B,C,D,E → Project Profile
-        // Col F,I → Physical  (F=index5, I=index8)
-        // Col J,K,L,M → Financial (J=9, K=10, L=11, M=12)
-        // we map by index (0 = A, 1 = B, ...)
-        const GROUP_CONFIG = [
-            { name: 'Project Profile', indices: [0, 1, 2, 3, 4] },   // A,B,C,D,E
-            { name: 'Physical', indices: [5, 8] },                  // F (5), I (8)
-            { name: 'Financial', indices: [9, 10, 11, 12] }         // J,K,L,M
-        ];
+    // ----- GROUP CONFIG (column indices: 0=A, 1=B, ...) -----
+    const GROUPS = [
+      { name: 'Project Profile', icon: 'fa-id-card', indices: [0, 1, 2, 3, 4] },   // A,B,C,D,E
+      { name: 'Physical',        icon: 'fa-dumbbell', indices: [5, 8] },          // F, I
+      { name: 'Financial',       icon: 'fa-coins', indices: [9, 10, 11, 12] }    // J,K,L,M
+    ];
 
-        // flatten all indices for header extraction and rendering
-        const allIndices = GROUP_CONFIG.flatMap(g => g.indices);
-        // unique sorted (preserve order)
-        const uniqueIndices = [...new Set(allIndices)].sort((a,b) => a - b);
+    // Flatten for column selection & ordering
+    const allIndices = GROUPS.flatMap(g => g.indices);
+    const uniqueIndices = [...new Set(allIndices)].sort((a,b) => a - b);
 
-        // state
-        let allData = [];          // array of objects (original keys from CSV)
-        let filteredData = [];
-        let currentSource = '';
-        let headerNames = [];      // column names from CSV (in original order)
+    // state
+    let allData = [];        // array of row objects (each with keys = column names)
+    let filteredData = [];
+    let currentSource = '';
+    let headerNames = [];    // original column names from CSV (row 1)
 
-        // ----- helpers -----
-        function showError(msg) {
-            errorText.textContent = msg || 'Could not load data.';
-            errorEl.style.display = 'flex';
-            loadingEl.style.display = 'none';
-            table.style.display = 'none';
-            emptyEl.style.display = 'none';
-        }
-        function hideError() { errorEl.style.display = 'none'; }
-        function updateStats(count) {
-            statsDisplay.innerHTML = `<i class="far fa-file-alt"></i> ${count} record${count !== 1 ? 's' : ''}`;
-        }
+    // helpers
+    function showError(msg) {
+      errorText.textContent = msg || 'Could not load data.';
+      errorEl.style.display = 'flex';
+      loadingEl.style.display = 'none';
+      tablesContainer.innerHTML = '';
+    }
+    function hideError() { errorEl.style.display = 'none'; }
+    function updateStats(count) {
+      statsDisplay.innerHTML = `<i class="far fa-file-alt"></i> ${count} record${count !== 1 ? 's' : ''}`;
+    }
 
-        // parse CSV to array of objects (keys = first row)
-        function parseCSV(csvText) {
-            const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
-            if (lines.length < 2) return { headers: [], rows: [] };
+    // ----- CSV parser (simple, handles quoted values) -----
+    function parseCSV(csvText) {
+      const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
+      if (lines.length < 2) return { headers: [], rows: [] };
 
-            // Parse headers: handle quoted values, but we keep simple split for now
-            // For robust, we use a basic approach: split by comma, trim quotes.
-            const rawHeaders = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-            const headers = rawHeaders.map((h, idx) => h ? h : `col_${idx}`);
+      // Parse headers
+      const rawHeaders = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+      const headers = rawHeaders.map((h, idx) => h ? h : `col_${idx}`);
 
-            const rows = [];
-            for (let i = 1; i < lines.length; i++) {
-                const rawValues = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-                const obj = {};
-                headers.forEach((h, idx) => {
-                    obj[h] = (idx < rawValues.length) ? rawValues[idx] : '';
-                });
-                rows.push(obj);
-            }
-            return { headers, rows };
-        }
-
-        // ----- Core load -----
-        async function loadDataFromUrl(url) {
-            if (!url || url.trim() === '') {
-                showError('Please paste a valid data URL.');
-                return;
-            }
-            const trimmedUrl = url.trim();
-            currentSource = trimmedUrl;
-
-            // reset UI
-            loadingEl.style.display = 'flex';
-            table.style.display = 'none';
-            emptyEl.style.display = 'none';
-            hideError();
-            allData = [];
-            filteredData = [];
-            headerNames = [];
-
-            try {
-                const response = await fetch(trimmedUrl);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status} — ${response.statusText}`);
-                }
-                const text = await response.text();
-                const trimmedText = text.trim();
-
-                // detect CSV: contains comma and newline, not starting with { or [
-                const isCSV = trimmedText.includes(',') && 
-                              (trimmedText.includes('\n') || trimmedText.includes('\r')) &&
-                              !trimmedText.startsWith('{') && !trimmedText.startsWith('[');
-
-                let rows = [];
-                let headers = [];
-
-                if (isCSV) {
-                    const parsed = parseCSV(trimmedText);
-                    headers = parsed.headers;
-                    rows = parsed.rows;
-                } else {
-                    // try JSON
-                    try {
-                        const json = JSON.parse(trimmedText);
-                        let arrayData = Array.isArray(json) ? json : 
-                                        (json.data && Array.isArray(json.data) ? json.data : 
-                                        (json.items && Array.isArray(json.items) ? json.items :
-                                        (json.results && Array.isArray(json.results) ? json.results : [json])));
-                        if (arrayData.length > 0) {
-                            headers = Object.keys(arrayData[0]);
-                            rows = arrayData;
-                        } else {
-                            rows = [];
-                        }
-                    } catch (e) {
-                        // fallback: try CSV again
-                        if (trimmedText.includes(',') && trimmedText.includes('\n')) {
-                            const parsed = parseCSV(trimmedText);
-                            headers = parsed.headers;
-                            rows = parsed.rows;
-                        } else {
-                            throw new Error('Data format not recognized. Please provide CSV or JSON.');
-                        }
-                    }
-                }
-
-                // store header names (original order)
-                headerNames = headers;
-                
-                // build allData: for each row, keep only columns we need (based on indices)
-                // But we need to map column letters to indices.
-                // We'll create a new array of objects with keys = headerNames[index] for each index in uniqueIndices.
-                const selectedHeaders = uniqueIndices.map(idx => (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`);
-                
-                allData = rows.map(row => {
-                    const newRow = {};
-                    uniqueIndices.forEach((idx, pos) => {
-                        const key = selectedHeaders[pos];
-                        // if header exists in row, use it, else empty
-                        if (headerNames[idx] && row[headerNames[idx]] !== undefined) {
-                            newRow[key] = row[headerNames[idx]];
-                        } else {
-                            // fallback: try to get by index (if row is array-like)
-                            const values = Object.values(row);
-                            newRow[key] = (idx < values.length) ? values[idx] : '';
-                        }
-                    });
-                    return newRow;
-                });
-
-                // remove rows that are completely empty
-                allData = allData.filter(row => Object.values(row).some(v => v !== '' && v !== undefined && v !== null));
-
-                // reset filter
-                filterInput.value = '';
-                filteredData = allData.slice();
-                renderTable();
-
-            } catch (err) {
-                console.error('Load error:', err);
-                showError(err.message || 'Failed to fetch. Check URL or format.');
-                loadingEl.style.display = 'none';
-                table.style.display = 'none';
-                emptyEl.style.display = 'none';
-            }
-        }
-
-        // ----- Render table with grouped headers -----
-        function renderTable() {
-            hideError();
-
-            if (!filteredData || filteredData.length === 0) {
-                table.style.display = 'none';
-                emptyEl.style.display = 'block';
-                loadingEl.style.display = 'none';
-                updateStats(0);
-                return;
-            }
-
-            table.style.display = '';
-            emptyEl.style.display = 'none';
-            loadingEl.style.display = 'none';
-
-            // Determine which columns (keys) we have from first row
-            const sample = filteredData[0];
-            const availableKeys = Object.keys(sample);
-            
-            // Build header groups: we need to map group indices to actual keys
-            // We'll use the order of uniqueIndices and map to available keys
-            // But we stored data using selectedHeaders from uniqueIndices.
-            // So the keys are in the same order as uniqueIndices.
-            // We'll re-create the ordered keys based on uniqueIndices and headerNames
-            const orderedKeys = uniqueIndices.map(idx => {
-                return (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
-            }).filter(key => availableKeys.includes(key));
-
-            // If no keys match, fallback to all keys
-            const displayKeys = orderedKeys.length > 0 ? orderedKeys : availableKeys;
-
-            // Build group mapping: for each group, get the keys that belong to it
-            const groupMap = GROUP_CONFIG.map(group => {
-                const groupKeys = group.indices.map(idx => {
-                    return (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
-                }).filter(key => displayKeys.includes(key));
-                return { name: group.name, keys: groupKeys };
-            }).filter(g => g.keys.length > 0);
-
-            // Build thead with group rows
-            thead.innerHTML = '';
-
-            // --- Group header row (spans) ---
-            const groupRow = document.createElement('tr');
-            groupRow.className = 'group-header';
-            // for each group, create a th with colspan
-            groupMap.forEach(group => {
-                const th = document.createElement('th');
-                th.colSpan = group.keys.length;
-                th.textContent = group.name;
-                th.style.textAlign = 'center';
-                th.style.background = '#e2e9f2';
-                th.style.color = '#0a2535';
-                th.style.fontWeight = '600';
-                th.style.padding = '0.5rem 0.3rem';
-                th.style.fontSize = '0.85rem';
-                th.style.letterSpacing = '0.5px';
-                groupRow.appendChild(th);
-            });
-            thead.appendChild(groupRow);
-
-            // --- Column header row (individual keys) ---
-            const colRow = document.createElement('tr');
-            groupMap.forEach(group => {
-                group.keys.forEach(key => {
-                    const th = document.createElement('th');
-                    // clean up key: remove underscores, capitalize
-                    let displayName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    if (displayName.length > 20) displayName = displayName.substring(0, 18) + '…';
-                    th.textContent = displayName;
-                    th.style.fontWeight = '500';
-                    th.style.fontSize = '0.8rem';
-                    th.style.padding = '0.6rem 0.8rem';
-                    th.style.background = '#f8fafc';
-                    th.style.borderBottom = '1px solid #dde4ed';
-                    colRow.appendChild(th);
-                });
-            });
-            thead.appendChild(colRow);
-
-            // --- Table body ---
-            tbody.innerHTML = '';
-            filteredData.forEach(item => {
-                const row = document.createElement('tr');
-                // iterate over groups and keys to maintain order
-                groupMap.forEach(group => {
-                    group.keys.forEach(key => {
-                        const td = document.createElement('td');
-                        let val = item[key];
-                        if (val === null || val === undefined) val = '';
-                        else if (typeof val === 'object') {
-                            td.textContent = JSON.stringify(val).slice(0, 50) + (JSON.stringify(val).length > 50 ? '…' : '');
-                        } else {
-                            td.textContent = String(val);
-                        }
-                        row.appendChild(td);
-                    });
-                });
-                tbody.appendChild(row);
-            });
-
-            updateStats(filteredData.length);
-        }
-
-        // ----- Filter -----
-        function applyFilter() {
-            const query = filterInput.value.trim().toLowerCase();
-            if (!query) {
-                filteredData = allData.slice();
-            } else {
-                filteredData = allData.filter(item => {
-                    for (let key in item) {
-                        const val = item[key];
-                        if (val === null || val === undefined) continue;
-                        if (String(val).toLowerCase().includes(query)) return true;
-                    }
-                    return false;
-                });
-            }
-            renderTable();
-        }
-
-        // ----- Event listeners -----
-        loadBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const url = sourceInput.value.trim();
-            if (url) loadDataFromUrl(url);
-            else showError('Please paste a data URL first.');
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        // skip empty lines
+        if (!lines[i].trim()) continue;
+        const rawValues = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+        const obj = {};
+        headers.forEach((h, idx) => {
+          obj[h] = (idx < rawValues.length) ? rawValues[idx] : '';
         });
+        rows.push(obj);
+      }
+      return { headers, rows };
+    }
 
-        reloadBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            let url = currentSource || sourceInput.value.trim();
-            if (!url) {
-                showError('No data source. Paste a URL and load first.');
-                return;
-            }
-            sourceInput.value = url;
-            loadDataFromUrl(url);
-        });
+    // ----- Extract data starting from row 4 (index 3) -----
+    function extractFromRow4(rows) {
+      // rows is array of objects, each representing a CSV row
+      // row 1 = headers (index 0), row 2 = index 1, row 3 = index 2, row 4 = index 3
+      if (rows.length <= 3) return [];
+      return rows.slice(3); // start at row 4 (0-based index 3)
+    }
 
-        filterInput.addEventListener('input', applyFilter);
+    // ----- Load data -----
+    async function loadDataFromUrl(url) {
+      if (!url || url.trim() === '') {
+        showError('Please paste a valid data URL.');
+        return;
+      }
+      const trimmedUrl = url.trim();
+      currentSource = trimmedUrl;
 
-        sourceInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                loadBtn.click();
-            }
-        });
+      // reset UI
+      loadingEl.style.display = 'flex';
+      tablesContainer.innerHTML = '';
+      hideError();
+      allData = [];
+      filteredData = [];
+      headerNames = [];
 
-        // ----- Auto-load default -----
-        const defaultUrl = sourceInput.value.trim();
-        if (defaultUrl) {
-            setTimeout(() => loadDataFromUrl(defaultUrl), 120);
+      try {
+        const response = await fetch(trimmedUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status} — ${response.statusText}`);
+        }
+        const text = await response.text();
+        const trimmedText = text.trim();
+
+        // detect CSV vs JSON
+        const isCSV = trimmedText.includes(',') && 
+                      (trimmedText.includes('\n') || trimmedText.includes('\r')) &&
+                      !trimmedText.startsWith('{') && !trimmedText.startsWith('[');
+
+        let rows = [];
+        let headers = [];
+
+        if (isCSV) {
+          const parsed = parseCSV(trimmedText);
+          headers = parsed.headers;
+          rows = parsed.rows;
         } else {
-            loadingEl.style.display = 'none';
-            emptyEl.style.display = 'block';
-            updateStats(0);
+          try {
+            const json = JSON.parse(trimmedText);
+            let arrayData = Array.isArray(json) ? json : 
+                            (json.data && Array.isArray(json.data) ? json.data : 
+                            (json.items && Array.isArray(json.items) ? json.items :
+                            (json.results && Array.isArray(json.results) ? json.results : [json])));
+            if (arrayData.length > 0) {
+              // For JSON, we assume rows are objects; we need to treat first row as data
+              // but we don't have a separate header row. We'll use object keys as headers.
+              headers = Object.keys(arrayData[0]);
+              rows = arrayData;
+            } else {
+              rows = [];
+            }
+          } catch (e) {
+            // fallback CSV
+            if (trimmedText.includes(',') && trimmedText.includes('\n')) {
+              const parsed = parseCSV(trimmedText);
+              headers = parsed.headers;
+              rows = parsed.rows;
+            } else {
+              throw new Error('Data format not recognized. Please provide CSV or JSON.');
+            }
+          }
         }
 
-        // expose for debugging
-        window.__debug = { allData, filteredData, headerNames };
-    })();
+        // Store header names
+        headerNames = headers;
+
+        // --- START from ROW 4 (index 3) ---
+        // For CSV: rows are objects, first row is header (index0), row2=index1, row3=index2, row4=index3
+        // For JSON: we don't have a header row, so we take all rows (no skipping)
+        let dataRows = [];
+        if (isCSV) {
+          dataRows = extractFromRow4(rows);
+        } else {
+          // JSON: use all rows (no header row to skip)
+          dataRows = rows;
+        }
+
+        // Build allData: select only columns defined in uniqueIndices
+        const selectedKeys = uniqueIndices.map(idx => {
+          return (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
+        });
+
+        allData = dataRows.map(row => {
+          const newRow = {};
+          uniqueIndices.forEach((idx, pos) => {
+            const key = selectedKeys[pos];
+            // if header exists in row, use it; else try by index
+            if (headerNames[idx] && row[headerNames[idx]] !== undefined) {
+              newRow[key] = row[headerNames[idx]];
+            } else {
+              // fallback: if row is array-like (JSON array), get by index
+              const values = Object.values(row);
+              newRow[key] = (idx < values.length) ? values[idx] : '';
+            }
+          });
+          return newRow;
+        });
+
+        // remove completely empty rows
+        allData = allData.filter(row => Object.values(row).some(v => v !== '' && v !== undefined && v !== null));
+
+        // reset filter
+        filterInput.value = '';
+        filteredData = allData.slice();
+        renderTables();
+
+      } catch (err) {
+        console.error('Load error:', err);
+        showError(err.message || 'Failed to fetch. Check URL or format.');
+        loadingEl.style.display = 'none';
+        tablesContainer.innerHTML = '';
+      }
+    }
+
+    // ----- Render separate tables (one per group) -----
+    function renderTables() {
+      hideError();
+      loadingEl.style.display = 'none';
+
+      if (!filteredData || filteredData.length === 0) {
+        tablesContainer.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            No records found (starting from row 4).
+          </div>
+        `;
+        updateStats(0);
+        return;
+      }
+
+      updateStats(filteredData.length);
+
+      // Build table for each group
+      let html = '';
+
+      GROUPS.forEach(group => {
+        // determine which keys (column names) belong to this group
+        const groupKeys = group.indices.map(idx => {
+          return (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
+        }).filter(key => {
+          // check if key exists in any row
+          return filteredData.some(row => row[key] !== undefined);
+        });
+
+        if (groupKeys.length === 0) return; // skip empty groups
+
+        // Build table rows for this group
+        let rowsHtml = '';
+        filteredData.forEach((item, rowIdx) => {
+          rowsHtml += `<tr>`;
+          groupKeys.forEach(key => {
+            let val = item[key];
+            if (val === null || val === undefined) val = '';
+            else if (typeof val === 'object') {
+              val = JSON.stringify(val).slice(0, 50) + (JSON.stringify(val).length > 50 ? '…' : '');
+            } else {
+              val = String(val);
+            }
+            rowsHtml += `<td>${val}</td>`;
+          });
+          rowsHtml += `</tr>`;
+        });
+
+        // Build header row for this group
+        let headerHtml = `<tr>`;
+        groupKeys.forEach(key => {
+          let display = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          if (display.length > 25) display = display.substring(0, 22) + '…';
+          headerHtml += `<th>${display}</th>`;
+        });
+        headerHtml += `</tr>`;
+
+        // Build the section
+        html += `
+          <div class="table-section">
+            <div class="section-title">
+              <i class="fas ${group.icon || 'fa-folder'}"></i>
+              ${group.name}
+              <span class="badge-count">${filteredData.length} rows</span>
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>${headerHtml}</thead>
+                <tbody>${rowsHtml}</tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      });
+
+      if (!html) {
+        tablesContainer.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-table"></i>
+            No data columns match the defined groups.
+          </div>
+        `;
+        return;
+      }
+
+      tablesContainer.innerHTML = html;
+    }
+
+    // ----- Filter -----
+    function applyFilter() {
+      const query = filterInput.value.trim().toLowerCase();
+      if (!query) {
+        filteredData = allData.slice();
+      } else {
+        filteredData = allData.filter(item => {
+          for (let key in item) {
+            const val = item[key];
+            if (val === null || val === undefined) continue;
+            if (String(val).toLowerCase().includes(query)) return true;
+          }
+          return false;
+        });
+      }
+      renderTables();
+    }
+
+    // ----- Event listeners -----
+    loadBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const url = sourceInput.value.trim();
+      if (url) loadDataFromUrl(url);
+      else showError('Please paste a data URL first.');
+    });
+
+    reloadBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      let url = currentSource || sourceInput.value.trim();
+      if (!url) {
+        showError('No data source. Paste a URL and load first.');
+        return;
+      }
+      sourceInput.value = url;
+      loadDataFromUrl(url);
+    });
+
+    filterInput.addEventListener('input', applyFilter);
+
+    sourceInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        loadBtn.click();
+      }
+    });
+
+    // ----- Auto-load default -----
+    const defaultUrl = sourceInput.value.trim();
+    if (defaultUrl) {
+      setTimeout(() => loadDataFromUrl(defaultUrl), 120);
+    } else {
+      loadingEl.style.display = 'none';
+      tablesContainer.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-cloud-upload-alt"></i>
+          Paste a data URL above and click Load.
+        </div>
+      `;
+      updateStats(0);
+    }
+
+  })();
 </script>
 
 <!-- 
-    COLUMN GROUPING:
-    - Project Profile: Col A, B, C, D, E  (indices 0-4)
-    - Physical:        Col F, I            (indices 5, 8)
-    - Financial:       Col J, K, L, M      (indices 9-12)
-    The table displays grouped headers with column names.
-    Data is filtered and rendered automatically.
+  BEHAVIOR:
+  - Data is captured starting from ROW 4 (skips first 3 rows).
+  - Groups are displayed in SEPARATE TABLES:
+    • Project Profile (Col A,B,C,D,E)
+    • Physical (Col F,I)
+    • Financial (Col J,K,L,M)
+  - Filter searches across all groups.
 -->
 
 </body>
