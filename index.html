@@ -1,511 +1,592 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Data loader · dynamic source</title>
-  <!-- Font Awesome (optional icons) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data loader · paste your source</title>
+    <!-- Font Awesome (icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
 
-    body {
-      background: #f4f7fb;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 2rem 1rem;
-    }
+        body {
+            background: #f4f7fb;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
 
-    .card {
-      max-width: 1200px;
-      width: 100%;
-      background: white;
-      border-radius: 32px;
-      box-shadow: 0 20px 40px -12px rgba(0, 20, 30, 0.25);
-      padding: 2rem 2rem 2.5rem;
-      transition: 0.2s;
-    }
+        .card {
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px -12px rgba(0, 20, 30, 0.25);
+            padding: 2rem 2rem 2.5rem;
+            transition: 0.2s;
+        }
 
-    h1 {
-      font-size: 1.9rem;
-      font-weight: 600;
-      letter-spacing: -0.3px;
-      color: #0b1e2b;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 0.4rem;
-    }
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            color: #0b1e2b;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 0.4rem;
+        }
 
-    .subhead {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem 0.75rem;
-      margin-bottom: 1.8rem;
-      border-bottom: 1px solid #e9edf2;
-      padding-bottom: 1.2rem;
-    }
+        .subhead {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem 0.75rem;
+            margin-bottom: 1.8rem;
+            border-bottom: 1px solid #e9edf2;
+            padding-bottom: 1.2rem;
+        }
 
-    .source-badge {
-      background: #eef3f8;
-      padding: 0.4rem 1.1rem;
-      border-radius: 40px;
-      font-size: 0.9rem;
-      color: #1f3a4b;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 500;
-      border: 1px solid #d5dee7;
-      word-break: break-all;
-    }
+        .source-area {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.8rem;
+            background: #f2f6fc;
+            padding: 0.5rem 1rem 0.5rem 1.4rem;
+            border-radius: 60px;
+            border: 1px solid #d5dee7;
+            flex: 1 1 280px;
+        }
 
-    .source-badge i {
-      color: #2d7aff;
-      font-size: 0.9rem;
-    }
+        .source-area i {
+            color: #2d7aff;
+            font-size: 1rem;
+        }
 
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
+        .source-area input {
+            border: none;
+            background: transparent;
+            padding: 0.5rem 0;
+            font-size: 0.9rem;
+            flex: 1;
+            min-width: 140px;
+            outline: none;
+            color: #0b1e2b;
+            font-weight: 450;
+        }
 
-    .filter-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+        .source-area input::placeholder {
+            color: #8ba0b3;
+            font-weight: 350;
+        }
 
-    .filter-group label {
-      font-weight: 500;
-      font-size: 0.9rem;
-      color: #1d3b4f;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+        .source-area input:focus {
+            border-bottom: 2px solid #2d7aff;
+            padding-bottom: 0.3rem;
+        }
 
-    .filter-group input {
-      padding: 0.5rem 1rem;
-      border: 1.5px solid #dbe1e9;
-      border-radius: 60px;
-      font-size: 0.9rem;
-      background: white;
-      min-width: 200px;
-      transition: 0.2s;
-      outline: none;
-    }
+        .load-btn {
+            background: #2d7aff;
+            border: none;
+            color: white;
+            font-weight: 500;
+            padding: 0.5rem 1.5rem;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            border: 1px solid #2d7aff;
+        }
 
-    .filter-group input:focus {
-      border-color: #2d7aff;
-      box-shadow: 0 0 0 3px rgba(45, 122, 255, 0.15);
-    }
+        .load-btn:hover {
+            background: #1a5fd9;
+            border-color: #1a5fd9;
+            box-shadow: 0 4px 10px rgba(45, 122, 255, 0.25);
+        }
 
-    .filter-group input::placeholder {
-      color: #9aabb8;
-      font-weight: 300;
-    }
+        .load-btn:active {
+            transform: scale(0.96);
+        }
 
-    .stats {
-      background: #eef3f8;
-      padding: 0.35rem 1.2rem;
-      border-radius: 40px;
-      font-size: 0.9rem;
-      color: #1f3a4b;
-      font-weight: 500;
-      white-space: nowrap;
-    }
+        .stats {
+            background: #eef3f8;
+            padding: 0.35rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            color: #1f3a4b;
+            font-weight: 500;
+            white-space: nowrap;
+        }
 
-    .table-wrapper {
-      overflow-x: auto;
-      border-radius: 20px;
-      border: 1px solid #e6ecf3;
-      background: white;
-      margin-top: 0.5rem;
-    }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.95rem;
-      min-width: 480px;
-    }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
 
-    th {
-      text-align: left;
-      padding: 1rem 1.2rem;
-      background: #f8fafc;
-      color: #1d3b4f;
-      font-weight: 600;
-      border-bottom: 2px solid #dde4ed;
-      white-space: nowrap;
-    }
+        .filter-group label {
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #1d3b4f;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-    td {
-      padding: 0.9rem 1.2rem;
-      border-bottom: 1px solid #eaeef4;
-      color: #1e2f3e;
-      vertical-align: middle;
-    }
+        .filter-group input {
+            padding: 0.5rem 1rem;
+            border: 1.5px solid #dbe1e9;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            background: white;
+            min-width: 200px;
+            transition: 0.2s;
+            outline: none;
+        }
 
-    tr:last-child td {
-      border-bottom: none;
-    }
+        .filter-group input:focus {
+            border-color: #2d7aff;
+            box-shadow: 0 0 0 3px rgba(45, 122, 255, 0.15);
+        }
 
-    tr:hover td {
-      background: #f6f9ff;
-    }
+        .filter-group input::placeholder {
+            color: #9aabb8;
+            font-weight: 300;
+        }
 
-    .empty-state {
-      padding: 3.5rem 1rem;
-      text-align: center;
-      color: #5f7485;
-      font-size: 1rem;
-      background: #fafcfe;
-    }
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 20px;
+            border: 1px solid #e6ecf3;
+            background: white;
+            margin-top: 0.5rem;
+        }
 
-    .empty-state i {
-      font-size: 2.2rem;
-      color: #b6c9db;
-      margin-bottom: 0.5rem;
-      display: block;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            min-width: 480px;
+        }
 
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.8rem;
-      padding: 3rem 0;
-      color: #2a4a62;
-    }
+        th {
+            text-align: left;
+            padding: 1rem 1.2rem;
+            background: #f8fafc;
+            color: #1d3b4f;
+            font-weight: 600;
+            border-bottom: 2px solid #dde4ed;
+            white-space: nowrap;
+        }
 
-    .loading i {
-      font-size: 1.8rem;
-      color: #2d7aff;
-    }
+        td {
+            padding: 0.9rem 1.2rem;
+            border-bottom: 1px solid #eaeef4;
+            color: #1e2f3e;
+            vertical-align: middle;
+        }
 
-    .error-box {
-      background: #fff5f5;
-      border: 1px solid #ffc9c9;
-      border-radius: 60px;
-      padding: 0.8rem 1.6rem;
-      color: #b33c3c;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 500;
-      margin-top: 0.5rem;
-    }
+        tr:last-child td {
+            border-bottom: none;
+        }
 
-    /* responsive */
-    @media (max-width: 700px) {
-      .card { padding: 1.5rem; }
-      h1 { font-size: 1.5rem; }
-      .toolbar { flex-direction: column; align-items: stretch; }
-      .filter-group { flex-direction: column; align-items: stretch; }
-      .filter-group input { min-width: unset; width: 100%; }
-      .stats { align-self: flex-start; }
-      .source-badge { font-size: 0.8rem; }
-    }
+        tr:hover td {
+            background: #f6f9ff;
+        }
 
-    /* small badge */
-    .badge-id {
-      background: #e6edf6;
-      padding: 0.2rem 0.8rem;
-      border-radius: 40px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: #1e3f5a;
-      display: inline-block;
-    }
-  </style>
+        .empty-state {
+            padding: 3.5rem 1rem;
+            text-align: center;
+            color: #5f7485;
+            font-size: 1rem;
+            background: #fafcfe;
+        }
+
+        .empty-state i {
+            font-size: 2.2rem;
+            color: #b6c9db;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            padding: 3rem 0;
+            color: #2a4a62;
+        }
+
+        .loading i {
+            font-size: 1.8rem;
+            color: #2d7aff;
+        }
+
+        .error-box {
+            background: #fff5f5;
+            border: 1px solid #ffc9c9;
+            border-radius: 60px;
+            padding: 0.8rem 1.6rem;
+            color: #b33c3c;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        /* responsive */
+        @media (max-width: 700px) {
+            .card { padding: 1.5rem; }
+            h1 { font-size: 1.5rem; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .filter-group { flex-direction: column; align-items: stretch; }
+            .filter-group input { min-width: unset; width: 100%; }
+            .stats { align-self: flex-start; }
+            .source-area { border-radius: 30px; padding: 0.5rem 1rem; }
+            .load-btn { width: 100%; justify-content: center; }
+        }
+
+        .badge-id {
+            background: #e6edf6;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #1e3f5a;
+            display: inline-block;
+        }
+
+        .inline-flex {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
 </head>
 <body>
 
 <div class="card" id="app">
-  <header>
-    <h1>
-      <i class="fas fa-database" style="color: #2d7aff; font-size: 1.8rem;"></i>
-      Data Viewer
-    </h1>
-    <div class="subhead">
-      <span class="source-badge">
-        <i class="fas fa-link"></i>
-        <span id="sourceDisplay">data.json</span>
-      </span>
-      <span class="stats" id="statsDisplay"><i class="far fa-file-alt"></i> 0 records</span>
-    </div>
-  </header>
+    <header>
+        <h1>
+            <i class="fas fa-database" style="color: #2d7aff; font-size: 1.8rem;"></i>
+            Data Viewer
+        </h1>
+        <div class="subhead">
+            <div class="source-area">
+                <i class="fas fa-paste"></i>
+                <input type="text" id="sourceInput" placeholder="Paste your data URL or JSON endpoint..." value="https://jsonplaceholder.typicode.com/posts">
+                <button class="load-btn" id="loadBtn"><i class="fas fa-arrow-right"></i> Load</button>
+            </div>
+            <span class="stats" id="statsDisplay"><i class="far fa-file-alt"></i> 0 records</span>
+        </div>
+    </header>
 
-  <div class="toolbar">
-    <div class="filter-group">
-      <label for="filterInput"><i class="fas fa-search" style="color: #5b7a93;"></i> Filter</label>
-      <input type="text" id="filterInput" placeholder="Search any field...">
+    <div class="toolbar">
+        <div class="filter-group">
+            <label for="filterInput"><i class="fas fa-search" style="color: #5b7a93;"></i> Filter</label>
+            <input type="text" id="filterInput" placeholder="Search any field...">
+        </div>
+        <button id="reloadBtn" style="background: white; border: 1.5px solid #dbe1e9; padding: 0.5rem 1.2rem; border-radius: 60px; font-weight: 500; color: #1d3b4f; cursor: pointer; transition: 0.15s; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-sync-alt"></i> Reload
+        </button>
     </div>
-    <button id="reloadBtn" style="background: white; border: 1.5px solid #dbe1e9; padding: 0.5rem 1.2rem; border-radius: 60px; font-weight: 500; color: #1d3b4f; cursor: pointer; transition: 0.15s; display: flex; align-items: center; gap: 8px;">
-      <i class="fas fa-sync-alt"></i> Reload
-    </button>
-  </div>
 
-  <!-- Table container -->
-  <div class="table-wrapper" id="tableWrapper">
-    <div class="loading" id="loadingIndicator">
-      <i class="fas fa-spinner fa-pulse"></i> Loading data…
+    <!-- Table container -->
+    <div class="table-wrapper" id="tableWrapper">
+        <div class="loading" id="loadingIndicator">
+            <i class="fas fa-spinner fa-pulse"></i> Loading data…
+        </div>
+        <table id="dataTable" style="display: none;">
+            <thead id="tableHead">
+                <!-- dynamic headers -->
+            </thead>
+            <tbody id="tableBody">
+                <!-- rows -->
+            </tbody>
+        </table>
+        <div id="emptyMessage" class="empty-state" style="display: none;">
+            <i class="fas fa-inbox"></i>
+            No records found
+        </div>
     </div>
-    <table id="dataTable" style="display: none;">
-      <thead id="tableHead">
-        <!-- dynamic headers -->
-      </thead>
-      <tbody id="tableBody">
-        <!-- rows -->
-      </tbody>
-    </table>
-    <div id="emptyMessage" class="empty-state" style="display: none;">
-      <i class="fas fa-inbox"></i>
-      No records found
-    </div>
-  </div>
 
-  <!-- hidden error inline -->
-  <div id="errorMessage" class="error-box" style="display: none; margin-top: 1.2rem;">
-    <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
-  </div>
+    <!-- error inline -->
+    <div id="errorMessage" class="error-box" style="display: none; margin-top: 1.2rem;">
+        <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
+    </div>
 </div>
 
 <script>
-  (function() {
-    "use strict";
+    (function() {
+        "use strict";
 
-    // ---------- CONFIG ----------
-    // Point to YOUR data source. 
-    // For demo, we use a placeholder JSON from a public endpoint.
-    // Replace with your own URL (local or remote).
-    const DATA_URL = 'https://jsonplaceholder.typicode.com/posts';  // sample data (100 posts)
+        // DOM elements
+        const sourceInput = document.getElementById('sourceInput');
+        const loadBtn = document.getElementById('loadBtn');
+        const reloadBtn = document.getElementById('reloadBtn');
+        const filterInput = document.getElementById('filterInput');
 
-    // Alternatively, if you have a local file: 'data.json' or '/api/your-endpoint'
-    // const DATA_URL = 'data.json';
+        const table = document.getElementById('dataTable');
+        const thead = document.getElementById('tableHead');
+        const tbody = document.getElementById('tableBody');
+        const loadingEl = document.getElementById('loadingIndicator');
+        const emptyEl = document.getElementById('emptyMessage');
+        const errorEl = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const statsDisplay = document.getElementById('statsDisplay');
 
-    // DOM elements
-    const table = document.getElementById('dataTable');
-    const thead = document.getElementById('tableHead');
-    const tbody = document.getElementById('tableBody');
-    const loadingEl = document.getElementById('loadingIndicator');
-    const emptyEl = document.getElementById('emptyMessage');
-    const errorEl = document.getElementById('errorMessage');
-    const errorText = document.getElementById('errorText');
-    const statsDisplay = document.getElementById('statsDisplay');
-    const sourceDisplay = document.getElementById('sourceDisplay');
-    const filterInput = document.getElementById('filterInput');
-    const reloadBtn = document.getElementById('reloadBtn');
+        // state
+        let allData = [];
+        let filteredData = [];
+        let headers = [];
+        let currentSource = '';   // store last loaded url
 
-    // state
-    let allData = [];             // original dataset (array of objects)
-    let filteredData = [];       // current filtered data
-    let headers = [];
+        // ---------- helpers ----------
+        function showError(msg) {
+            errorText.textContent = msg || 'Could not load data.';
+            errorEl.style.display = 'flex';
+            loadingEl.style.display = 'none';
+            table.style.display = 'none';
+            emptyEl.style.display = 'none';
+        }
 
-    // ---------- helpers ----------
-    function showError(msg) {
-      errorText.textContent = msg || 'Could not load data.';
-      errorEl.style.display = 'flex';
-      loadingEl.style.display = 'none';
-      table.style.display = 'none';
-      emptyEl.style.display = 'none';
-    }
+        function hideError() {
+            errorEl.style.display = 'none';
+        }
 
-    function hideError() {
-      errorEl.style.display = 'none';
-    }
+        function updateStats(count) {
+            statsDisplay.innerHTML = `<i class="far fa-file-alt"></i> ${count} record${count !== 1 ? 's' : ''}`;
+        }
 
-    // update stats
-    function updateStats(count) {
-      statsDisplay.innerHTML = `<i class="far fa-file-alt"></i> ${count} record${count !== 1 ? 's' : ''}`;
-    }
+        // render table from filteredData
+        function renderTable() {
+            hideError();
 
-    // render table from filteredData
-    function renderTable() {
-      hideError();
-
-      if (!filteredData || filteredData.length === 0) {
-        table.style.display = 'none';
-        emptyEl.style.display = 'block';
-        loadingEl.style.display = 'none';
-        updateStats(0);
-        return;
-      }
-
-      // show table, hide empty
-      table.style.display = '';
-      emptyEl.style.display = 'none';
-      loadingEl.style.display = 'none';
-
-      // derive headers from first object (if not cached)
-      if (headers.length === 0 && filteredData.length > 0) {
-        headers = Object.keys(filteredData[0]);
-      }
-
-      // build thead
-      thead.innerHTML = '';
-      const headerRow = document.createElement('tr');
-      headers.forEach(key => {
-        const th = document.createElement('th');
-        th.textContent = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
-        headerRow.appendChild(th);
-      });
-      thead.appendChild(headerRow);
-
-      // build tbody
-      tbody.innerHTML = '';
-      filteredData.forEach(item => {
-        const row = document.createElement('tr');
-        headers.forEach(key => {
-          const td = document.createElement('td');
-          const val = item[key];
-          // display value: if null/undefined => empty string; if object => JSON string (fallback)
-          if (val === null || val === undefined) {
-            td.textContent = '';
-          } else if (typeof val === 'object') {
-            td.textContent = JSON.stringify(val).slice(0, 60) + (JSON.stringify(val).length > 60 ? '…' : '');
-          } else {
-            td.textContent = String(val);
-          }
-          row.appendChild(td);
-        });
-        tbody.appendChild(row);
-      });
-
-      updateStats(filteredData.length);
-    }
-
-    // filter data based on input (case-insensitive, any field)
-    function applyFilter() {
-      const query = filterInput.value.trim().toLowerCase();
-      if (!query) {
-        filteredData = allData.slice(); // copy
-      } else {
-        filteredData = allData.filter(item => {
-          // search through all string values of the object
-          for (let key in item) {
-            const val = item[key];
-            if (val === null || val === undefined) continue;
-            const strVal = String(val).toLowerCase();
-            if (strVal.includes(query)) {
-              return true;
+            if (!filteredData || filteredData.length === 0) {
+                table.style.display = 'none';
+                emptyEl.style.display = 'block';
+                loadingEl.style.display = 'none';
+                updateStats(0);
+                return;
             }
-          }
-          return false;
+
+            table.style.display = '';
+            emptyEl.style.display = 'none';
+            loadingEl.style.display = 'none';
+
+            if (headers.length === 0 && filteredData.length > 0) {
+                headers = Object.keys(filteredData[0]);
+            }
+
+            thead.innerHTML = '';
+            const headerRow = document.createElement('tr');
+            headers.forEach(key => {
+                const th = document.createElement('th');
+                th.textContent = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+
+            tbody.innerHTML = '';
+            filteredData.forEach(item => {
+                const row = document.createElement('tr');
+                headers.forEach(key => {
+                    const td = document.createElement('td');
+                    const val = item[key];
+                    if (val === null || val === undefined) {
+                        td.textContent = '';
+                    } else if (typeof val === 'object') {
+                        td.textContent = JSON.stringify(val).slice(0, 60) + (JSON.stringify(val).length > 60 ? '…' : '');
+                    } else {
+                        td.textContent = String(val);
+                    }
+                    row.appendChild(td);
+                });
+                tbody.appendChild(row);
+            });
+
+            updateStats(filteredData.length);
+        }
+
+        // filter data based on input (any field)
+        function applyFilter() {
+            const query = filterInput.value.trim().toLowerCase();
+            if (!query) {
+                filteredData = allData.slice();
+            } else {
+                filteredData = allData.filter(item => {
+                    for (let key in item) {
+                        const val = item[key];
+                        if (val === null || val === undefined) continue;
+                        const strVal = String(val).toLowerCase();
+                        if (strVal.includes(query)) return true;
+                    }
+                    return false;
+                });
+            }
+            renderTable();
+        }
+
+        // core load function: accepts a URL string
+        async function loadDataFromUrl(url) {
+            if (!url || url.trim() === '') {
+                showError('Please paste a valid data URL.');
+                return;
+            }
+
+            const trimmedUrl = url.trim();
+            currentSource = trimmedUrl;
+
+            // reset UI
+            loadingEl.style.display = 'flex';
+            table.style.display = 'none';
+            emptyEl.style.display = 'none';
+            hideError();
+            filteredData = [];
+            allData = [];
+            headers = [];
+
+            try {
+                const response = await fetch(trimmedUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status} — ${response.statusText}`);
+                }
+                const data = await response.json();
+
+                let arrayData = data;
+                if (!Array.isArray(data)) {
+                    // try to extract array from common wrappers
+                    if (data.data && Array.isArray(data.data)) arrayData = data.data;
+                    else if (data.items && Array.isArray(data.items)) arrayData = data.items;
+                    else if (data.results && Array.isArray(data.results)) arrayData = data.results;
+                    else {
+                        // single object → wrap
+                        arrayData = [data];
+                    }
+                }
+
+                if (arrayData.length === 0) {
+                    allData = [];
+                    filteredData = [];
+                    renderTable();
+                    loadingEl.style.display = 'none';
+                    return;
+                }
+
+                allData = arrayData;
+                filterInput.value = '';
+                filteredData = allData.slice();
+                if (allData.length > 0) {
+                    headers = Object.keys(allData[0]);
+                } else {
+                    headers = [];
+                }
+                renderTable();
+
+            } catch (err) {
+                console.error('Data loading error:', err);
+                showError(err.message || 'Failed to fetch. Check URL or CORS.');
+                loadingEl.style.display = 'none';
+                table.style.display = 'none';
+                emptyEl.style.display = 'none';
+            }
+        }
+
+        // ---------- event listeners ----------
+        // Load button: take value from input
+        loadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = sourceInput.value.trim();
+            if (url) {
+                loadDataFromUrl(url);
+            } else {
+                showError('Please paste a data URL first.');
+            }
         });
-      }
-      renderTable();
-    }
 
-    // load data from DATA_URL
-    async function loadData() {
-      // reset UI
-      loadingEl.style.display = 'flex';
-      table.style.display = 'none';
-      emptyEl.style.display = 'none';
-      hideError();
-      filteredData = [];
-      allData = [];
-      headers = [];
+        // Reload button: reuse current source (or input value if empty)
+        reloadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            let url = currentSource;
+            // if currentSource is empty, fallback to input value
+            if (!url) {
+                url = sourceInput.value.trim();
+                if (!url) {
+                    showError('No data source to reload. Paste a URL and load first.');
+                    return;
+                }
+            }
+            // update input field to reflect current source
+            sourceInput.value = url;
+            loadDataFromUrl(url);
+        });
 
-      // update source display (shorten if needed)
-      let src = DATA_URL;
-      if (src.length > 45) src = src.substring(0, 42) + '…';
-      sourceDisplay.textContent = src;
+        // Filter input
+        filterInput.addEventListener('input', applyFilter);
 
-      try {
-        const response = await fetch(DATA_URL);
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status} — ${response.statusText}`);
-        }
-        const data = await response.json();
+        // optional: press Enter in sourceInput triggers load
+        sourceInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                loadBtn.click();
+            }
+        });
 
-        // If data is not an array, try to extract an array from object
-        let arrayData = data;
-        if (!Array.isArray(data)) {
-          // If it's an object with a 'data' or 'items' property, try to use it
-          if (data.data && Array.isArray(data.data)) arrayData = data.data;
-          else if (data.items && Array.isArray(data.items)) arrayData = data.items;
-          else if (data.results && Array.isArray(data.results)) arrayData = data.results;
-          else {
-            // fallback: wrap single object in array
-            arrayData = [data];
-          }
-        }
-
-        if (arrayData.length === 0) {
-          // empty array is valid but shows empty state
-          allData = [];
-          filteredData = [];
-          renderTable();
-          loadingEl.style.display = 'none';
-          return;
-        }
-
-        allData = arrayData;
-        // reset filter
-        filterInput.value = '';
-        filteredData = allData.slice();
-        // set headers from first object
-        if (allData.length > 0) {
-          headers = Object.keys(allData[0]);
+        // ---------- initial load with default value ----------
+        // Pre-fill with a sample, but we want to load it automatically.
+        const defaultUrl = sourceInput.value.trim();
+        if (defaultUrl) {
+            // small delay to let DOM settle, then load
+            setTimeout(() => {
+                loadDataFromUrl(defaultUrl);
+            }, 80);
         } else {
-          headers = [];
+            // if empty, show empty state
+            loadingEl.style.display = 'none';
+            emptyEl.style.display = 'block';
+            updateStats(0);
         }
-        renderTable();
 
-      } catch (err) {
-        console.error('Data loading error:', err);
-        showError(err.message || 'Failed to fetch data. Check console.');
-        loadingEl.style.display = 'none';
-        table.style.display = 'none';
-        emptyEl.style.display = 'none';
-      }
-    }
+        // expose to console for debugging (optional)
+        window.__debug = { loadDataFromUrl, allData, filteredData };
 
-    // ---------- event listeners ----------
-    filterInput.addEventListener('input', applyFilter);
-
-    reloadBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      loadData();
-    });
-
-    // ---------- initial load ----------
-    loadData();
-
-    // (optional) if you want to reload on any other trigger, just call loadData()
-    // For demo, we also show a small "reload" functionality
-
-  })();
+    })();
 </script>
 
 <!-- 
   *************** HOW TO USE ***************
-  1. Replace DATA_URL constant (line ~98) with YOUR data source URL.
-     - Can be local: 'data.json' or '/api/endpoint'
-     - Remote: 'https://api.example.com/data'
-  2. The page will fetch, display, and allow filtering.
-  3. If your data is an array of objects, it will display all keys as columns.
-  4. Supports nested objects (displayed as JSON string).
-  5. Filter searches across all fields (case-insensitive).
+  1. The textbox is now EDITABLE. Paste your data URL (JSON endpoint or local file).
+  2. Click "Load" or press Enter to fetch and display data.
+  3. Use the filter to search across all fields.
+  4. "Reload" fetches the same URL again (useful for dynamic data).
+  5. Works with arrays of objects. Nested objects are displayed as JSON strings.
 -->
 
 </body>
