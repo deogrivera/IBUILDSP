@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Data Viewer · Valid Col A Only</title>
+    <title>Data Viewer · Hide/Show Columns</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
@@ -21,7 +21,7 @@
             padding: 2rem 1rem;
         }
         .card {
-            max-width: 1400px;
+            max-width: 1500px;
             width: 100%;
             background: white;
             border-radius: 32px;
@@ -36,6 +36,7 @@
             align-items: center;
             gap: 12px;
             margin-bottom: 0.2rem;
+            flex-wrap: wrap;
         }
         .subhead {
             display: flex;
@@ -103,7 +104,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 1rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
         .filter-group {
             display: flex;
@@ -147,6 +148,51 @@
         }
         .reload-btn:hover { background: #f2f6fc; border-color: #b0c2d4; }
 
+        /* Column visibility controls */
+        .column-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem 1rem;
+            background: #f8fafc;
+            padding: 0.6rem 1.2rem;
+            border-radius: 60px;
+            border: 1px solid #e6ecf3;
+            margin-bottom: 1.5rem;
+        }
+        .column-controls label {
+            font-weight: 500;
+            font-size: 0.8rem;
+            color: #1d3b4f;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            user-select: none;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            transition: 0.1s;
+        }
+        .column-controls label:hover {
+            background: #eef3f8;
+        }
+        .column-controls label input[type="checkbox"] {
+            margin-right: 3px;
+            accent-color: #2d7aff;
+            cursor: pointer;
+        }
+        .column-controls .toggle-all {
+            font-weight: 600;
+            color: #2d7aff;
+            border-right: 1px solid #dde4ed;
+            padding-right: 1rem;
+            margin-right: 0.5rem;
+        }
+        .column-controls .toggle-all label {
+            font-weight: 600;
+            color: #2d7aff;
+        }
+
         .table-wrapper {
             overflow-x: auto;
             border-radius: 20px;
@@ -180,6 +226,7 @@
         }
         tr:last-child td { border-bottom: none; }
         tr:hover td { background: #f6faff; }
+        .col-hidden { display: none; }
 
         .empty-state {
             padding: 3.5rem 1rem;
@@ -237,6 +284,7 @@
             .stats { align-self: flex-start; }
             .source-area { border-radius: 30px; padding: 0.4rem 0.8rem; }
             .load-btn { width: 100%; justify-content: center; }
+            .column-controls { border-radius: 30px; padding: 0.6rem 1rem; }
         }
     </style>
 </head>
@@ -245,8 +293,8 @@
 <div class="card" id="app">
     <header>
         <h1>
-            <i class="fas fa-filter" style="color: #2d7aff;"></i>
-            Data Viewer · Valid Col A Only
+            <i class="fas fa-eye-slash" style="color: #2d7aff;"></i>
+            Data Viewer · Hide/Show Columns
             <span class="info-badge"><i class="fas fa-check-circle"></i> Row 4+ with data</span>
         </h1>
         <div class="subhead">
@@ -266,6 +314,18 @@
             <input type="text" id="filterInput" placeholder="Search any field...">
         </div>
         <button class="reload-btn" id="reloadBtn"><i class="fas fa-sync-alt"></i> Reload</button>
+    </div>
+
+    <!-- Column visibility controls -->
+    <div id="columnControls" class="column-controls" style="display: none;">
+        <span class="toggle-all">
+            <label>
+                <input type="checkbox" id="toggleAllColumns" checked /> Show All
+            </label>
+        </span>
+        <span id="columnCheckboxes">
+            <!-- Dynamically generated -->
+        </span>
     </div>
 
     <div class="table-wrapper">
@@ -303,9 +363,12 @@
         const errorEl = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
         const statsDisplay = document.getElementById('statsDisplay');
+        const columnControls = document.getElementById('columnControls');
+        const columnCheckboxes = document.getElementById('columnCheckboxes');
+        const toggleAllBtn = document.getElementById('toggleAllColumns');
 
-        // ----- COLUMN MAPPING: Col A-L with custom headers -----
-        // 0=A, 1=B, 2=C, 3=D, 4=E, 5=F, 6=G, 7=H, 8=I, 9=J, 10=K, 11=L
+        // ----- COLUMN MAPPING: Col A-L + R(17), S(18) -----
+        // 0=A, 1=B, 2=C, 3=D, 4=E, 5=F, 6=G, 7=H, 8=I, 9=J, 10=K, 11=L, 17=R, 18=S
         const COLUMN_MAP = [
             { index: 0, header: 'No.' },
             { index: 1, header: 'Cluster' },
@@ -318,17 +381,27 @@
             { index: 8, header: 'SP Type' },
             { index: 9, header: 'Target Unit' },
             { index: 10, header: 'Qty' },
-            { index: 11, header: 'Linear Meter' }
+            { index: 11, header: 'Linear Meter' },
+            { index: 17, header: 'Status' },
+            { index: 18, header: 'Remarks' }
         ];
 
         const selectedIndices = COLUMN_MAP.map(c => c.index);
         const customHeaders = COLUMN_MAP.map(c => c.header);
+        const columnKeys = COLUMN_MAP.map((c, idx) => `col_${idx}`);
 
         // state
         let allData = [];
         let filteredData = [];
         let currentSource = '';
         let headerNames = [];
+        let columnVisibility = {};
+        let availableKeys = [];
+
+        // Initialize all columns as visible
+        COLUMN_MAP.forEach((c, idx) => {
+            columnVisibility[`col_${idx}`] = true;
+        });
 
         // helpers
         function showError(msg) {
@@ -337,6 +410,7 @@
             loadingEl.style.display = 'none';
             table.style.display = 'none';
             emptyEl.style.display = 'none';
+            columnControls.style.display = 'none';
         }
         function hideError() { errorEl.style.display = 'none'; }
         function updateStats(count) {
@@ -372,19 +446,13 @@
 
         // ----- Check if Column A (index 0) has a valid value -----
         function hasValidColA(row) {
-            // Get the value for Column A
             let colAValue = '';
-            
-            // Try to get by header name first
             if (headerNames[0] && row[headerNames[0]] !== undefined) {
                 colAValue = row[headerNames[0]];
             } else {
-                // Fallback: try to get by index from array-like object
                 const values = Object.values(row);
                 colAValue = values[0] || '';
             }
-            
-            // Check if value exists and is not empty/whitespace
             return colAValue !== undefined && 
                    colAValue !== null && 
                    String(colAValue).trim() !== '';
@@ -402,6 +470,7 @@
             loadingEl.style.display = 'flex';
             table.style.display = 'none';
             emptyEl.style.display = 'none';
+            columnControls.style.display = 'none';
             hideError();
             allData = [];
             filteredData = [];
@@ -460,29 +529,31 @@
                     dataRows = rows;
                 }
 
-                // Build allData: select columns A-L AND filter by valid Col A
+                // Build allData: select columns A-L + R(17), S(18) AND filter by valid Col A
                 allData = dataRows
-                    .filter(row => hasValidColA(row))  // ← ONLY KEEP ROWS WITH VALID COL A
+                    .filter(row => hasValidColA(row))
                     .map(row => {
                         const newRow = {};
                         selectedIndices.forEach((idx, pos) => {
                             const key = (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
                             if (headerNames[idx] && row[headerNames[idx]] !== undefined) {
-                                newRow[key] = row[headerNames[idx]];
+                                newRow[`col_${pos}`] = row[headerNames[idx]];
                             } else {
-                                // fallback: try to get by index from array-like object
                                 const values = Object.values(row);
-                                newRow[key] = (idx < values.length) ? values[idx] : '';
+                                newRow[`col_${pos}`] = (idx < values.length) ? values[idx] : '';
                             }
                         });
                         return newRow;
                     });
 
-                // Remove any rows that are completely empty (just in case)
+                // Remove any rows that are completely empty
                 allData = allData.filter(row => Object.values(row).some(v => v !== '' && v !== undefined && v !== null));
 
                 filterInput.value = '';
                 filteredData = allData.slice();
+                
+                // Build column controls and render
+                buildColumnControls();
                 renderTable();
 
             } catch (err) {
@@ -491,7 +562,108 @@
                 loadingEl.style.display = 'none';
                 table.style.display = 'none';
                 emptyEl.style.display = 'none';
+                columnControls.style.display = 'none';
             }
+        }
+
+        // ----- Build column visibility controls -----
+        function buildColumnControls() {
+            if (allData.length === 0) {
+                columnControls.style.display = 'none';
+                return;
+            }
+
+            // Determine which columns actually have data
+            const sample = allData[0];
+            availableKeys = Object.keys(sample);
+            
+            // Only show controls for columns that exist
+            let hasVisibleColumns = false;
+            let html = '';
+            
+            COLUMN_MAP.forEach((c, idx) => {
+                const key = `col_${idx}`;
+                if (availableKeys.includes(key)) {
+                    hasVisibleColumns = true;
+                    const isChecked = columnVisibility[key] !== false;
+                    html += `
+                        <label>
+                            <input type="checkbox" class="col-toggle" data-col="${key}" ${isChecked ? 'checked' : ''} />
+                            ${c.header}
+                        </label>
+                    `;
+                }
+            });
+
+            if (hasVisibleColumns) {
+                columnControls.style.display = 'flex';
+                columnCheckboxes.innerHTML = html;
+                
+                // Add event listeners to individual checkboxes
+                document.querySelectorAll('.col-toggle').forEach(cb => {
+                    cb.addEventListener('change', function() {
+                        const colKey = this.dataset.col;
+                        columnVisibility[colKey] = this.checked;
+                        updateColumnVisibility();
+                        updateToggleAllState();
+                    });
+                });
+
+                // Toggle all
+                toggleAllBtn.addEventListener('change', function() {
+                    const isChecked = this.checked;
+                    document.querySelectorAll('.col-toggle').forEach(cb => {
+                        cb.checked = isChecked;
+                        const colKey = cb.dataset.col;
+                        columnVisibility[colKey] = isChecked;
+                    });
+                    updateColumnVisibility();
+                });
+
+                // Set initial toggle all state
+                updateToggleAllState();
+            } else {
+                columnControls.style.display = 'none';
+            }
+        }
+
+        // ----- Update column visibility in table -----
+        function updateColumnVisibility() {
+            // Get all header cells and data cells by column index
+            const headers = thead.querySelectorAll('th');
+            const rows = tbody.querySelectorAll('tr');
+            
+            COLUMN_MAP.forEach((c, idx) => {
+                const key = `col_${idx}`;
+                if (!availableKeys.includes(key)) return;
+                
+                const isVisible = columnVisibility[key] !== false;
+                const colIndex = availableKeys.indexOf(key);
+                
+                if (colIndex === -1) return;
+                
+                // Update header
+                if (headers[colIndex]) {
+                    headers[colIndex].classList.toggle('col-hidden', !isVisible);
+                }
+                
+                // Update all cells in this column
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells[colIndex]) {
+                        cells[colIndex].classList.toggle('col-hidden', !isVisible);
+                    }
+                });
+            });
+        }
+
+        // ----- Update "Show All" checkbox state -----
+        function updateToggleAllState() {
+            const checkboxes = document.querySelectorAll('.col-toggle');
+            if (checkboxes.length === 0) return;
+            
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            toggleAllBtn.checked = allChecked;
         }
 
         // ----- Render table with custom headers -----
@@ -502,6 +674,7 @@
                 table.style.display = 'none';
                 emptyEl.style.display = 'block';
                 loadingEl.style.display = 'none';
+                columnControls.style.display = 'none';
                 updateStats(0);
                 return;
             }
@@ -510,22 +683,21 @@
             emptyEl.style.display = 'none';
             loadingEl.style.display = 'none';
 
-            // Determine which keys exist in the data
+            // Get available keys from first row
             const sample = filteredData[0];
-            const availableKeys = Object.keys(sample);
-
-            // Map selected indices to actual keys
-            const orderedKeys = selectedIndices.map(idx => {
-                return (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
-            }).filter(key => availableKeys.includes(key));
+            availableKeys = Object.keys(sample);
 
             // Build header row with custom headers
             const headerRow = document.createElement('tr');
-            selectedIndices.forEach((idx, pos) => {
-                const key = (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
+            COLUMN_MAP.forEach((c, idx) => {
+                const key = `col_${idx}`;
                 if (availableKeys.includes(key)) {
                     const th = document.createElement('th');
-                    th.textContent = customHeaders[pos] || key;
+                    th.textContent = c.header;
+                    th.dataset.col = key;
+                    if (columnVisibility[key] === false) {
+                        th.classList.add('col-hidden');
+                    }
                     headerRow.appendChild(th);
                 }
             });
@@ -536,8 +708,8 @@
             tbody.innerHTML = '';
             filteredData.forEach(item => {
                 const row = document.createElement('tr');
-                selectedIndices.forEach((idx, pos) => {
-                    const key = (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
+                COLUMN_MAP.forEach((c, idx) => {
+                    const key = `col_${idx}`;
                     if (availableKeys.includes(key)) {
                         const td = document.createElement('td');
                         let val = item[key];
@@ -546,6 +718,9 @@
                             td.textContent = JSON.stringify(val).slice(0, 50) + (JSON.stringify(val).length > 50 ? '…' : '');
                         } else {
                             td.textContent = String(val);
+                        }
+                        if (columnVisibility[key] === false) {
+                            td.classList.add('col-hidden');
                         }
                         row.appendChild(td);
                     }
@@ -572,6 +747,8 @@
                 });
             }
             renderTable();
+            // Re-apply column visibility after filter
+            setTimeout(updateColumnVisibility, 50);
         }
 
         // ----- Event listeners -----
@@ -616,10 +793,15 @@
 </script>
 
 <!-- 
-    FILTERING: Only rows with a valid value in Column A (index 0) are captured.
-    - Valid means: not undefined, not null, and not empty/whitespace.
-    - Data starts from ROW 4 (skips first 3 rows).
-    - Columns A-L are displayed with custom headers.
+    COLUMNS INCLUDED:
+    - A-L (No., Cluster, Region, Province, Municipality, Proponent LGU, LGU Income Class, SP Name, SP Type, Target Unit, Qty, Linear Meter)
+    - R (Status)
+    - S (Remarks)
+    
+    FEATURE: Hide/Show columns using checkboxes above the table.
+    - Click individual column names to toggle visibility.
+    - Use "Show All" to toggle all columns at once.
+    - Filter works on visible and hidden columns alike.
 -->
 
 </body>
