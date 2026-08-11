@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Grouped Tables · Custom Headers</title>
+  <title>Data Viewer · Custom Headers A-L</title>
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
@@ -147,69 +147,34 @@
     }
     .reload-btn:hover { background: #f2f6fc; border-color: #b0c2d4; }
 
-    /* separate tables container */
-    .tables-container {
-      display: flex;
-      flex-direction: column;
-      gap: 2.5rem;
-      margin-top: 0.5rem;
-    }
-    .table-section {
-      background: white;
-      border-radius: 20px;
-      border: 1px solid #e6ecf3;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-    }
-    .table-section .section-title {
-      background: #f0f4fa;
-      padding: 0.75rem 1.5rem;
-      font-weight: 600;
-      font-size: 1.1rem;
-      color: #0b2a3d;
-      border-bottom: 2px solid #dde4ed;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .table-section .section-title i {
-      color: #2d7aff;
-      font-size: 1rem;
-    }
-    .table-section .section-title .badge-count {
-      margin-left: auto;
-      background: #dce6f0;
-      border-radius: 40px;
-      padding: 0.15rem 1rem;
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: #1a3a52;
-    }
     .table-wrapper {
       overflow-x: auto;
-      padding: 0 0.2rem 0.2rem 0.2rem;
+      border-radius: 20px;
+      border: 1px solid #e6ecf3;
+      background: white;
+      margin-top: 0.5rem;
     }
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.9rem;
-      min-width: 300px;
+      min-width: 700px;
     }
     th {
       text-align: left;
-      padding: 0.7rem 1rem;
-      background: #fafcfd;
+      padding: 0.9rem 1rem;
+      background: #f8fafc;
       color: #1d3b4f;
       font-weight: 600;
-      border-bottom: 2px solid #e2e8f0;
+      border-bottom: 2px solid #dde4ed;
       white-space: nowrap;
       font-size: 0.8rem;
       text-transform: uppercase;
       letter-spacing: 0.3px;
     }
     td {
-      padding: 0.6rem 1rem;
-      border-bottom: 1px solid #eef2f6;
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid #eaeef4;
       color: #1e2f3e;
       vertical-align: middle;
     }
@@ -217,13 +182,13 @@
     tr:hover td { background: #f6faff; }
 
     .empty-state {
-      padding: 3rem 1rem;
+      padding: 3.5rem 1rem;
       text-align: center;
       color: #5f7485;
       background: #fafcfe;
     }
     .empty-state i {
-      font-size: 2rem;
+      font-size: 2.2rem;
       color: #b6c9db;
       display: block;
       margin-bottom: 0.5rem;
@@ -261,7 +226,6 @@
       .stats { align-self: flex-start; }
       .source-area { border-radius: 30px; padding: 0.4rem 0.8rem; }
       .load-btn { width: 100%; justify-content: center; }
-      .table-section .section-title { font-size: 1rem; padding: 0.6rem 1rem; }
     }
   </style>
 </head>
@@ -269,7 +233,7 @@
 
 <div class="card" id="app">
   <header>
-    <h1><i class="fas fa-table" style="color: #2d7aff;"></i> Grouped Tables · Custom Headers</h1>
+    <h1><i class="fas fa-table" style="color: #2d7aff;"></i> Data Viewer · Custom Headers</h1>
     <div class="subhead">
       <div class="source-area">
         <i class="fas fa-paste"></i>
@@ -289,11 +253,16 @@
     <button class="reload-btn" id="reloadBtn"><i class="fas fa-sync-alt"></i> Reload</button>
   </div>
 
-  <!-- Container for separate tables -->
-  <div id="tablesContainer" class="tables-container">
-    <!-- dynamically filled -->
+  <div class="table-wrapper">
     <div class="loading" id="loadingIndicator">
       <i class="fas fa-spinner fa-pulse"></i> Loading data…
+    </div>
+    <table id="dataTable" style="display: none;">
+      <thead id="tableHead"></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div id="emptyMessage" class="empty-state" style="display: none;">
+      <i class="fas fa-inbox"></i> No records found
     </div>
   </div>
 
@@ -311,39 +280,35 @@
     const loadBtn = document.getElementById('loadBtn');
     const reloadBtn = document.getElementById('reloadBtn');
     const filterInput = document.getElementById('filterInput');
-    const tablesContainer = document.getElementById('tablesContainer');
+    const table = document.getElementById('dataTable');
+    const thead = document.getElementById('tableHead');
+    const tbody = document.getElementById('tableBody');
     const loadingEl = document.getElementById('loadingIndicator');
+    const emptyEl = document.getElementById('emptyMessage');
     const errorEl = document.getElementById('errorMessage');
     const errorText = document.getElementById('errorText');
     const statsDisplay = document.getElementById('statsDisplay');
 
-    // ----- GROUP CONFIG with CUSTOM HEADERS for Project Profile -----
-    // For Project Profile: map column indices to custom headers
-    const GROUPS = [
-      { 
-        name: 'Project Profile', 
-        icon: 'fa-id-card',
-        // column indices: 0=A, 1=B, 2=C, 3=D, 4=E
-        // custom headers in the same order
-        indices: [0, 1, 2, 3, 4],
-        customHeaders: ['No.', 'Muni/Prov', 'Name of Subproject', 'Type', 'Status']
-      },
-      { 
-        name: 'Physical', 
-        icon: 'fa-dumbbell', 
-        indices: [5, 8]  // F, I
-        // no custom headers → will use original column names
-      },
-      { 
-        name: 'Financial', 
-        icon: 'fa-coins', 
-        indices: [9, 10, 11, 12]  // J,K,L,M
-      }
+    // ----- COLUMN MAPPING: Col A-L with custom headers -----
+    // 0=A, 1=B, 2=C, 3=D, 4=E, 5=F, 6=G, 7=H, 8=I, 9=J, 10=K, 11=L
+    const COLUMN_MAP = [
+      { index: 0, header: 'No.' },
+      { index: 1, header: 'Cluster' },
+      { index: 2, header: 'Region' },
+      { index: 3, header: 'Province' },
+      { index: 4, header: 'Municipality' },
+      { index: 5, header: 'Proponent LGU' },
+      { index: 6, header: 'LGU Income Class' },
+      { index: 7, header: 'SP Name' },
+      { index: 8, header: 'SP Type' },
+      { index: 9, header: 'Target Unit' },
+      { index: 10, header: 'Qty' },
+      { index: 11, header: 'Linear Meter' }
     ];
 
-    // Flatten for column selection & ordering
-    const allIndices = GROUPS.flatMap(g => g.indices);
-    const uniqueIndices = [...new Set(allIndices)].sort((a,b) => a - b);
+    // Extract indices for selection
+    const selectedIndices = COLUMN_MAP.map(c => c.index);
+    const customHeaders = COLUMN_MAP.map(c => c.header);
 
     // state
     let allData = [];
@@ -356,7 +321,8 @@
       errorText.textContent = msg || 'Could not load data.';
       errorEl.style.display = 'flex';
       loadingEl.style.display = 'none';
-      tablesContainer.innerHTML = '';
+      table.style.display = 'none';
+      emptyEl.style.display = 'none';
     }
     function hideError() { errorEl.style.display = 'none'; }
     function updateStats(count) {
@@ -400,7 +366,8 @@
       currentSource = trimmedUrl;
 
       loadingEl.style.display = 'flex';
-      tablesContainer.innerHTML = '';
+      table.style.display = 'none';
+      emptyEl.style.display = 'none';
       hideError();
       allData = [];
       filteredData = [];
@@ -459,18 +426,15 @@
           dataRows = rows;
         }
 
-        // Build allData: select only columns defined in uniqueIndices
-        const selectedKeys = uniqueIndices.map(idx => {
-          return (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
-        });
-
+        // Build allData: select only columns A-L (indices 0-11)
         allData = dataRows.map(row => {
           const newRow = {};
-          uniqueIndices.forEach((idx, pos) => {
-            const key = selectedKeys[pos];
+          selectedIndices.forEach((idx, pos) => {
+            const key = (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
             if (headerNames[idx] && row[headerNames[idx]] !== undefined) {
               newRow[key] = row[headerNames[idx]];
             } else {
+              // fallback: try to get by index from array-like object
               const values = Object.values(row);
               newRow[key] = (idx < values.length) ? values[idx] : '';
             }
@@ -478,119 +442,85 @@
           return newRow;
         });
 
+        // Remove completely empty rows
         allData = allData.filter(row => Object.values(row).some(v => v !== '' && v !== undefined && v !== null));
 
         filterInput.value = '';
         filteredData = allData.slice();
-        renderTables();
+        renderTable();
 
       } catch (err) {
         console.error('Load error:', err);
         showError(err.message || 'Failed to fetch. Check URL or format.');
         loadingEl.style.display = 'none';
-        tablesContainer.innerHTML = '';
+        table.style.display = 'none';
+        emptyEl.style.display = 'none';
       }
     }
 
-    // ----- Render separate tables with custom headers for Project Profile -----
-    function renderTables() {
+    // ----- Render table with custom headers -----
+    function renderTable() {
       hideError();
-      loadingEl.style.display = 'none';
 
       if (!filteredData || filteredData.length === 0) {
-        tablesContainer.innerHTML = `
-          <div class="empty-state">
-            <i class="fas fa-inbox"></i>
-            No records found (starting from row 4).
-          </div>
-        `;
+        table.style.display = 'none';
+        emptyEl.style.display = 'block';
+        loadingEl.style.display = 'none';
         updateStats(0);
         return;
       }
 
-      updateStats(filteredData.length);
+      table.style.display = '';
+      emptyEl.style.display = 'none';
+      loadingEl.style.display = 'none';
 
-      let html = '';
+      // Determine which keys exist in the data
+      const sample = filteredData[0];
+      const availableKeys = Object.keys(sample);
 
-      GROUPS.forEach(group => {
-        // Determine keys for this group
-        let groupKeys = group.indices.map(idx => {
-          return (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
-        }).filter(key => {
-          return filteredData.some(row => row[key] !== undefined);
-        });
+      // Map selected indices to actual keys
+      const orderedKeys = selectedIndices.map(idx => {
+        return (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
+      }).filter(key => availableKeys.includes(key));
 
-        if (groupKeys.length === 0) return;
-
-        // If group has custom headers, use them (must match indices length)
-        let displayHeaders = groupKeys;
-        if (group.customHeaders && group.customHeaders.length === group.indices.length) {
-          // Map custom headers to the keys that exist
-          displayHeaders = group.indices.map((idx, pos) => {
-            const key = (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
-            // Only use custom header if the key exists in data
-            if (filteredData.some(row => row[key] !== undefined)) {
-              return group.customHeaders[pos] || key;
-            }
-            return key;
-          }).filter((_, idx) => {
-            const key = (group.indices[idx] < headerNames.length) ? headerNames[idx] : `col_${group.indices[idx]}`;
-            return filteredData.some(row => row[key] !== undefined);
-          });
+      // Build header row with custom headers
+      const headerRow = document.createElement('tr');
+      // Use custom headers for each column that exists
+      let headerIndex = 0;
+      selectedIndices.forEach((idx, pos) => {
+        const key = (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
+        if (availableKeys.includes(key)) {
+          const th = document.createElement('th');
+          th.textContent = customHeaders[pos] || key;
+          headerRow.appendChild(th);
+          headerIndex++;
         }
+      });
+      thead.innerHTML = '';
+      thead.appendChild(headerRow);
 
-        // Build rows
-        let rowsHtml = '';
-        filteredData.forEach((item) => {
-          rowsHtml += `<tr>`;
-          groupKeys.forEach(key => {
+      // Build table body
+      tbody.innerHTML = '';
+      filteredData.forEach(item => {
+        const row = document.createElement('tr');
+        selectedIndices.forEach((idx, pos) => {
+          const key = (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
+          if (availableKeys.includes(key)) {
+            const td = document.createElement('td');
             let val = item[key];
             if (val === null || val === undefined) val = '';
             else if (typeof val === 'object') {
-              val = JSON.stringify(val).slice(0, 50) + (JSON.stringify(val).length > 50 ? '…' : '');
+              td.textContent = JSON.stringify(val).slice(0, 50) + (JSON.stringify(val).length > 50 ? '…' : '');
             } else {
-              val = String(val);
+              td.textContent = String(val);
             }
-            rowsHtml += `<td>${val}</td>`;
-          });
-          rowsHtml += `</tr>`;
+            row.appendChild(td);
+          }
         });
-
-        // Build header row using displayHeaders
-        let headerHtml = `<tr>`;
-        displayHeaders.forEach(header => {
-          headerHtml += `<th>${header}</th>`;
-        });
-        headerHtml += `</tr>`;
-
-        html += `
-          <div class="table-section">
-            <div class="section-title">
-              <i class="fas ${group.icon || 'fa-folder'}"></i>
-              ${group.name}
-              <span class="badge-count">${filteredData.length} rows</span>
-            </div>
-            <div class="table-wrapper">
-              <table>
-                <thead>${headerHtml}</thead>
-                <tbody>${rowsHtml}</tbody>
-              </table>
-            </div>
-          </div>
-        `;
+        tbody.appendChild(row);
       });
 
-      if (!html) {
-        tablesContainer.innerHTML = `
-          <div class="empty-state">
-            <i class="fas fa-table"></i>
-            No data columns match the defined groups.
-          </div>
-        `;
-        return;
-      }
-
-      tablesContainer.innerHTML = html;
+      updateStats(filteredData.length);
     }
 
     // ----- Filter -----
@@ -608,7 +538,7 @@
           return false;
         });
       }
-      renderTables();
+      renderTable();
     }
 
     // ----- Event listeners -----
@@ -645,12 +575,7 @@
       setTimeout(() => loadDataFromUrl(defaultUrl), 120);
     } else {
       loadingEl.style.display = 'none';
-      tablesContainer.innerHTML = `
-        <div class="empty-state">
-          <i class="fas fa-cloud-upload-alt"></i>
-          Paste a data URL above and click Load.
-        </div>
-      `;
+      emptyEl.style.display = 'block';
       updateStats(0);
     }
 
@@ -658,15 +583,21 @@
 </script>
 
 <!-- 
-  CUSTOM HEADERS for Project Profile:
-  - Col A → "No."
-  - Col B → "Muni/Prov"
-  - Col C → "Name of Subproject"
-  - Col D → "Type"
-  - Col E → "Status"
-  
+  CUSTOM HEADERS for Col A-L:
+  A → No.
+  B → Cluster
+  C → Region
+  D → Province
+  E → Municipality
+  F → Proponent LGU
+  G → LGU Income Class
+  H → SP Name
+  I → SP Type
+  J → Target Unit
+  K → Qty
+  L → Linear Meter
+
   Data starts from ROW 4 (skips first 3 rows).
-  Groups displayed in separate tables.
 -->
 
 </body>
