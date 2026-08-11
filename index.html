@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Data Viewer · All Columns A-S</title>
+    <title>Data Viewer · Col A Valid (Row 3+)</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
@@ -287,9 +287,9 @@
 <div class="card" id="app">
     <header>
         <h1>
-            <i class="fas fa-eye-slash" style="color: #2d7aff;"></i>
-            Data Viewer · All Columns A-S
-            <span class="info-badge"><i class="fas fa-check-circle"></i> Row 4+ with data</span>
+            <i class="fas fa-filter" style="color: #2d7aff;"></i>
+            Data Viewer · Col A Valid (Row 3+)
+            <span class="info-badge"><i class="fas fa-check-circle"></i> Row 3+ with data</span>
         </h1>
         <div class="subhead">
             <div class="source-area">
@@ -328,7 +328,7 @@
             <tbody id="tableBody"></tbody>
         </table>
         <div id="emptyMessage" class="empty-state" style="display: none;">
-            <i class="fas fa-inbox"></i> No records found with valid data in Column A
+            <i class="fas fa-inbox"></i> No records found with valid data in Column A (Row 3+)
         </div>
     </div>
 
@@ -462,10 +462,11 @@
             return { headers: cleanHeaders, rows };
         }
 
-        // ----- Extract data starting from row 4 (index 3) -----
-        function extractFromRow4(rows) {
-            if (rows.length <= 3) return [];
-            return rows.slice(3);
+        // ----- Extract data starting from row 3 (index 2) -----
+        // Row 1 = headers (index 0), Row 2 = index 1, Row 3 = index 2
+        function extractFromRow3(rows) {
+            if (rows.length <= 2) return [];
+            return rows.slice(2); // Start from row 3 (index 2)
         }
 
         // ----- Check if Column A (index 0) has a valid value -----
@@ -545,10 +546,10 @@
 
                 headerNames = headers;
 
-                // Start from row 4 for CSV, or use all rows for JSON
+                // Start from row 3 for CSV, or use all rows for JSON
                 let dataRows = [];
                 if (isCSV) {
-                    dataRows = extractFromRow4(rows);
+                    dataRows = extractFromRow3(rows);
                 } else {
                     dataRows = rows;
                 }
@@ -809,11 +810,12 @@
 </script>
 
 <!-- 
-    FIXED: Col R (Status) and Col S (Remarks) are now properly captured.
-    - Improved CSV parser handles all columns correctly.
+    UPDATED: Now captures data starting from ROW 3 (instead of Row 4).
+    - Row 1 = Headers
+    - Row 2 = Data row 1 (skipped)
+    - Row 3+ = Data captured (if Col A has valid value)
     - Columns A-L + R(17), S(18) are displayed.
     - Hide/Show columns feature included.
-    - Data starts from Row 4, filtered by valid Col A.
 -->
 
 </body>
