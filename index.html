@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Data Viewer · Hide/Show Columns</title>
+    <title>Data Viewer · All Columns A-S</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
@@ -148,7 +148,6 @@
         }
         .reload-btn:hover { background: #f2f6fc; border-color: #b0c2d4; }
 
-        /* Column visibility controls */
         .column-controls {
             display: flex;
             flex-wrap: wrap;
@@ -173,9 +172,7 @@
             border-radius: 30px;
             transition: 0.1s;
         }
-        .column-controls label:hover {
-            background: #eef3f8;
-        }
+        .column-controls label:hover { background: #eef3f8; }
         .column-controls label input[type="checkbox"] {
             margin-right: 3px;
             accent-color: #2d7aff;
@@ -188,10 +185,7 @@
             padding-right: 1rem;
             margin-right: 0.5rem;
         }
-        .column-controls .toggle-all label {
-            font-weight: 600;
-            color: #2d7aff;
-        }
+        .column-controls .toggle-all label { font-weight: 600; color: #2d7aff; }
 
         .table-wrapper {
             overflow-x: auto;
@@ -294,7 +288,7 @@
     <header>
         <h1>
             <i class="fas fa-eye-slash" style="color: #2d7aff;"></i>
-            Data Viewer · Hide/Show Columns
+            Data Viewer · All Columns A-S
             <span class="info-badge"><i class="fas fa-check-circle"></i> Row 4+ with data</span>
         </h1>
         <div class="subhead">
@@ -316,16 +310,13 @@
         <button class="reload-btn" id="reloadBtn"><i class="fas fa-sync-alt"></i> Reload</button>
     </div>
 
-    <!-- Column visibility controls -->
     <div id="columnControls" class="column-controls" style="display: none;">
         <span class="toggle-all">
             <label>
                 <input type="checkbox" id="toggleAllColumns" checked /> Show All
             </label>
         </span>
-        <span id="columnCheckboxes">
-            <!-- Dynamically generated -->
-        </span>
+        <span id="columnCheckboxes"></span>
     </div>
 
     <div class="table-wrapper">
@@ -386,10 +377,6 @@
             { index: 18, header: 'Remarks' }
         ];
 
-        const selectedIndices = COLUMN_MAP.map(c => c.index);
-        const customHeaders = COLUMN_MAP.map(c => c.header);
-        const columnKeys = COLUMN_MAP.map((c, idx) => `col_${idx}`);
-
         // state
         let allData = [];
         let filteredData = [];
@@ -417,25 +404,62 @@
             statsDisplay.innerHTML = `<i class="far fa-file-alt"></i> ${count} record${count !== 1 ? 's' : ''}`;
         }
 
-        // ----- CSV parser -----
+        // ----- Improved CSV parser that handles all columns -----
         function parseCSV(csvText) {
             const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
             if (lines.length < 2) return { headers: [], rows: [] };
 
-            const rawHeaders = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-            const headers = rawHeaders.map((h, idx) => h ? h : `col_${idx}`);
+            // Parse headers - handle quoted values properly
+            const headerLine = lines[0];
+            const headers = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < headerLine.length; i++) {
+                const char = headerLine[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    headers.push(current.trim().replace(/^"|"$/g, ''));
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            headers.push(current.trim().replace(/^"|"$/g, ''));
+            
+            // Clean up empty header names
+            const cleanHeaders = headers.map((h, idx) => h ? h : `col_${idx}`);
 
             const rows = [];
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i].trim()) continue;
-                const rawValues = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                
+                const line = lines[i];
+                const values = [];
+                let currentVal = '';
+                let inQuotesVal = false;
+                
+                for (let j = 0; j < line.length; j++) {
+                    const char = line[j];
+                    if (char === '"') {
+                        inQuotesVal = !inQuotesVal;
+                    } else if (char === ',' && !inQuotesVal) {
+                        values.push(currentVal.trim().replace(/^"|"$/g, ''));
+                        currentVal = '';
+                    } else {
+                        currentVal += char;
+                    }
+                }
+                values.push(currentVal.trim().replace(/^"|"$/g, ''));
+                
                 const obj = {};
-                headers.forEach((h, idx) => {
-                    obj[h] = (idx < rawValues.length) ? rawValues[idx] : '';
+                cleanHeaders.forEach((h, idx) => {
+                    obj[h] = (idx < values.length) ? values[idx] : '';
                 });
                 rows.push(obj);
             }
-            return { headers, rows };
+            return { headers: cleanHeaders, rows };
         }
 
         // ----- Extract data starting from row 4 (index 3) -----
@@ -534,13 +558,15 @@
                     .filter(row => hasValidColA(row))
                     .map(row => {
                         const newRow = {};
-                        selectedIndices.forEach((idx, pos) => {
-                            const key = (idx < headerNames.length) ? headerNames[idx] : `col_${idx}`;
-                            if (headerNames[idx] && row[headerNames[idx]] !== undefined) {
-                                newRow[`col_${pos}`] = row[headerNames[idx]];
+                        COLUMN_MAP.forEach((col, idx) => {
+                            const key = `col_${idx}`;
+                            // Try to get value by header name, or by index
+                            if (col.index < headerNames.length && row[headerNames[col.index]] !== undefined) {
+                                newRow[key] = row[headerNames[col.index]];
                             } else {
+                                // Fallback: get by array index
                                 const values = Object.values(row);
-                                newRow[`col_${pos}`] = (idx < values.length) ? values[idx] : '';
+                                newRow[key] = (col.index < values.length) ? values[col.index] : '';
                             }
                         });
                         return newRow;
@@ -573,11 +599,9 @@
                 return;
             }
 
-            // Determine which columns actually have data
             const sample = allData[0];
             availableKeys = Object.keys(sample);
             
-            // Only show controls for columns that exist
             let hasVisibleColumns = false;
             let html = '';
             
@@ -599,7 +623,6 @@
                 columnControls.style.display = 'flex';
                 columnCheckboxes.innerHTML = html;
                 
-                // Add event listeners to individual checkboxes
                 document.querySelectorAll('.col-toggle').forEach(cb => {
                     cb.addEventListener('change', function() {
                         const colKey = this.dataset.col;
@@ -609,7 +632,6 @@
                     });
                 });
 
-                // Toggle all
                 toggleAllBtn.addEventListener('change', function() {
                     const isChecked = this.checked;
                     document.querySelectorAll('.col-toggle').forEach(cb => {
@@ -620,7 +642,6 @@
                     updateColumnVisibility();
                 });
 
-                // Set initial toggle all state
                 updateToggleAllState();
             } else {
                 columnControls.style.display = 'none';
@@ -629,7 +650,6 @@
 
         // ----- Update column visibility in table -----
         function updateColumnVisibility() {
-            // Get all header cells and data cells by column index
             const headers = thead.querySelectorAll('th');
             const rows = tbody.querySelectorAll('tr');
             
@@ -642,12 +662,10 @@
                 
                 if (colIndex === -1) return;
                 
-                // Update header
                 if (headers[colIndex]) {
                     headers[colIndex].classList.toggle('col-hidden', !isVisible);
                 }
                 
-                // Update all cells in this column
                 rows.forEach(row => {
                     const cells = row.querySelectorAll('td');
                     if (cells[colIndex]) {
@@ -683,7 +701,6 @@
             emptyEl.style.display = 'none';
             loadingEl.style.display = 'none';
 
-            // Get available keys from first row
             const sample = filteredData[0];
             availableKeys = Object.keys(sample);
 
@@ -747,7 +764,6 @@
                 });
             }
             renderTable();
-            // Re-apply column visibility after filter
             setTimeout(updateColumnVisibility, 50);
         }
 
@@ -793,15 +809,11 @@
 </script>
 
 <!-- 
-    COLUMNS INCLUDED:
-    - A-L (No., Cluster, Region, Province, Municipality, Proponent LGU, LGU Income Class, SP Name, SP Type, Target Unit, Qty, Linear Meter)
-    - R (Status)
-    - S (Remarks)
-    
-    FEATURE: Hide/Show columns using checkboxes above the table.
-    - Click individual column names to toggle visibility.
-    - Use "Show All" to toggle all columns at once.
-    - Filter works on visible and hidden columns alike.
+    FIXED: Col R (Status) and Col S (Remarks) are now properly captured.
+    - Improved CSV parser handles all columns correctly.
+    - Columns A-L + R(17), S(18) are displayed.
+    - Hide/Show columns feature included.
+    - Data starts from Row 4, filtered by valid Col A.
 -->
 
 </body>
