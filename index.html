@@ -302,6 +302,13 @@
         </div>
     </header>
 
+    <div class="source-area" style="margin-bottom: 1.2rem; border-radius: 30px;">
+        <i class="fas fa-diagram-project" style="color:#12995e;"></i>
+        <input type="text" id="physicalSourceInput" placeholder="Paste Physical data source CSV URL..."
+               value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSKiPjvkcJeCP7VuAjjFsIvMskQUlF_FegjMFxaxv6Hg-tCKLNCjPWIo1jb_G3-TgRuEXs0BK6TxOq3/pub?gid=0&single=true&output=csv">
+        <span class="info-badge" style="margin-left:0;"><i class="fas fa-layer-group"></i> Physical group (Col F &amp; I)</span>
+    </div>
+
     <div class="toolbar">
         <div class="filter-group">
             <label for="filterInput"><i class="fas fa-search" style="color: #5b7a93;"></i> Filter</label>
@@ -343,6 +350,7 @@
 
         // DOM refs
         const sourceInput = document.getElementById('sourceInput');
+        const physicalSourceInput = document.getElementById('physicalSourceInput');
         const loadBtn = document.getElementById('loadBtn');
         const reloadBtn = document.getElementById('reloadBtn');
         const filterInput = document.getElementById('filterInput');
@@ -376,10 +384,19 @@
             { index: 18, header: 'Remarks' }
         ];
 
+        // ----- EXTRA COLUMN GROUP: "Physical" (Col F & Col I of the physical data source) -----
+        // Col F (index 5) header is fetched live from the merged cell F1:F2 of the source.
+        // Col I (index 8) header is fixed to "Date of Completion".
+        const EXTRA_COLUMNS = [
+            { key: 'phys_f', index: 5, header: 'Physical Accomplishment', group: 'Physical', dynamicHeader: true },
+            { key: 'phys_i', index: 8, header: 'Date of Completion', group: 'Physical', dynamicHeader: false }
+        ];
+
         // state
         let allData = [];
         let filteredData = [];
         let currentSource = '';
+        let currentPhysicalSource = '';
         let headerNames = [];
         let columnVisibility = {};
         let availableKeys = [];
@@ -387,6 +404,9 @@
         // Initialize all columns as visible
         COLUMN_MAP.forEach((c, idx) => {
             columnVisibility[`col_${idx}`] = true;
+        });
+        EXTRA_COLUMNS.forEach(c => {
+            columnVisibility[c.key] = true;
         });
 
         // helpers
@@ -403,60 +423,63 @@
             statsDisplay.innerHTML = `<i class="far fa-file-alt"></i> ${count} record${count !== 1 ? 's' : ''}`;
         }
 
-        // ----- Improved CSV parser that handles all columns -----
-        function parseCSV(csvText) {
-            const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
-            if (lines.length < 2) return { headers: [], rows: [] };
-
-            // Parse headers
-            const headerLine = lines[0];
-            const headers = [];
-            let current = '';
+        // ----- Quote-aware CSV parser (handles embedded newlines inside quoted cells,
+        //       e.g. a multi-line merged header like "Physical Accomplishment\n(as of April 2026)") -----
+        function tokenizeCSV(csvText) {
+            const rows = [];
+            let row = [];
+            let field = '';
             let inQuotes = false;
-            
-            for (let i = 0; i < headerLine.length; i++) {
-                const char = headerLine[i];
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    headers.push(current.trim().replace(/^"|"$/g, ''));
-                    current = '';
-                } else {
-                    current += char;
+            let i = 0;
+            const len = csvText.length;
+
+            while (i < len) {
+                const char = csvText[i];
+
+                if (inQuotes) {
+                    if (char === '"') {
+                        if (csvText[i + 1] === '"') { field += '"'; i += 2; continue; }
+                        inQuotes = false; i++; continue;
+                    }
+                    field += char; i++; continue;
                 }
+
+                if (char === '"') { inQuotes = true; i++; continue; }
+                if (char === ',') { row.push(field); field = ''; i++; continue; }
+                if (char === '\r') { i++; continue; }
+                if (char === '\n') {
+                    row.push(field); field = '';
+                    rows.push(row); row = [];
+                    i++; continue;
+                }
+                field += char; i++;
             }
-            headers.push(current.trim().replace(/^"|"$/g, ''));
-            
+            // last field/row (if text doesn't end with newline)
+            if (field !== '' || row.length > 0) { row.push(field); rows.push(row); }
+
+            // Drop only truly blank source lines (no commas at all) — matches the
+            // original line.trim() !== '' behavior. A comma-only row (e.g. a
+            // subheader row of empty cells) is kept, since it still has structure.
+            return rows
+                .filter(r => !(r.length === 1 && r[0].trim() === ''))
+                .map(r => r.map(v => v.replace(/\s+/g, ' ').trim()));
+        }
+
+        function parseCSV(csvText) {
+            const rawRows = tokenizeCSV(csvText);
+            if (rawRows.length < 2) return { headers: [], rows: [] };
+
+            const headers = rawRows[0];
             const cleanHeaders = headers.map((h, idx) => h ? h : `col_${idx}`);
 
-            const rows = [];
-            for (let i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
-                
-                const line = lines[i];
-                const values = [];
-                let currentVal = '';
-                let inQuotesVal = false;
-                
-                for (let j = 0; j < line.length; j++) {
-                    const char = line[j];
-                    if (char === '"') {
-                        inQuotesVal = !inQuotesVal;
-                    } else if (char === ',' && !inQuotesVal) {
-                        values.push(currentVal.trim().replace(/^"|"$/g, ''));
-                        currentVal = '';
-                    } else {
-                        currentVal += char;
-                    }
-                }
-                values.push(currentVal.trim().replace(/^"|"$/g, ''));
-                
+            const rows = rawRows.slice(1).map(values => {
                 const obj = {};
                 cleanHeaders.forEach((h, idx) => {
                     obj[h] = (idx < values.length) ? values[idx] : '';
                 });
-                rows.push(obj);
-            }
+                return obj;
+            });
+
             return { headers: cleanHeaders, rows };
         }
 
@@ -525,6 +548,51 @@
                 }
             }
             return hasOtherData;
+        }
+
+        // ----- Fetch & parse the "Physical" data source (Col F & Col I), keyed by "No." -----
+        async function loadPhysicalData(url) {
+            const result = { map: {}, headerF: EXTRA_COLUMNS[0].header };
+            if (!url || url.trim() === '') return result;
+
+            try {
+                const response = await fetch(url.trim());
+                if (!response.ok) return result;
+                const text = await response.text();
+                const parsed = parseCSV(text.trim());
+                const physHeaderNames = parsed.headers;
+                // Note: no extractFromRow3 offset here — this source's row 2 is a totals
+                // row (not a blank subheader), so the numeric "No." check below is what
+                // actually identifies real data rows, starting correctly at No. 1.
+                const physRows = parsed.rows;
+
+                // Col F header comes from the merged cell F1:F2 (row 1 of the source)
+                if (physHeaderNames[5]) {
+                    result.headerF = physHeaderNames[5].replace(/\s+/g, ' ').trim();
+                }
+
+                physRows.forEach(row => {
+                    const values = Object.values(row);
+                    let noVal = (physHeaderNames[0] && row[physHeaderNames[0]] !== undefined)
+                        ? row[physHeaderNames[0]] : values[0];
+                    noVal = noVal !== undefined && noVal !== null ? String(noVal).trim() : '';
+                    if (!noVal || !/^\d+$/.test(noVal)) return; // only keyed data rows (No. 1, 2, 3...)
+
+                    const getCol = (idx) => {
+                        const key = (idx < physHeaderNames.length) ? physHeaderNames[idx] : undefined;
+                        const val = (key && row[key] !== undefined) ? row[key] : values[idx];
+                        return (val === undefined || val === null) ? '' : val;
+                    };
+
+                    result.map[noVal] = {
+                        phys_f: getCol(5),
+                        phys_i: getCol(8)
+                    };
+                });
+            } catch (err) {
+                console.error('Physical data load error:', err);
+            }
+            return result;
         }
 
         // ----- Load data -----
@@ -618,6 +686,17 @@
                 // Remove any rows that are completely empty
                 allData = allData.filter(row => Object.values(row).some(v => v !== '' && v !== undefined && v !== null));
 
+                // ----- Merge in the "Physical" group columns (Col F & Col I), matched by No. -----
+                currentPhysicalSource = physicalSourceInput.value.trim();
+                const physical = await loadPhysicalData(currentPhysicalSource);
+                EXTRA_COLUMNS[0].header = physical.headerF;
+                allData.forEach(row => {
+                    const noVal = row['col_0'] !== undefined ? String(row['col_0']).trim() : '';
+                    const match = physical.map[noVal];
+                    row.phys_f = match ? match.phys_f : '';
+                    row.phys_i = match ? match.phys_i : '';
+                });
+
                 filterInput.value = '';
                 filteredData = allData.slice();
                 
@@ -634,6 +713,13 @@
             }
         }
 
+        // ----- Combined column list: main COLUMN_MAP + the "Physical" group (Col F & I) -----
+        function getAllColumns() {
+            const cols = COLUMN_MAP.map((c, idx) => ({ key: `col_${idx}`, header: c.header, group: null }));
+            EXTRA_COLUMNS.forEach(c => cols.push({ key: c.key, header: c.header, group: c.group }));
+            return cols;
+        }
+
         // ----- Build column visibility controls -----
         function buildColumnControls() {
             if (allData.length === 0) {
@@ -643,19 +729,20 @@
 
             const sample = allData[0];
             availableKeys = Object.keys(sample);
-            
+            const allColumns = getAllColumns();
+
             let hasVisibleColumns = false;
             let html = '';
-            
-            COLUMN_MAP.forEach((c, idx) => {
-                const key = `col_${idx}`;
-                if (availableKeys.includes(key)) {
+
+            allColumns.forEach(c => {
+                if (availableKeys.includes(c.key)) {
                     hasVisibleColumns = true;
-                    const isChecked = columnVisibility[key] !== false;
+                    const isChecked = columnVisibility[c.key] !== false;
+                    const label = c.group ? `${c.group}: ${c.header}` : c.header;
                     html += `
                         <label>
-                            <input type="checkbox" class="col-toggle" data-col="${key}" ${isChecked ? 'checked' : ''} />
-                            ${c.header}
+                            <input type="checkbox" class="col-toggle" data-col="${c.key}" ${isChecked ? 'checked' : ''} />
+                            ${label}
                         </label>
                     `;
                 }
@@ -690,30 +777,27 @@
             }
         }
 
-        // ----- Update column visibility in table -----
+        // ----- Update column visibility in table (matched by data-col, not position) -----
         function updateColumnVisibility() {
-            const headers = thead.querySelectorAll('th');
-            const rows = tbody.querySelectorAll('tr');
-            
-            COLUMN_MAP.forEach((c, idx) => {
-                const key = `col_${idx}`;
-                if (!availableKeys.includes(key)) return;
-                
-                const isVisible = columnVisibility[key] !== false;
-                const colIndex = availableKeys.indexOf(key);
-                
-                if (colIndex === -1) return;
-                
-                if (headers[colIndex]) {
-                    headers[colIndex].classList.toggle('col-hidden', !isVisible);
-                }
-                
-                rows.forEach(row => {
-                    const cells = row.querySelectorAll('td');
-                    if (cells[colIndex]) {
-                        cells[colIndex].classList.toggle('col-hidden', !isVisible);
-                    }
+            getAllColumns().forEach(c => {
+                if (!availableKeys.includes(c.key)) return;
+
+                const isVisible = columnVisibility[c.key] !== false;
+
+                thead.querySelectorAll(`th[data-col="${c.key}"]`).forEach(th => {
+                    th.classList.toggle('col-hidden', !isVisible);
                 });
+                tbody.querySelectorAll(`td[data-col="${c.key}"]`).forEach(td => {
+                    td.classList.toggle('col-hidden', !isVisible);
+                });
+
+                // Collapse/expand the "Physical" group label if both its sub-columns are hidden/shown
+                if (c.group) {
+                    const groupVisible = EXTRA_COLUMNS.some(ec => columnVisibility[ec.key] !== false);
+                    thead.querySelectorAll(`th[data-group="${c.group}"]`).forEach(th => {
+                        th.classList.toggle('col-hidden', !groupVisible);
+                    });
+                }
             });
         }
 
@@ -726,7 +810,7 @@
             toggleAllBtn.checked = allChecked;
         }
 
-        // ----- Render table with custom headers -----
+        // ----- Render table with custom headers (2-tier header for grouped columns) -----
         function renderTable() {
             hideError();
 
@@ -745,42 +829,67 @@
 
             const sample = filteredData[0];
             availableKeys = Object.keys(sample);
+            const allColumns = getAllColumns().filter(c => availableKeys.includes(c.key));
 
-            const headerRow = document.createElement('tr');
-            COLUMN_MAP.forEach((c, idx) => {
-                const key = `col_${idx}`;
-                if (availableKeys.includes(key)) {
+            // Row 1: ungrouped columns span both header rows; grouped columns show their group label
+            const groupRow = document.createElement('tr');
+            // Row 2: only grouped columns show their individual sub-header here
+            const subRow = document.createElement('tr');
+            let subRowHasCells = false;
+            const seenGroups = new Set();
+
+            allColumns.forEach(c => {
+                if (!c.group) {
                     const th = document.createElement('th');
                     th.textContent = c.header;
-                    th.dataset.col = key;
-                    if (columnVisibility[key] === false) {
-                        th.classList.add('col-hidden');
+                    th.dataset.col = c.key;
+                    th.rowSpan = 2;
+                    if (columnVisibility[c.key] === false) th.classList.add('col-hidden');
+                    groupRow.appendChild(th);
+                } else {
+                    if (!seenGroups.has(c.group)) {
+                        seenGroups.add(c.group);
+                        const groupCols = allColumns.filter(gc => gc.group === c.group);
+                        const th = document.createElement('th');
+                        th.textContent = c.group;
+                        th.colSpan = groupCols.length;
+                        th.dataset.group = c.group;
+                        th.style.textAlign = 'center';
+                        const groupVisible = groupCols.some(gc => columnVisibility[gc.key] !== false);
+                        if (!groupVisible) th.classList.add('col-hidden');
+                        groupRow.appendChild(th);
                     }
-                    headerRow.appendChild(th);
+                    const subTh = document.createElement('th');
+                    subTh.textContent = c.header;
+                    subTh.dataset.col = c.key;
+                    subTh.dataset.group = c.group;
+                    if (columnVisibility[c.key] === false) subTh.classList.add('col-hidden');
+                    subRow.appendChild(subTh);
+                    subRowHasCells = true;
                 }
             });
+
             thead.innerHTML = '';
-            thead.appendChild(headerRow);
+            thead.appendChild(groupRow);
+            if (subRowHasCells) thead.appendChild(subRow);
 
             tbody.innerHTML = '';
             filteredData.forEach(item => {
                 const row = document.createElement('tr');
-                COLUMN_MAP.forEach((c, idx) => {
-                    const key = `col_${idx}`;
-                    if (availableKeys.includes(key)) {
-                        const td = document.createElement('td');
-                        let val = item[key];
-                        if (val === null || val === undefined) val = '';
-                        else if (typeof val === 'object') {
-                            td.textContent = JSON.stringify(val).slice(0, 50) + (JSON.stringify(val).length > 50 ? '…' : '');
-                        } else {
-                            td.textContent = String(val);
-                        }
-                        if (columnVisibility[key] === false) {
-                            td.classList.add('col-hidden');
-                        }
-                        row.appendChild(td);
+                allColumns.forEach(c => {
+                    const td = document.createElement('td');
+                    let val = item[c.key];
+                    if (val === null || val === undefined) val = '';
+                    else if (typeof val === 'object') {
+                        td.textContent = JSON.stringify(val).slice(0, 50) + (JSON.stringify(val).length > 50 ? '…' : '');
+                    } else {
+                        td.textContent = String(val);
                     }
+                    td.dataset.col = c.key;
+                    if (columnVisibility[c.key] === false) {
+                        td.classList.add('col-hidden');
+                    }
+                    row.appendChild(td);
                 });
                 tbody.appendChild(row);
             });
@@ -835,6 +944,13 @@
             }
         });
 
+        physicalSourceInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                loadBtn.click();
+            }
+        });
+
         // ----- Auto-load default -----
         const defaultUrl = sourceInput.value.trim();
         if (defaultUrl) {
@@ -854,6 +970,11 @@
     - Rows with "August", "2026", "Target", "Quarter" in Col A are rejected.
     - Data starts from Row 3.
     - Columns A-L + R(17), S(18) are displayed.
+
+    ADDED: "Physical" column group, pulled from a second data source (Col F & Col I).
+    - Col F header is fetched live from the merged cell F1:F2 of the Physical source.
+    - Col I header is fixed as "Date of Completion".
+    - Rows are matched to the main listing by "No." (Col A).
 -->
 
 </body>
