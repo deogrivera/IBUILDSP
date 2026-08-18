@@ -9,6 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
   :root{
     --paper:#F3F6F8;
@@ -195,6 +197,38 @@
   .panel .chart-holder{position:relative; height:290px;}
   .panel .chart-holder.tall{height:400px;}
 
+  /* ---------- Map ---------- */
+  #siteMap{
+    height:520px; width:100%; border:1px solid var(--line);
+    filter: saturate(0.85);
+  }
+  .map-layout{ display:grid; grid-template-columns: 1fr 300px; gap:14px; }
+  .map-legend{
+    display:flex; gap:16px; flex-wrap:wrap; margin:10px 0 0;
+    font-size:12px; color:var(--ink-soft);
+  }
+  .map-legend .item{display:flex; align-items:center; gap:6px;}
+  .map-legend .dot{width:11px; height:11px; border-radius:50%; display:inline-block; border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,0.25);}
+  .site-list{
+    background:var(--panel); border:1px solid var(--line);
+    max-height:520px; overflow-y:auto;
+  }
+  .site-list .site-item{
+    padding:10px 12px; border-bottom:1px solid #EBF0F3; cursor:pointer;
+  }
+  .site-list .site-item:hover{background:var(--blue-tint);}
+  .site-list .site-item .sno{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--blue); margin-right:6px;
+  }
+  .site-list .site-item .sname{font-size:12.5px; font-weight:600; color:var(--ink);}
+  .site-list .site-item .sloc{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
+  .site-list .site-item .sprog{font-size:11px; margin-top:4px; font-family:'IBM Plex Mono',monospace;}
+  .approx-tag{font-size:9.5px; color:var(--amber); font-family:'IBM Plex Mono',monospace;}
+  .leaflet-popup-content{font-family:'Inter',sans-serif; font-size:12.5px; min-width:220px;}
+  .leaflet-popup-content b{font-family:'Space Grotesk',sans-serif; font-size:13.5px; color:var(--blue-deep); display:block; margin-bottom:4px;}
+  .leaflet-popup-content .pmeta{color:var(--ink-soft); font-size:11px; margin-bottom:6px;}
+  .leaflet-popup-content .prow{display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:11.5px; margin-top:2px;}
+
   /* ---------- Table ---------- */
   .table-controls{
     display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; align-items:center;
@@ -249,6 +283,8 @@
     .titleblock .main{border-right:none; border-bottom:1.5px solid var(--blue-deep);}
     .kpi-grid{grid-template-columns:repeat(3,1fr);}
     .chart-grid{grid-template-columns:1fr;}
+    .map-layout{grid-template-columns:1fr;}
+    .site-list{max-height:260px;}
   }
   @media (max-width:640px){
     .kpi-grid{grid-template-columns:repeat(2,1fr);}
@@ -354,9 +390,28 @@
     </div>
   </div>
 
-  <!-- ============ Table ============ -->
+  <!-- ============ Site Map ============ -->
   <div class="section-head">
     <span class="num">04</span>
+    <h2>Where the sites are</h2>
+    <span class="note">Marker color = status. Size = counterpart cost. Click a marker or list item for full detail.</span>
+  </div>
+  <div class="map-layout">
+    <div>
+      <div id="siteMap"></div>
+      <div class="map-legend">
+        <span class="item"><span class="dot" style="background:#2F8F5B"></span>Completed</span>
+        <span class="item"><span class="dot" style="background:#1E5F8C"></span>On-going</span>
+        <span class="item"><span class="dot" style="background:#C9861B"></span>Awaiting NOL1 / not started</span>
+        <span class="item"><span class="approx-tag">≈ approximate</span> — municipality not specified in source row, plotted at nearest known place (Rehabilitation of Ramot-Puguil FMR, and the La Union Provincial Storage Facility)</span>
+      </div>
+    </div>
+    <div class="site-list" id="siteList"></div>
+  </div>
+
+  <!-- ============ Table ============ -->
+  <div class="section-head">
+    <span class="num">05</span>
     <h2>Subproject detail</h2>
     <span class="note">Sort any column · filter by status or type · search by name/location.</span>
   </div>
@@ -413,6 +468,31 @@ const FALLBACK_CSV_B64 = "Tm8uLE11bmljaXBhbGl0eSAvIFByb3ZpbmNlLE5hbWUgb2YgU3VicH
 let RAW_PROJECTS = [];
 let charts = {};
 let sortState = {key:'no', dir:1};
+let siteMap = null;
+let mapMarkers = {};
+
+/* Geocoded per-subproject site coordinates (municipality-level, resolved from
+   the Location column, or from the subproject name where Location only said
+   "Province of ..."). #13 and #14 are flagged approximate — the source row
+   didn't name a specific municipality, so they're pinned at the nearest
+   identifiable place (Bagulin, and La Union's provincial capital). */
+const SITE_COORDS = {
+  '1':  {lat:18.3141291, lng:120.7809676, approx:false},
+  '2':  {lat:15.9717880, lng:120.2178785, approx:false},
+  '3':  {lat:15.9961641, lng:120.4054387, approx:false},
+  '4':  {lat:15.9821734, lng:120.8142279, approx:false},
+  '5':  {lat:15.8612554, lng:120.6314948, approx:false},
+  '6':  {lat:15.8464360, lng:120.5214548, approx:false},
+  '7':  {lat:15.8094724, lng:120.4571434, approx:false},
+  '8':  {lat:18.0624699, lng:120.5203363, approx:false},
+  '9':  {lat:16.3074246, lng:119.8583772, approx:false},
+  '10': {lat:15.8094724, lng:120.4571434, approx:false},
+  '11': {lat:16.9387501, lng:120.4703258, approx:false},
+  '12': {lat:15.9625872, lng:119.9046594, approx:false},
+  '13': {lat:16.5975302, lng:120.4933624, approx:true},
+  '14': {lat:16.6159238, lng:120.3210180, approx:true},
+  '15': {lat:18.0564065, lng:120.5649659, approx:false},
+};
 
 /* =========================================================
    PARSING — mirrors the fixed column layout of the sheet:
@@ -548,8 +628,77 @@ function render(){
 
   renderKPIs(P);
   renderCharts(P);
+  renderMap(P);
   populateFilters(P);
   renderTable();
+}
+
+function statusColor(status){
+  const t = status.toLowerCase();
+  if(t.indexOf('complet')>=0) return '#2F8F5B';
+  if(t.indexOf('nol1')>=0) return '#C9861B';
+  return '#1E5F8C';
+}
+
+function renderMap(P){
+  if(!siteMap){
+    siteMap = L.map('siteMap', {scrollWheelZoom:false}).setView([16.6, 120.55], 8);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      maxZoom: 18
+    }).addTo(siteMap);
+  } else {
+    Object.values(mapMarkers).forEach(m=>siteMap.removeLayer(m));
+    mapMarkers = {};
+  }
+
+  const bounds = [];
+  const listEl = document.getElementById('siteList');
+  let listHtml = '';
+
+  P.forEach(p=>{
+    const c = SITE_COORDS[p.no];
+    if(!c) return;
+    const color = statusColor(p.status);
+    const maxCost = Math.max(...P.map(x=>x.total_counterpart));
+    const r = 7 + (p.total_counterpart / maxCost) * 14;
+
+    const marker = L.circleMarker([c.lat, c.lng], {
+      radius: r, color:'#fff', weight:2, fillColor: color, fillOpacity: 0.85
+    }).addTo(siteMap);
+
+    const physTxt = p.phys_accomp===null ? '—' : p.phys_accomp.toFixed(1)+'%';
+    const finTxt = p.financial_status===null ? '—' : p.financial_status.toFixed(1)+'%';
+    marker.bindPopup(
+      '<b>#'+p.no+' '+p.name+'</b>'+
+      '<div class="pmeta">'+p.location+(c.approx?' <span style="color:#C9861B">(approximate)</span>':'')+' · '+(p.type||'—')+' · '+p.status+'</div>'+
+      '<div class="prow"><span>Physical</span><span>'+physTxt+'</span></div>'+
+      '<div class="prow"><span>Financial</span><span>'+finTxt+'</span></div>'+
+      '<div class="prow"><span>Counterpart cost</span><span>'+PHPm(p.total_counterpart)+'</span></div>'+
+      '<div class="prow"><span>Disbursed</span><span>'+PHPm(p.total_disbursement)+'</span></div>'
+    );
+    mapMarkers[p.no] = marker;
+    bounds.push([c.lat, c.lng]);
+
+    listHtml += `<div class="site-item" onclick="focusSite('${p.no}')">
+      <div><span class="sno">#${p.no}</span><span class="sname">${truncName(p.name,42)}</span></div>
+      <div class="sloc">${p.location}${c.approx?' <span class="approx-tag">≈ approx</span>':''} · ${p.type||'—'}</div>
+      <div class="sprog" style="color:${color}">${p.status} — ${physTxt} physical / ${finTxt} financial</div>
+    </div>`;
+  });
+
+  listEl.innerHTML = listHtml;
+  if(bounds.length) siteMap.fitBounds(bounds, {padding:[24,24]});
+  setTimeout(()=>siteMap.invalidateSize(), 200);
+}
+
+function focusSite(no){
+  const c = SITE_COORDS[no];
+  const m = mapMarkers[no];
+  if(!c || !m) return;
+  siteMap.flyTo([c.lat, c.lng], 12, {duration:0.6});
+  m.openPopup();
+  document.getElementById('siteMap').scrollIntoView({behavior:'smooth', block:'center'});
 }
 
 function renderKPIs(P){
