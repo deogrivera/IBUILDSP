@@ -1,1132 +1,804 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Data Viewer · Clean Data (Row 3+)</title>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-        }
-        body {
-            background: #f4f7fb;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            padding: 2rem 1rem;
-        }
-        .card {
-            max-width: 1500px;
-            width: 100%;
-            background: white;
-            border-radius: 32px;
-            box-shadow: 0 20px 40px -12px rgba(0,20,30,0.25);
-            padding: 2rem 2rem 2.5rem;
-        }
-        h1 {
-            font-size: 1.9rem;
-            font-weight: 600;
-            color: #0b1e2b;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 0.2rem;
-            flex-wrap: wrap;
-        }
-        .subhead {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem 0.75rem;
-            margin-bottom: 1.8rem;
-            border-bottom: 1px solid #e9edf2;
-            padding-bottom: 1.2rem;
-        }
-        .source-area {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.8rem;
-            background: #f2f6fc;
-            padding: 0.4rem 1rem 0.4rem 1.4rem;
-            border-radius: 60px;
-            border: 1px solid #d5dee7;
-            flex: 1 1 300px;
-        }
-        .source-area i { color: #2d7aff; }
-        .source-area input {
-            border: none;
-            background: transparent;
-            padding: 0.5rem 0;
-            font-size: 0.9rem;
-            flex: 1;
-            min-width: 140px;
-            outline: none;
-            color: #0b1e2b;
-            font-weight: 450;
-        }
-        .source-area input::placeholder { color: #8ba0b3; font-weight: 350; }
-        .load-btn {
-            background: #2d7aff;
-            border: none;
-            color: white;
-            font-weight: 500;
-            padding: 0.5rem 1.5rem;
-            border-radius: 60px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: 0.15s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid #2d7aff;
-        }
-        .load-btn:hover { background: #1a5fd9; border-color: #1a5fd9; box-shadow: 0 4px 10px rgba(45,122,255,0.25); }
-        .load-btn:active { transform: scale(0.96); }
-        .stats {
-            background: #eef3f8;
-            padding: 0.35rem 1.2rem;
-            border-radius: 40px;
-            font-size: 0.9rem;
-            color: #1f3a4b;
-            font-weight: 500;
-            white-space: nowrap;
-        }
-        .toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .filter-group label {
-            font-weight: 500;
-            font-size: 0.9rem;
-            color: #1d3b4f;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .filter-group input {
-            padding: 0.5rem 1rem;
-            border: 1.5px solid #dbe1e9;
-            border-radius: 60px;
-            font-size: 0.9rem;
-            background: white;
-            min-width: 200px;
-            outline: none;
-        }
-        .filter-group input:focus {
-            border-color: #2d7aff;
-            box-shadow: 0 0 0 3px rgba(45,122,255,0.15);
-        }
-        .filter-group input::placeholder { color: #9aabb8; font-weight: 300; }
-        .reload-btn {
-            background: white;
-            border: 1.5px solid #dbe1e9;
-            padding: 0.5rem 1.2rem;
-            border-radius: 60px;
-            font-weight: 500;
-            color: #1d3b4f;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .reload-btn:hover { background: #f2f6fc; border-color: #b0c2d4; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I-BUILD Subproject Monitor — PRDP RPCO I</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --paper:#F3F6F8;
+    --panel:#FFFFFF;
+    --ink:#152233;
+    --ink-soft:#4C5F72;
+    --line:#C9D6DF;
+    --blue:#1E5F8C;
+    --blue-deep:#123C59;
+    --blue-tint:#E7F0F5;
+    --amber:#C9861B;
+    --amber-tint:#FBF0DD;
+    --green:#2F8F5B;
+    --green-tint:#E4F3EA;
+    --red:#C0433A;
+    --red-tint:#FBE7E5;
+    --grid: rgba(30,95,140,0.09);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 28px 28px;
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--blue); color:#fff;}
+  a{color:var(--blue);}
 
-        .column-controls {
-            display: flex;
-            flex-wrap: nowrap;
-            align-items: center;
-            gap: 0.5rem;
-            background: #f8fafc;
-            padding: 0.4rem 0.8rem;
-            border-radius: 60px;
-            border: 1px solid #e6ecf3;
-            margin-bottom: 1.5rem;
-            overflow-x: auto;
-            scrollbar-width: thin;
-        }
-        .column-controls::-webkit-scrollbar {
-            height: 4px;
-        }
-        .column-controls::-webkit-scrollbar-track {
-            background: #eef3f8;
-            border-radius: 10px;
-        }
-        .column-controls::-webkit-scrollbar-thumb {
-            background: #c5d4e2;
-            border-radius: 10px;
-        }
-        .column-controls select {
-            padding: 0.3rem 0.8rem;
-            border-radius: 30px;
-            border: 1.5px solid #dbe1e9;
-            font-size: 0.75rem;
-            background: white;
-            outline: none;
-            flex-shrink: 0;
-            cursor: pointer;
-            color: #1d3b4f;
-            font-weight: 500;
-        }
-        .column-controls select:focus {
-            border-color: #2d7aff;
-        }
-        .column-controls .compact-toggles {
-            display: flex;
-            gap: 2px;
-            overflow-x: auto;
-            padding: 2px 4px;
-            flex: 1;
-            scrollbar-width: thin;
-        }
-        .column-controls .compact-toggles::-webkit-scrollbar {
-            height: 3px;
-        }
-        .column-controls .compact-toggles::-webkit-scrollbar-thumb {
-            background: #c5d4e2;
-            border-radius: 10px;
-        }
-        .column-controls .toggle-item {
-            font-size: 0.65rem;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            padding: 0.15rem 0.4rem;
-            cursor: pointer;
-            border-radius: 12px;
-            transition: 0.1s;
-            color: #1d3b4f;
-            background: transparent;
-        }
-        .column-controls .toggle-item:hover {
-            background: #eef3f8;
-        }
-        .column-controls .toggle-item input[type="checkbox"] {
-            accent-color: #2d7aff;
-            width: 12px;
-            height: 12px;
-            cursor: pointer;
-            margin: 0;
-        }
-        .column-controls .toggle-item .col-label {
-            font-size: 0.6rem;
-            font-weight: 450;
-            letter-spacing: 0.2px;
-            color: #2d4a62;
-        }
-        .column-controls .divider {
-            width: 1px;
-            height: 24px;
-            background: #dde4ed;
-            flex-shrink: 0;
-            margin: 0 2px;
-        }
-        .column-controls .control-label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #5b7a93;
-            flex-shrink: 0;
-            margin-right: 2px;
-        }
+  .wrap{max-width:1360px; margin:0 auto; padding:22px 28px 60px;}
 
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: 20px;
-            border: 1px solid #e6ecf3;
-            background: white;
-            margin-top: 0.5rem;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-            min-width: 700px;
-        }
-        th {
-            text-align: left;
-            padding: 0.9rem 1rem;
-            background: #f8fafc;
-            color: #1d3b4f;
-            font-weight: 600;
-            border-bottom: 2px solid #dde4ed;
-            white-space: nowrap;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        td {
-            padding: 0.8rem 1rem;
-            border-bottom: 1px solid #eaeef4;
-            color: #1e2f3e;
-            vertical-align: middle;
-        }
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background: #f6faff; }
-        .col-hidden { display: none; }
+  /* ---------- Title block, drafting-table style ---------- */
+  .titleblock{
+    display:grid;
+    grid-template-columns: 1fr 340px;
+    border:1.5px solid var(--blue-deep);
+    background:var(--panel);
+    box-shadow: 4px 4px 0 rgba(18,60,89,0.08);
+  }
+  .titleblock .main{
+    padding:22px 26px;
+    border-right:1.5px solid var(--blue-deep);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--blue);
+    margin:0 0 8px;
+  }
+  .titleblock h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:30px;
+    line-height:1.15;
+    margin:0 0 6px;
+    color:var(--blue-deep);
+    letter-spacing:-0.01em;
+  }
+  .titleblock .sub{
+    font-size:14px;
+    color:var(--ink-soft);
+    max-width:60ch;
+  }
+  .stamp{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .stamp .cell{
+    padding:11px 16px;
+    border-bottom:1px solid var(--line);
+    border-right:1px solid var(--line);
+  }
+  .stamp .cell:nth-child(2n){border-right:none;}
+  .stamp .cell .k{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:9.5px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:block;
+    margin-bottom:3px;
+  }
+  .stamp .cell .v{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    font-weight:600;
+    color:var(--blue-deep);
+  }
+  #syncStatus.v.live{color:var(--green);}
+  #syncStatus.v.cached{color:var(--amber);}
 
-        .empty-state {
-            padding: 3.5rem 1rem;
-            text-align: center;
-            color: #5f7485;
-            background: #fafcfe;
-        }
-        .empty-state i {
-            font-size: 2.2rem;
-            color: #b6c9db;
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.8rem;
-            padding: 3rem 0;
-            color: #2a4a62;
-        }
-        .loading i {
-            font-size: 1.8rem;
-            color: #2d7aff;
-        }
-        .error-box {
-            background: #fff5f5;
-            border: 1px solid #ffc9c9;
-            border-radius: 60px;
-            padding: 0.8rem 1.6rem;
-            color: #b33c3c;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 500;
-            margin-top: 0.5rem;
-        }
-        .info-badge {
-            background: #e8f0fe;
-            border-radius: 40px;
-            padding: 0.2rem 1rem;
-            font-size: 0.75rem;
-            color: #1a4a7a;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-left: 0.5rem;
-        }
-        @media (max-width: 700px) {
-            .card { padding: 1.5rem; }
-            h1 { font-size: 1.5rem; }
-            .toolbar { flex-direction: column; align-items: stretch; }
-            .filter-group { flex-direction: column; align-items: stretch; }
-            .filter-group input { min-width: unset; width: 100%; }
-            .stats { align-self: flex-start; }
-            .source-area { border-radius: 30px; padding: 0.4rem 0.8rem; }
-            .load-btn { width: 100%; justify-content: center; }
-            .column-controls { 
-                border-radius: 30px; 
-                padding: 0.4rem 0.6rem;
-                flex-wrap: nowrap;
-            }
-            .column-controls .control-label { 
-                font-size: 0.6rem;
-            }
-            .column-controls select { 
-                font-size: 0.65rem;
-                padding: 0.2rem 0.5rem;
-                min-width: 100px;
-            }
-        }
-    </style>
+  .refresh-row{
+    display:flex; justify-content:flex-end; align-items:center; gap:10px;
+    margin:10px 2px 22px;
+  }
+  #refreshNote{font-size:12px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;}
+  #refreshBtn{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    background:var(--blue-deep);
+    color:#fff;
+    border:none;
+    padding:8px 14px;
+    cursor:pointer;
+    letter-spacing:.04em;
+  }
+  #refreshBtn:hover{background:var(--blue);}
+
+  /* ---------- Section headers ---------- */
+  .section-head{
+    display:flex; align-items:baseline; gap:12px;
+    margin:38px 0 14px;
+  }
+  .section-head .num{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:#fff; background:var(--blue);
+    padding:3px 8px;
+  }
+  .section-head h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:19px;
+    margin:0;
+    color:var(--blue-deep);
+  }
+  .section-head .note{
+    font-size:12.5px; color:var(--ink-soft); margin-left:auto; max-width:46ch; text-align:right;
+  }
+
+  /* ---------- KPI cards ---------- */
+  .kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:12px;
+  }
+  .kpi{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-top:3px solid var(--blue);
+    padding:14px 15px;
+    position:relative;
+  }
+  .kpi.alert{border-top-color:var(--red);}
+  .kpi.warn{border-top-color:var(--amber);}
+  .kpi.good{border-top-color:var(--green);}
+  .kpi .lbl{
+    font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;
+    margin-bottom:8px; line-height:1.3; min-height:28px;
+  }
+  .kpi .val{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:23px; font-weight:700; color:var(--blue-deep); line-height:1.1;
+  }
+  .kpi .sub{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px; color:var(--ink-soft); margin-top:5px;
+  }
+
+  /* ---------- Charts ---------- */
+  .chart-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .chart-grid.wide{grid-template-columns:1fr;}
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    padding:16px 18px 12px;
+  }
+  .panel h3{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:14.5px; margin:0 0 3px; color:var(--ink);
+  }
+  .panel .howto{
+    font-size:12px; color:var(--ink-soft); margin:0 0 12px; line-height:1.5;
+    border-left:2px solid var(--blue-tint); padding-left:9px;
+  }
+  .panel .chart-holder{position:relative; height:290px;}
+  .panel .chart-holder.tall{height:400px;}
+
+  /* ---------- Table ---------- */
+  .table-controls{
+    display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; align-items:center;
+  }
+  .table-controls input[type=text]{
+    font-family:'Inter',sans-serif; font-size:13px;
+    padding:8px 10px; border:1px solid var(--line); background:#fff; flex:1; min-width:220px;
+  }
+  .table-controls select{
+    font-family:'Inter',sans-serif; font-size:13px;
+    padding:8px 10px; border:1px solid var(--line); background:#fff;
+  }
+  .table-controls .count{font-size:12px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; margin-left:auto;}
+  .tbl-wrap{overflow-x:auto; border:1px solid var(--line);}
+  table{border-collapse:collapse; width:100%; min-width:1180px; background:#fff;}
+  thead th{
+    position:sticky; top:0;
+    background:var(--blue-deep); color:#fff;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.04em;
+    text-align:left; padding:9px 10px; cursor:pointer; white-space:nowrap;
+  }
+  thead th:hover{background:var(--blue);}
+  tbody td{
+    padding:9px 10px; font-size:12.5px; border-bottom:1px solid #EBF0F3; vertical-align:top;
+  }
+  tbody tr:hover{background:var(--blue-tint);}
+  td.num, th.num{text-align:right; font-family:'IBM Plex Mono',monospace;}
+  .badge{
+    display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10.5px;
+    padding:2px 7px; border-radius:2px; white-space:nowrap;
+  }
+  .badge.completed{background:var(--green-tint); color:var(--green);}
+  .badge.ongoing{background:var(--blue-tint); color:var(--blue);}
+  .badge.nol1{background:var(--amber-tint); color:var(--amber);}
+  .flag{font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:2px 6px; border-radius:2px;}
+  .flag.slip{background:var(--red-tint); color:var(--red);}
+  .flag.ok{color:var(--ink-soft);}
+  .barcell{width:90px;}
+  .mini-bar{height:6px; background:#E6ECEF; position:relative; margin-top:4px;}
+  .mini-bar span{position:absolute; left:0; top:0; height:100%; background:var(--blue);}
+  .mini-bar span.fin{background:var(--amber); opacity:.85;}
+
+  footer{
+    margin-top:44px; padding-top:16px; border-top:1px solid var(--line);
+    font-size:11.5px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+
+  @media (max-width:1050px){
+    .titleblock{grid-template-columns:1fr;}
+    .titleblock .main{border-right:none; border-bottom:1.5px solid var(--blue-deep);}
+    .kpi-grid{grid-template-columns:repeat(3,1fr);}
+    .chart-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width:640px){
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .wrap{padding:16px 14px 40px;}
+    .section-head .note{display:none;}
+  }
+</style>
 </head>
 <body>
+<div class="wrap">
 
-<div class="card" id="app">
-    <header>
-        <h1>
-            <i class="fas fa-filter" style="color: #2d7aff;"></i>
-            Data Viewer · Clean Data (Row 3+)
-            <span class="info-badge"><i class="fas fa-check-circle"></i> Row 3+ with valid No.</span>
-        </h1>
-        <div class="subhead">
-            <div class="source-area">
-                <i class="fas fa-paste"></i>
-                <input type="text" id="sourceInput" placeholder="Paste CSV or JSON URL..." 
-                       value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSKiPjvkcJeCP7VuAjjFsIvMskQUlF_FegjMFxaxv6Hg-tCKLNCjPWIo1jb_G3-TgRuEXs0BK6TxOq3/pub?gid=1826747769&single=true&output=csv">
-                <button class="load-btn" id="loadBtn"><i class="fas fa-arrow-right"></i> Load</button>
-            </div>
-            <span class="stats" id="statsDisplay"><i class="far fa-file-alt"></i> 0 records</span>
-        </div>
-    </header>
-
-    <div class="source-area" style="margin-bottom: 1.2rem; border-radius: 30px;">
-        <i class="fas fa-diagram-project" style="color:#12995e;"></i>
-        <input type="text" id="physicalSourceInput" placeholder="Paste Physical data source CSV URL..."
-               value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSKiPjvkcJeCP7VuAjjFsIvMskQUlF_FegjMFxaxv6Hg-tCKLNCjPWIo1jb_G3-TgRuEXs0BK6TxOq3/pub?gid=0&single=true&output=csv">
-        <span class="info-badge" style="margin-left:0;"><i class="fas fa-layer-group"></i> Physical, Financial, Project Cost, Obligation LP/GOP, Total Obligation</span>
+  <div class="titleblock">
+    <div class="main">
+      <p class="eyebrow">PRDP · I-BUILD Component · RPCO I</p>
+      <h1>Subproject Financial &amp; Physical Accomplishment Monitor</h1>
+      <p class="sub">Tracks obligation, disbursement, and physical progress across value chain infrastructure (VCRI), farm-to-market roads (FMR), and bridge subprojects funded through LP and GOP sources.</p>
     </div>
-
-    <div class="toolbar">
-        <div class="filter-group">
-            <label for="filterInput"><i class="fas fa-search" style="color: #5b7a93;"></i> Filter</label>
-            <input type="text" id="filterInput" placeholder="Search any field...">
-        </div>
-        <button class="reload-btn" id="reloadBtn"><i class="fas fa-sync-alt"></i> Reload</button>
+    <div class="stamp">
+      <div class="cell"><span class="k">Subprojects</span><span class="v" id="stampCount">—</span></div>
+      <div class="cell"><span class="k">Data as of</span><span class="v" id="stampDate">—</span></div>
+      <div class="cell"><span class="k">Source</span><span class="v" id="syncStatus">—</span></div>
+      <div class="cell"><span class="k">Generated</span><span class="v" id="stampGenerated">—</span></div>
     </div>
+  </div>
 
-    <!-- Compact Column Controls - Option 4 -->
-    <div id="columnControls" class="column-controls" style="display: none;">
-        <span class="control-label"><i class="fas fa-columns"></i> View:</span>
-        <select id="columnPreset">
-            <option value="all">All Columns</option>
-            <option value="main">Main Only</option>
-            <option value="physical">Physical</option>
-            <option value="financial">Financial</option>
-            <option value="projectcost">Project Cost</option>
-            <option value="oblp">Obligation LP</option>
-            <option value="obgop">Obligation GOP</option>
-            <option value="totalob">Total Obligation</option>
-            <option value="minimal">Minimal</option>
-        </select>
-        <div class="divider"></div>
-        <div id="compactToggles" class="compact-toggles"></div>
-        <div class="divider"></div>
-        <button id="resetColumnsBtn" style="background: none; border: none; padding: 0.2rem 0.6rem; border-radius: 20px; cursor: pointer; font-size: 0.7rem; color: #2d7aff; font-weight: 500; flex-shrink: 0;">
-            <i class="fas fa-undo-alt"></i>
-        </button>
-    </div>
+  <div class="refresh-row">
+    <span id="refreshNote"></span>
+    <button id="refreshBtn" onclick="loadData(true)">↻ RE-SYNC FROM SHEET</button>
+  </div>
 
-    <div class="table-wrapper">
-        <div class="loading" id="loadingIndicator">
-            <i class="fas fa-spinner fa-pulse"></i> Loading data…
-        </div>
-        <table id="dataTable" style="display: none;">
-            <thead id="tableHead"></thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-        <div id="emptyMessage" class="empty-state" style="display: none;">
-            <i class="fas fa-inbox"></i> No records found with valid data (Row 3+ with valid No.)
-        </div>
-    </div>
+  <!-- ============ KPIs ============ -->
+  <div class="section-head">
+    <span class="num">01</span>
+    <h2>Portfolio KPIs</h2>
+    <span class="note">Read these first — they set the scale for every chart below.</span>
+  </div>
+  <div class="kpi-grid" id="kpiGrid"></div>
 
-    <div id="errorMessage" class="error-box" style="display: none; margin-top: 1.2rem;">
-        <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
+  <!-- ============ Charts row 1 ============ -->
+  <div class="section-head">
+    <span class="num">02</span>
+    <h2>Where the money is versus where the work is</h2>
+    <span class="note">The core PRDP monitoring question: is billing keeping pace with construction?</span>
+  </div>
+  <div class="chart-grid wide">
+    <div class="panel">
+      <h3>Physical Accomplishment vs. Financial Status, by subproject</h3>
+      <p class="howto">Blue bars are % of construction actually done on-site; amber bars are % of contract value billed/paid. When blue runs well ahead of amber, the contractor has out-built the billing — usually fine, just billing lag. When amber is <em>higher</em> than blue, flag it for review (advance/mobilization payments running ahead of work).</p>
+      <div class="chart-holder tall"><canvas id="chartPhysFin"></canvas></div>
     </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="panel">
+      <h3>Status mix</h3>
+      <p class="howto">Share of subprojects that are Completed, On-going, or awaiting Notice of Location (NOL1) / not yet started. A large "with NOL1" slice signals a pipeline bottleneck upstream of construction.</p>
+      <div class="chart-holder"><canvas id="chartStatus"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Subproject type mix — investment</h3>
+      <p class="howto">Total PRDP counterpart cost grouped by infrastructure type. Shows where capital is concentrated: cold chain / warehousing (VCRI), roads (FMR), or bridges.</p>
+      <div class="chart-holder"><canvas id="chartType"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ============ Charts row 2: funnel ============ -->
+  <div class="section-head">
+    <span class="num">03</span>
+    <h2>Fund utilization pipeline</h2>
+    <span class="note">Counterpart cost → Obligated → Disbursed. Gaps show where funds are stuck.</span>
+  </div>
+  <div class="chart-grid wide">
+    <div class="panel">
+      <h3>Counterpart cost, obligation, and disbursement — per subproject</h3>
+      <p class="howto">Each subproject shows three bars: total PRDP counterpart cost (the ceiling), amount obligated (funds set aside via ASA/ORS), and amount actually disbursed (paid out). A wide gap between "Obligated" and "Disbursed" on a subproject means the paperwork is done but the money hasn't moved — a candidate for expediting.</p>
+      <div class="chart-holder tall"><canvas id="chartPipeline"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="panel">
+      <h3>Disbursement rate, ranked lowest to highest</h3>
+      <p class="howto">Disbursement ÷ obligation, per subproject. The lowest bars are where cash is obligated but not yet moving — prioritize these for site visits and billing follow-up.</p>
+      <div class="chart-holder"><canvas id="chartDisbRank"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>LP vs. GOP funding split</h3>
+      <p class="howto">Loan Proceeds (LP) vs. GOP counterpart share of total obligation. PRDP's standard split is roughly 90% LP / 10% GOP — this checks the portfolio against that ratio.</p>
+      <div class="chart-holder"><canvas id="chartFundSplit"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="panel">
+      <h3>Undisbursed vs. unobligated balance</h3>
+      <p class="howto">Undisbursed = obligated but not yet paid out (near-term, expect movement soon). Unobligated = not yet even set aside (needs an ASA/ORS before anything else can happen). Unobligated balances are the more urgent bottleneck to clear.</p>
+      <div class="chart-holder"><canvas id="chartBalances"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Contract cost by subproject</h3>
+      <p class="howto">Ranks subprojects by total contract value, largest first. Useful for prioritizing monitoring effort toward the biggest financial exposure.</p>
+      <div class="chart-holder"><canvas id="chartContract"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ============ Table ============ -->
+  <div class="section-head">
+    <span class="num">04</span>
+    <h2>Subproject detail</h2>
+    <span class="note">Sort any column · filter by status or type · search by name/location.</span>
+  </div>
+
+  <div class="table-controls">
+    <input type="text" id="searchBox" placeholder="Search subproject name or location…">
+    <select id="statusFilter">
+      <option value="">All statuses</option>
+    </select>
+    <select id="typeFilter">
+      <option value="">All types</option>
+    </select>
+    <span class="count" id="rowCount"></span>
+  </div>
+
+  <div class="tbl-wrap">
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th data-key="no">No.</th>
+          <th data-key="location">Location</th>
+          <th data-key="name">Subproject</th>
+          <th data-key="type">Type</th>
+          <th data-key="status">Status</th>
+          <th data-key="phys_accomp" class="num">Physical %</th>
+          <th data-key="financial_status" class="num">Financial %</th>
+          <th data-key="variance_flag">Variance</th>
+          <th data-key="total_counterpart" class="num">Counterpart Cost</th>
+          <th data-key="total_obligation" class="num">Obligated</th>
+          <th data-key="total_disbursement" class="num">Disbursed</th>
+          <th data-key="total_undisbursed" class="num">Undisbursed</th>
+          <th data-key="total_unobligated" class="num">Unobligated</th>
+          <th data-key="target_completion">Target / Completion</th>
+        </tr>
+      </thead>
+      <tbody id="tblBody"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    <span>Prepared for DA-RFO I · PRDP RPCO I · I-SUPPORT — client-side dashboard, no data leaves this browser except the read-only sheet fetch.</span>
+    <span id="footStamp"></span>
+  </footer>
+
 </div>
 
 <script>
-    (function() {
-        "use strict";
+/* =========================================================
+   DATA SOURCE
+   ========================================================= */
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSKiPjvkcJeCP7VuAjjFsIvMskQUlF_FegjMFxaxv6Hg-tCKLNCjPWIo1jb_G3-TgRuEXs0BK6TxOq3/pub?gid=0&single=true&output=csv";
+const FALLBACK_CSV_B64 = "Tm8uLE11bmljaXBhbGl0eSAvIFByb3ZpbmNlLE5hbWUgb2YgU3VicHJvamVjdCwsLCJQaHlzaWNhbCBBY2NvbXBsaXNobWVudCAKKGFzIG9mIEFwcmlsIDIwMjYpIixGaW5hbmNpYWwgU3RhdHVzLFZhcmlhbmNlIC8gQmlsbGFibGUgQ29zdCxEYXRlIG9mIENvbXBsZXRpb24sUFJEUCBDb3VudGVycGFydCAoUlBBQiBDb3N0IC8gTk9MMSBjb3N0IC8gQ29udHJhY3QgQ29zdCksLCwsLCxPYmxpZ2F0aW9uLCwsLCwsLCwsLCwsLCxEaXNidXJzZW1lbnQsLCwsLCwsLCwsLERpc2J1cnNlbWVudCBSYXRlLCxQaHlzaWNhbCBBY2NvbXBsaXNobWVudCwsVW5kaXNidXJzZWQgQmFsYW5jZSwsLFVub2JsaWdhdGVkIEJhbGFuY2UsLA0KLCwsLCwsLCwsQ29udHJhY3QsTFAsR09QLFRvdGFsIChMUCtHT1ApLERhdGUgb2YgT2JsaWdhdGlvbixPUlMgTnVtYmVyLExQLUFTQSxEYXRlLExQIEFtb3VudCxSZWxlYXNlZCxSZW1haW5pbmcsRGF0ZSBvZiBPYmxpZ2F0aW9uLE9ibGlnYXRpb24gTm8uLEdPUC1BU0EsRGF0ZSxHT1AgQW1vdW50LFJlbGVhc2VkLFJlbWFpbmluZyxUb3RhbCAoTFArR09QKSwsQmlsbGluZyxMUCxBU0EgTm8uLERhdGUsR09QLEFTQSBOby4sRGF0ZSxUT1RBTCwsIkpJVCdlZCBUb3RhbAooYXMgb2YgRmViIDI4KSIsIkpJVCdlZAooTFArR09QKSIsLCwlIFBoeS4gQWNjb21wLERhdGUsTFAsR09QLFRvdGFsLExQLEdPUCxUb3RhbA0KLCwsLFN0YXR1cywsLCwsIjIsMTM2LDc2NCwwMjMuNDAiLCIxLDQ2OCw3MTMsODE4LjcyIiwiMTg0LDYzMCw1MDIuMzQiLCIxLDY1MywzNDQsMzIxLjA2IiwsLCwsIjEsNDA2LDk5OSw4NDQuNjUiLCwsLCwsLCIxNzgsMjU4LDkyNS4wMyIsLCwiMSw1ODUsMjU4LDc2OS42OCIsLCwiMTk3LDI2MiwzMzcuOTciLCwsIjI0LDY1Nyw3OTIuMjQiLCwsIjIwOCw0NTQsNzMxLjk0IiwsMC4wMCwiMiw5NjcsNDE1Ljk3IiwxMy4xNSUsMTMuMTUlLCwsIjEsMjcxLDQ1MSw0ODAuNzUiLCIxNTksOTcyLDcxMC4xMCIsIjEsMDI3LDIwMSwyMjMuOTciLCI2MSw3MTMsOTc0LjA3IiwiNiwzNzEsNTc3LjMxIiwiNjgsMDg1LDU1MS4zOCINCjEsIlZpbnRhciwgSWxvY29zIE5vcnRlIixDb25zdHJ1Y3Rpb24gb2YgU2FuIEpvc2UgTXVsdGktUHVycG9zZSBXYXJlaG91c2Ugd2l0aCBTb2xhciBEcnllcixWQ1JJLENvbXBsZXRlZCwxMDAuMDAlLDEwMC4wMCUsMC4wMCwiU2VwdGVtYmVyIDExLCAyMDI1IChDb21wbGV0ZWQpIiwiMTEsNDA3LDkxOS44OSIsIjksMTI2LDMzNS45MSIsIjEsMTQwLDc5MS45OSIsIjEwLDI2NywxMjcuOTAiLCwsLCwiOSwxMjYsMzM1LjkxIiwsLCwsLCwiMSwxNDAsNzkxLjk5IiwsLCIxMCwyNjcsMTI3LjkwIiwsLCI5LDEyNiwzMzUuOTEiLCwsIjEsMTQwLDc5MS45OSIsLCwiMTAsMjY3LDEyNy45MCIsMTAwLjAwJSwsLDEwMC4wMCUsLDEwMC4wMCUsIk9jdC4gMzEsIDIwMjUiLDAuMDAsMC4wMCwwLjAwLDAuMDAsMC4wMCwwLjAwDQosLCwsLCwsLCwsLCwsMjAyNCwsQVNBIE5vLiAyMDI0LTAwMDA5NCwiU2VwdGVtYmVyIDExLCAyMDI0IiwiMiw2ODcsMTc1LjAwIiwiMiw2ODcsMTc1LjAwIiwwLjAwLDIwMjQsLEFTQSBOby4gMjAyNC0wMDAyMjksIlNlcHRlbWJlciAxMSwgMjAyNCIsIjEsMTQwLDc5MS45OSIsIjEsMTQwLDc5MS45OSIsMC4wMCwsLDFzdCBCaWxsaW5nLCIxLDAyNiw4OTEuNDciLEFTQSBOby4gMjAyNC0wMDAyMDcsIkRlY2VtYmVyIDIwLCAyMDI0IiwsLCwiMSwwMjYsODkxLjQ3IiwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwyMDI0LCxBU0EgTm8uIDIwMjQtMDAwMjA3LCJEZWNlbWJlciAzLCAyMDI0IiwiNiw0MzksMTYwLjkxIiwiNiw0MzksMTYwLjkxIiwwLjAwLCwsLCwsLCwsLDJuZCBCaWxsaW5nLCIxLDk0Myw2MTAuMDQiLEFTQSBOby4gMjAyNC0wMDAyMDcsIkFwcmlsIDIsIDIwMjUiLCIxLDE0MCw3OTEuOTkiLEFTQSBOby4gMjAyNC0wMDAyMjksIkFwcmlsIDIsIDIwMjUiLCIzLDA4NCw0MDIuMDMiLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwzcmQgQmlsbGluZywiMiwyNTQsOTIzLjI3IixBU0EgTm8uIDIwMjQtMDAwMDk0LCJKdWx5IDgsIDIwMjUiLCwsLCIyLDI1NCw5MjMuMjciLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCw0dGggQmlsbGluZyBCaWxsaW5nICwiMiwxMTMsMzcwLjQ0IixBU0EgTm8uIDIwMjQtMDAwMDk0LCJTZXB0ZW1iZXIgMjQsIDIwMjUiLCwsLCIyLDExMywzNzAuNDQiLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCxGaW5hbCBCaWxsaW5nLCIxLDc4Nyw1NDAuNjkiLEFTQSBOby4gMjAyNC0wMDAyMDcsLCwsLCIxLDc4Nyw1NDAuNjkiLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsMC4wMCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLDAuMDAsLCwsLCwsLCwsLCwsDQoyLFByb3ZpbmNlIG9mIFBhbmdhc2luYW4sIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIEJ1Z2FsbG9uLFBhbmdhc2luYW4iLFZDUkksQ29tcGxldGVkLDEwMC4wMCUsMTAwLjAwJSwwLjAwLCJBcHJpbCA2LCAyMDI2IChhcyBwZXIgVEUgTm8uIDYpIiwiNDIsMDMxLDkwNS44NSIsIjMzLDYyNSw1MjQuNjgiLCI0LDIwMywxOTAuNTkiLCIzNyw4MjgsNzE1LjI3IiwsLCwsIjMzLDYyNSw1MjQuNjgiLCwsLCwsLCI0LDIwMywxOTAuNTgiLCwsIjM3LDgyOCw3MTUuMjYiLCwsIjMzLDYyNSw1MjQuNjgiLCwsIjQsMjAzLDE5MC41OCIsLCwiMzcsODI4LDcxNS4yNiIsMTAwLjAwJSwsMC4wMCwxMDAuMDAlLCwxMDAuMDAlLCJNYXkuIDI3LCAyMDI2IiwwLjAwLDAuMDAsMC4wMCwwLjAwLDAuMDAsMC4wMA0KLCwsLCwsLDAuMDEsLCwsLCwyMDI0LDA2LTAxMTA1NDI4LTIwMjQtMDktMDAyLEFTQSBOby4gMjAyNC0wMDAwOTQsIlNlcHRlbWJlciAyMywgMjAyNCIsIjksNDY4LDQ1MC4wMCIsIjksNDY4LDQ1MC4wMCIsMC4wMCwyMDI0LDA2LTAxMTA1NTY0LTIwMjQtMTItMDAzLEFTQSBOby4gMjAyNC0wMDAyMjksIkRlY2VtYmVyIDMsIDIwMjQiLCIzLDM2Miw1NTIuNDYiLCIzLDM2Miw1NTIuNDYiLDAuMDAsLCwxc3QgQmlsbGluZywiMyw5OTAsMzU5LjM3IixBU0EgTm8uIDIwMjQtMDAwMDk0LCJKdW5lIDIzLCAyMDI1IiwiNDk4LDc5NC45MiIsQVNBIE5vLiAyMDI0LTAwMDIyOSwiT2N0b2JlciAyOCwgMjAyNSIsIjQsNDg5LDE1NC4yOSIsLCwsLCwsLDAuMDAsMC4wMCwsLCwNCiwsLCwsLCwsLCwsLCwyMDI0LDA2LTAxMTA1NDI4LTIwMjQtMTItMDM5LEFTQSBOby4gMjAyNC0wMDAwOTQsIkRlY2VtYmVyIDI2LCAyMDI0IiwiNiw3MjUsMTA0Ljk0IiwiNiw3MjUsMTA0Ljk0IiwwLjAwLDIwMjQsMDYtMDExMDU1NjQtMjAyNC0xMi0wMDksQVNBIE5vLiAyMDI0LTAwMDIyOSwiRGVjZW1iZXIgMjYsIDIwMjQiLCI4NDAsNjM4LjEyIiwiODQwLDYzOC4xMiIsMC4wMCwsLDJuZCBCaWxsaW5nLCI3LDA4MCw2NzQuODQiLEFTQSBOby4gMjAyNC0wMDAwOTQsIk5vdmVtYmVyIDMsIDIwMjUiLCI4ODUsMDg0LjM1IixBU0EgTm8uIDIwMjQtMDAwMjI5LCJOb3ZlbWJlciAzLCAyMDI1IiwiNyw5NjUsNzU5LjE5IiwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwyMDI0LDA2LTAxMTA1NDI4LTIwMjQtMTItMDE4LEFTQSBOby4gMjAyNC0wMDAyMDcsIkRlY2VtYmVyIDMsIDIwMjQiLCIxNyw0MzEsOTY5Ljc0IiwiMTcsNDMxLDk2OS43NCIsMC4wMCwsLCwsLCwsLCwzcmQgQmlsbGluZywiNSwxMjIsNTIwLjczIixBU0EgTm8uIDIwMjQtMDAwMDk0LCJEZWNlbWJlciAxOSwgMjAyNSIsIjEsMzA0LDA0OS41NSIsQVNBIE5vLiAyMDI0LTAwMDIyOSwiRGVjZW1iZXIgMTksIDIwMjUiLCI2LDQyNiw1NzAuMjgiLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwzcmQgQmlsbGluZywiNSwzMDksODc1LjYzIixBU0EgTm8uIDIwMjQtMDAwMjA3LCJEZWNlbWJlciAxOSwgMjAyNSIsMC4wMCwtLC0sIjUsMzA5LDg3NS42MyIsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLDR0aCBCaWxsaW5nLCI3LDU4Myw4NjEuOTYiLEFTQSBOby4gMjAyNC0wMDAyMDcsIk1heSAxMSwgMjAyNiIsIjY3NCw2MjMuNjQiLEFTQSBOby4gMjAyNC0wMDAyMjksIk1heSAxMSwgMjAyNiIsIjgsMjU4LDQ4NS42MCIsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLDR0aCBCaWxsaW5nLDAuMDAsLSwtLCIyNzMsMzU5LjEwIixBU0EgTm8uIDIwMjQtMDAwMjI5LCJNYXkgMTEsIDIwMjYiLCIyNzMsMzU5LjEwIiwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsRmluYWwgQmlsbGluZywiNCw1MzgsMjMyLjE1IixBU0EgTm8uIDIwMjQtMDAwMjA3LCwiNTY3LDI3OS4wMiIsQVNBIE5vLiAyMDI0LTAwMDIyOSwsIjUsMTA1LDUxMS4xNyIsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwwLjAwLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsMC4wMCwsLCwsLCwsLCwsLCwNCjMsUHJvdmluY2Ugb2YgUGFuZ2FzaW5hbiwiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gU3RhLiBCYXJiYXJhLCBQYW5nYXNpbmFuIixWQ1JJLENvbXBsZXRlZCwxMDAuMDAlLDEwMC4wMCUsMC4wMCwsIjQxLDE5MSwzMDkuMTAiLCIzMiw5NTMsMDQ3LjI4IiwiNCwxMTksMTMwLjkxIiwiMzcsMDcyLDE3OC4xOSIsLCwsLCIzMiw5NTMsMDQ3LjI4IiwsMC4wMCwsLCwsIjQsMTE5LDEzMC45MSIsLDAuMDAsIjM3LDA3MiwxNzguMTkiLCwsIjMyLDk1MywwNDcuMjgiLCwsIjQsMTE5LDEzMC45MSIsLCwiMzcsMDcyLDE3OC4xOSIsMTAwLjAwJSwsMC4wMCwxMDAuMDAlLCwxMDAuMDAlLCJBcHIuIDEwLCAyMDI2IiwwLjAwLDAuMDAsMC4wMCwwLjAwLDAuMDAsMC4wMA0KLCwsLCwsLDAuMDAsLCwsLCwyMDI0LDA2LTAxMTA1NDI4LTIwMjQtMDktMDAzLEFTQSBOby4gMjAyNC0wMDAwOTQsIlNlcHRlbWJlciAyMywgMjAyNCIsIjksNTA1LDU3NS4wMCIsIjksNTA1LDU3NS4wMCIsMC4wMCwyMDI0LDA2LTAxMTA1NTY0LTIwMjQtMTItMDA2LEFTQSBOby4gMjAyNC0wMDAyMjksIkRlY2VtYmVyIDMsIDIwMjQiLCIyLDg4MywzOTEuNjQiLCIyLDg4MywzOTEuNjQiLDAuMDAsLCwxc3QgQmlsbGluZywiMywyNTEsNjAxLjU2IixBU0EgTm8uIDIwMjQtMDAwMDk0LCJKdWx5IDEsIDIwMjUiLCI0MDYsNDUwLjIwIixBU0EgTm8uIDIwMjQtMDAwMjI5LCJKdWx5IDEsIDIwMjUiLCIzLDY1OCwwNTEuNzYiLCwsLCwsLCwwLjAwLDAuMDAsLCwsDQosLCwsLCwsLCwsLCwsMjAyNCwwNi0wMTEwNTQyOC0yMDI0LTEyLTA0MCxBU0EgTm8uIDIwMjQtMDAwMDk0LCJEZWNlbWJlciAyNiwgMjAyNCIsIjcsMjAzLDY5NS4wNiIsIjcsMjAzLDY5NS4wNiIsMC4wMCwyMDI0LDA2LTAxMTA1NTY0LTIwMjQtMTItMDEwLEFTQSBOby4gMjAyNC0wMDAyMjksIkRlY2VtYmVyIDI2LCAyMDI0IiwiOTAwLDQ2MS44OCIsIjkwMCw0NjEuODgiLDAuMDAsLCwybmQgQmlsbGluZywiNiwyNTMsOTczLjQ0IixBU0EgTm8uIDIwMjQtMDAwMDk0LCJOb3ZlbWJlciA2LCAyMDI1IiwiODk0LDE3MS43OCIsQVNBIE5vLiAyMDI0LTAwMDIyOSwiTm92ZW1iZXIgNiwgMjAyNSIsIjcsMTQ4LDE0NS4yMiIsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsMjAyNCwwNi0wMTEwNTQyOC0yMDI0LTEyLTAyMyxBU0EgTm8uIDIwMjQtMDAwMjA3LCJEZWNlbWJlciAzLCAyMDI0IiwiMTMsNTYxLDU1OC4xMCIsIjEzLDU2MSw1NTguMTAiLDAuMDAsMjAyNSwwNi0wMjEwMTE1MS0yMDI1LTA0LTAwNixBU0EgTm8uIDIwMjUtMDAwMDkxLCJBcHJpbCAyMSwgMjAyNSIsIjMzNSwyNzcuMzkiLCIzMzUsMjc3LjM5IiwwLjAwLCwsMm5kIEJpbGxpbmcsIjg5OSw0MDAuNzciLEFTQSBOby4gMjAyNC0wMDAyMDcsIk5vdmVtYmVyIDYsIDIwMjUiLCwsLCI4OTksNDAwLjc3IiwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwyMDI1LDA2LTAyMTAxMTYzLTIwMjUtMDQtMDA2LEFTQSBOby4gMjAyNS0wMDAwOTAsIkFwcmlsIDIxLCAyMDI1IiwiMiw2ODIsMjE5LjEyIiwiMiw2ODIsMjE5LjEyIiwwLjAwLCwsLCwsLCwsLDNyZCBCaWxsaW5nLCI1LDI2NCw4NDcuNzEiLEFTQSBOby4gMjAyNC0wMDAyMDcsIkRlY2VtYmVyIDIyLCAyMDI1IiwiNjU4LDEwNS45NiIsQVNBIE5vLiAyMDI0LTAwMDIyOSwiRGVjZW1iZXIgMjIsIDIwMjUiLCI1LDkyMiw5NTMuNjciLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCw0dGggQmlsbGluZywiNywyMDMsNjk1LjA2IixBU0EgTm8uIDIwMjQtMDAwMDk0LCJNYXkgMTEsIDIwMjYiLCI5MjQsNjYzLjcwIixBU0EgTm8uIDIwMjQtMDAwMjI5LCJNYXkgMTEsIDIwMjYiLCI4LDEyOCwzNTguNzYiLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCw0dGggQmlsbGluZywiNiw5MDEsNTU3LjM5IixBU0EgTm8uIDIwMjQtMDAwMjA3LCJNYXkgMTEsIDIwMjYiLCI4MzgsNDkyLjg2IixBU0EgTm8uIDIwMjQtMDAwMjI5LCJNYXkgMTEsIDIwMjYiLCI3LDc0MCwwNTAuMjUiLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCxGaW5hbCBCaWxsaW5nLCI0OTUsNzUyLjIzIixBU0EgTm8uIDIwMjQtMDAwMjA3LCwiNjEsOTY5LjAyIixBU0EgTm8uIDIwMjQtMDAwMjI5LCwiNTU3LDcyMS4yNSIsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLEZpbmFsIEJpbGxpbmcsIjIsNjgyLDIxOS4xMiIsQVNBIE5vLiAyMDI1LTAwMDA5MCwsIjMzNSwyNzcuMzkiLEFTQSBOby4gMjAyNS0wMDAwOTEsLCIzLDAxNyw0OTYuNTEiLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsMC4wMCwsLCwsLCwsLCwsLCwNCjQsUHJvdmluY2Ugb2YgUGFuZ2FzaW5hbiwiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gU2FuIFF1aW50aW4sIFBhbmdhc2luYW4iLFZDUkksQ29tcGxldGVkLDEwMC4wMCUsOTUuMjElLCIxLDgyNiwwMDAuNzUiLCJBcHJpbCAxMiwgMjAyNiAoYXMgcGVyIFRFIE5vLiA0KSIsIjQyLDM1MSw0NzcuMTEiLCIzMyw4ODEsMTgxLjY5IiwiNCwyMzUsMTQ3LjcxIiwiMzgsMTE2LDMyOS40MCIsLCwsLCIzMyw4ODEsMTgxLjY5IiwsLCwsLCwiNCwyMzUsMTQ3LjcxIiwsLCIzOCwxMTYsMzI5LjQwIiwsLCIzMiwyNTgsMDY5LjkxIiwsLCI0LDAzMiwyNTguNzQiLCwsIjM2LDI5MCwzMjguNjUiLDk1LjIxJSwsMC4wMCw5NS4yMSUsLDEwMC4wMCUsIkFwci4gMjgsIDIwMjYiLCIxLDYyMywxMTEuNzgiLCIyMDIsODg4Ljk3IiwiMSw4MjYsMDAwLjc1IiwwLjAwLDAuMDAsMC4wMA0KLCwsLCwsLCwsLCwsLDIwMjQsMDYtMDExMDU0MjgtMjAyNC0xMi0wMjAsQVNBIE5vLiAyMDI0LTAwMDA5NCwiRGVjZW1iZXIgMywgMjAyNCIsIjgsNjc1LDE5NS4wMCIsIjgsNjc1LDE5NS4wMCIsMC4wMCwyMDI0LDA2LTAxMTA1NTY0LTIwMjQtMTItMDA0LEFTQSBOby4gMjAyNC0wMDAyMjksIkRlY2VtYmVyIDMsIDIwMjQiLCIyLDk2NCw2MDMuNDAiLCIyLDk2NCw2MDMuNDAiLDAuMDAsLCwxc3QgQmlsbGluZywiNCwzMjAsMTIzLjkzIixBU0EgTm8uIDIwMjQtMDAwMDk0LCJKdWx5IDQsIDIwMjUiLCI1NDAsMDE1LjQ5IixBU0EgTm8uIDIwMjQtMDAwMjI5LCJKdWx5IDQsIDIwMjUiLCI0LDg2MCwxMzkuNDIiLCwsLCwsLCwiMSw2MjMsMTExLjc4IiwiMjAyLDg4OC45NyIsLCwsDQosLCwsLCwsLCwsLCwsMjAyNCwwNi0wMTEwNTQyOC0yMDI0LTEyLTAxOSxBU0EgTm8uIDIwMjQtMDAwMjA3LCJEZWNlbWJlciAzLCAyMDI0IiwiMTUsMDQxLDYzMi4xOCIsIjE1LDA0MSw2MzIuMTgiLDAuMDAsMjAyNSwwNi0wMjEwMTE1MS0yMDI1LTA0LTAwNyxBU0EgTm8uIDIwMjUtMDAwMDkxLCJBcHJpbCAyMSwgMjAyNSIsIjEsMjcwLDU0NC4zMSIsIjEsMDY3LDY1NS4zNCIsIjIwMiw4ODguOTciLCwsMm5kIEJpbGxpbmcsIjIsOTYyLDEwMi4yNSIsQVNBIE5vLiAyMDI0LTAwMDA5NCwiTm92ZW1iZXIgNCwgMjAyNSIsIjM3MCwyNjIuNzgiLEFTQSBOby4gMjAyNC0wMDAyMjksIk5vdmVtYmVyIDQsIDIwMjUiLCIzLDMzMiwzNjUuMDMiLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLDIwMjUsMDYtMDIxMDExNjMtMjAyNC0wNC0wMDcsQVNBIE5vLiAyMDI1LTAwMDA5MCwiQXByaWwgMjEsIDIwMjUiLCIxMCwxNjQsMzU0LjUxIiwiOCw1NDEsMjQyLjczIiwiMSw2MjMsMTExLjc4IiwsLCwsLCwsLCwzcmQgQmlsbGluZywiMSwzOTIsOTY4LjgyIixBU0EgTm8uIDIwMjQtMDAwMDk0LCJEZWNlbWJlciAyMiwgMjAyNSIsIjEsOTIzLDkyNi4xOSIsQVNBIE5vLiAyMDI0LTAwMDIyOSwiRGVjZW1iZXIgMjIsIDIwMjUiLCIzLDMxNiw4OTUuMDEiLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwzcmQgQmlsbGluZywiMTMsOTk4LDQ0MC43MCIsQVNBIE5vLiAyMDI0LTAwMDIwNywiRGVjZW1iZXIgMjIsIDIwMjUiLCwsLCIxMyw5OTgsNDQwLjcwIiwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsNHRoIEJpbGxpbmcsIjEsMDQzLDE5MS40OCIsQVNBIE5vLiAyMDI0LTAwMDIwNywiTWF5IDExLCAyMDI2IiwiMTMwLDM5OC45NCIsQVNBIE5vLiAyMDI0LTAwMDIyOSwiTWF5IDExLCAyMDI2IiwiMSwxNzMsNTkwLjQyIiwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsNHRoIEJpbGxpbmcsIjgsNTQxLDI0Mi43MyIsQVNBIE5vLiAyMDI1LTAwMDA5MCwiTWF5IDExLCAyMDI2IiwiMSwwNjcsNjU1LjM0IixBU0EgTm8uIDIwMjUtMDAwMDkxLCJNYXkgMTEsIDIwMjYiLCI5LDYwOCw4OTguMDciLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsMC4wMCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLDAuMDAsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwwLjAwLCwsLCwsLCwsLCwsLA0KNSwiUm9zYWxlcywgUGFuZ2FzaW5hbiIsRXN0YWJsaXNobWVudCBvZiBSb3NhbGVzIFNsYXVnaHRlcmhvdXNlLFZDUkksT24tZ29pbmcsNTkuMzUlLDIxLjM4JSwiMjYsODcyLDI1OS4zOSIsIlNlcHRlbWJlciA2LCAyMDI2IChhcyBwZXIgVEUgTm8uIDEpIiwiNzgsNjM5LDgyOC40OCIsIjYyLDkxMSw4NjIuNzgiLCI3LDg2Myw5ODIuODUiLCI3MCw3NzUsODQ1LjYzIiwsLCwsIjYyLDkxMSw4NjIuNzgiLCwsLCwsLCI3LDg2Myw5ODIuODUiLCwsIjcwLDc3NSw4NDUuNjMiLCwsIjI1LDQyMCw5ODAuNjciLCwsIjMsMTc3LDYyMi41OCIsLCwiMTUsMTMzLDIwNC45OSIsMjEuMzglLCwsMjEuMzglLCw1OS4zNSUsIkp1bi4gMTUsIDIwMjYiLCIzNyw0OTAsODgyLjExIiwiNCw2ODYsMzYwLjI2IiwiNTUsNjQyLDY0MC42NCIsMC4wMCwwLjAwLDAuMDANCiwsLCwsLCwsLCwsLCwsLEFTQSBOby4gMjAyNC0wMDAwOTQsIlNlcHRlbWJlciAzMCwgMjAyNCIsIjE4LDQyMCw5NzUuMDAiLCIxOCw0MjAsOTc1LjAwIiwwLjAwLCwsQVNBIE5vLiAyMDI0LTAwMDIyOSwiRGVjZW1iZXIgMywgMjAyNCIsIjQsMTAwLDUxNi42MCIsIjMsMTc3LDYyMi41OCIsIjkyMiw4OTQuMDIiLCwsMXN0IEJpbGxpbmcsIjYsNzY0LDU2Ny42MSIsQVNBIE5vLiAyMDI0LTAwMDA5NCwiQXVndXN0IDI5LCAyMDI1IiwiODQ1LDU3MC45NSIsQVNBIE5vLiAyMDI0LTAwMDIyOSwiQXVndXN0IDI5LCAyMDI1IiwiNyw2MTAsMTM4LjU2IiwsLCwsLCwsIjM3LDQ5MCw4ODIuMTEiLCI0LDY4NiwzNjAuMjciLCwsLA0KLCwsLCwsLCwsLCwsLCwsQVNBIE5vLiAyMDI0LTAwMDIwNywiRGVjZW1iZXIgMywgMjAyNCIsIjE0LDM4MywxNTcuODMiLCI3LDAwMCwwMDUuNjciLCI3LDM4MywxNTIuMTYiLCwsQVNBIE5vLiAyMDI1LTAwMDA5MSwiQXByaWwgMjEsIDIwMjUiLCIzLDc2Myw0NjYuMjUiLCwiMyw3NjMsNDY2LjI1IiwsLDJuZCBCaWxsaW5nLCI2LDY4NywxNzAuMTYiLEFTQSBOby4gMjAyNC0wMDAwOTQsIkRlY2VtYmVyIDE4LCAyMDI1IiwiODM1LDg5Ni4yNyIsQVNBIE5vLiAyMDI0LTAwMDIyOSwiRGVjZW1iZXIgMTgsIDIwMjUiLCI3LDUyMywwNjYuNDMiLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsQVNBIE5vLiAyMDI1LTAwMDA5MCwiQXByaWwgMjEsIDIwMjUiLCIzMCwxMDcsNzI5Ljk1IiwsIjMwLDEwNyw3MjkuOTUiLCwsLCwsLCwsLDNyZCBCaWxsaW5nLCI0LDk2OSwyMzcuMjMiLEFTQSBOby4gMjAyNC0wMDAwOTQsLCIxLDQ5NiwxNTUuMzYiLEFTQSBOby4gMjAyNC0wMDAyMjksLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCI3LDAwMCwwMDUuNjciLEFTQSBOby4gMjAyNC0wMDAyMDcsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLDAuMDAsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwwLjAwLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsMC4wMCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLDAuMDAsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwwLjAwLCwsLCwsLCwsLCwsLA0KNiwiQWxjYWxhLCBQYW5nYXNpbmFuIixDb25zdHJ1Y3Rpb24gb2YgQWxjYWxhIENvbGQgU3RvcmFnZSBmb3IgT25pb24sVkNSSSxPbi1nb2luZywxNS4zOCUsOC41NyUsIjExLDYyNyw5NzguODMiLCJPY3RvYmVyIDExLCAyMDI2CihhcyBwZXIgVEUgTm8uIDEpIiwiMTg5LDczMSw0NzAuOTYiLCIxNTEsNzg1LDE3Ni43NiIsIjE4LDk3MywxNDcuMTAiLCIxNzAsNzU4LDMyMy44NiIsLCwsLCIxNTEsNzg1LDE3Ni43NiIsLCwsLCwsIjE4LDk3MywxNDcuMTAiLCwsIjE3MCw3NTgsMzIzLjg2IiwsLCIxMywwMDIsNTA3LjYwIiwsLCIxLDYyNSwzMTMuNDUiLCwsIjE0LDYyNyw4MjEuMDUiLDguNTclLCwwLjAwLDguNTclLCwxNS4zOCUsIkp1bi4gMTUsIDIwMjYiLCIxMzgsNzgyLDY2OS4xNiIsIjE3LDM0Nyw4MzMuNjUiLCIxNTYsMTMwLDUwMi44MSIsMC4wMCwwLjAwLDAuMDANCiwsLCwsLCwsLCwsLCwsLEFTQSBOby4gMjAyNC0wMDAwOTQsIkRlY2VtYmVyIDMsIDIwMjQiLCIyNiwxMzYsNTQwLjAwIiwiMTMsMDAyLDUwNy42MCIsIjEzLDEzNCwwMzIuNDAiLCwsQVNBIE5vLiAyMDI0LTAwMDIyOSwiRGVjZW1iZXIgMywgMjAyNCIsIjcsNzQ0LDE2MC4wMCIsIjEsNjI1LDMxMy40NSIsIjYsMTE4LDg0Ni41NSIsLCwxc3QgQmlsbGluZywiMTMsMDAyLDUwNy42MCIsQVNBIE5vLiAyMDI0LTAwMDA5NCwiTWF5IDEzLCAyMDI2IiwiMSw2MjUsMzEzLjQ1IixBU0EgTm8uIDIwMjQtMDAwMjI5LCJNYXkgMTMsIDIwMjYiLCIxNCw2MjcsODIxLjA1IiwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLEFTQSBOby4gMjAyNC0wMDAyMDcsIkRlY2VtYmVyIDMsIDIwMjQiLCIzNSw4MTYsNzQwLjAwIiwsLCwsQVNBIE5vLiAyMDI1LTAwMDA5MSwiQXByaWwgMjEsIDIwMjUiLCI1LDUwNiwyMjIuMjIiLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsQVNBIE5vLiAyMDI1LTAwMDA5MCwiQXByaWwgMjEsIDIwMjUiLCI0NCwwNDksNzc3Ljc4IiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCxBU0EgTm8uIDIwMjYtMDAwMDY1LCJNYXkgMTEsIDIwMjYiLCI0NSw3ODIsMTE4Ljk4IiwsLCwsQVNBIE5vLiAyMDI2LTAwMDA2NiwiTWF5IDExLCAyMDI2IiwiNSw3MjIsNzY0Ljg4IiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCjcsIkJheWFtYmFuZywgUGFuZ2FzaW5hbiIsQ29uc3RydWN0aW9uIG9mIEJheWFtYmFuZyBPbmlvbiBDb2xkIFN0b3JhZ2UgRmFjaWxpdHksVkNSSSxPbi1nb2luZywzMy4yMCUsMTAuNDIlLCI1MCwyNDksNTY2LjE3IiwiSmFudWFyeSAxLCAyMDI3IChhcyBwZXIgVEUgTm8uIDQpIiwiMjQ1LDA0NSw4NzguOTUiLCIxOTYsMDM2LDcwMy4xNiIsIjI0LDUwNCw1ODcuOTAiLCIyMjAsNTQxLDI5MS4wNiIsLCwsLCIxOTYsMDM2LDcwMy4xNiIsLCwsLCwsIjI0LDUwNCw1ODcuOTAiLCwsIjIyMCw1NDEsMjkxLjA2IiwsLCIyMCw0MTcsOTA0LjQxIiwsLCIyLDU1MiwyMzguMDUiLCwsIjIyLDk3MCwxNDIuNDYiLDEwLjQyJSwsMC4wMCwxMC40MiUsLDE0LjE5JSwiSnVuLiAxNSwgMjAyNiIsIjE3NSw2MTgsNzk4Ljc1IiwiMjEsOTUyLDM0OS44NCIsIjE5Nyw1NzEsMTQ4LjYwIiwwLjAwLDAuMDAsMC4wMA0KLCwsLCwsLCwsLCwsLCwsQVNBIE5vLiAyMDI1LTAwMDA5MCwiTWF5IDYsIDIwMjUiLCIxMTgsMDg3LDIwMC4wMCIsIjIwLDQxNyw5MDQuNDEiLCI5Nyw2NjksMjk1LjU5IiwsLEFTQSBOby4gMjAyNS0wMDAwOTEsIk1heSA2LCAyMDI1IiwiMTQsNzYwLDkwMC4wMCIsIjIsNTUyLDIzOC4wNSIsIjEyLDIwOCw2NjEuOTUiLCwsMXN0IEJpbGxpbmcsIjIwLDQxNyw5MDQuNDEiLEFTQSBOby4gMjAyNS0wMDAwOTAsIk1heSAxMSwgMjAyNiIsIjIsNTUyLDIzOC4wNSIsQVNBIE5vLiAyMDI1LTAwMDA5MSwiTWF5IDExLCAyMDI2IiwiMjIsOTcwLDE0Mi40NiIsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCxBU0EgTm8uIDIwMjYtMDAwMDY1LCJNYXkgMTEsIDIwMjYiLCI3Nyw5NDksNTAzLjE2IiwsIjc3LDk0OSw1MDMuMTYiLCwsQVNBIE5vLiAyMDI2LTAwMDA2NiwiTWF5IDExLCAyMDI2IiwiOSw3NDMsNjg3LjkwIiwsIjksNzQzLDY4Ny45MCIsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLA0KOCwiUGFvYXksIElsb2NvcyBOb3J0ZSIsQ29uc3RydWN0aW9uIG9mIFViYm9nIEJyaWRnZSB3aXRoIEFwcHJvYWNoZXMsQnJpZGdlLE9uLWdvaW5nLDM3LjI4JSwyNy43MCUsIjgsNzgwLDYxOS44MSIsLCIxMDEsNzkwLDk5Ni4zMyIsIjgxLDQzMiw3OTcuMDciLCIxMCwxNzksMDk5LjYzIiwiOTEsNjExLDg5Ni43MCIsLCwsLCI4MSw0MzIsNzk3LjA3IiwsLCwsLCwiMTAsMTc5LDA5OS42MyIsLCwiOTEsNjExLDg5Ni43MCIsLCwiMjIsNTUzLDE1MS4zNiIsLCwiMiw4MTksMTQzLjkzIiwsLCIyNSwzNzIsMjk1LjI5IiwyNy43MCUsLDAuMDAsMjcuNzAlLCwzNy4yOCUsIkp1bi4gMTUsIDIwMjYiLCI1OCw4NzksNjQ1LjcxIiwiNywzNTksOTU1LjcxIiwiNjYsMjM5LDYwMS40MiIsMC4wMCwwLjAwLDAuMDANCiwsLCwsLCwsLCwsLCwsLEFTQSBOby4gMjAyNS0wMDAwOTAsIk1heSA2LCAyMDI1IiwiNjEsNTg4LDgwMC4wMCIsIjIyLDU1MywxNTEuMzYiLCIzOSwwMzUsNjQ4LjY0IiwsLEFTQSBOby4gMjAyNS0wMDAwOTEsIk1heSA2LCAyMDI1IiwiNyw2OTgsNjAwLjAwIiwiMiw4MTksMTQzLjkzIiwiNCw4NzksNDU2LjA4IiwsLDFzdCBCaWxsaW5nLCIxMSwxMzMsNzQ0LjUyIixBU0EgTm8uIDIwMjUtMDAwMDkwLCJOb3ZlbWJlciAyNiwgMjAyNSIsIjEsMzkxLDcxOC4wNyIsQVNBIE5vLiAyMDI1LTAwMDA5MSwiTm92ZW1iZXIgMjYsIDIwMjUiLCIxMiw1MjUsNDYyLjU5IiwsLCwsLCwsIjU4LDg3OSw2NDUuNzEiLCI3LDM1OSw5NTUuNzEiLCwsLA0KLCwsLCwsLCwsLCwsLCwsQVNBIE5vLiAyMDI2LTAwMDA2NSwiTWF5IDExLCAyMDI2IiwiMTksODQzLDk5Ny4wNyIsLCIxOSw4NDMsOTk3LjA3IiwsLEFTQSBOby4gMjAyNi0wMDAwNjYsIk1heSAxMSwgMjAyNiIsIjIsNDgwLDQ5OS42MyIsLCIyLDQ4MCw0OTkuNjMiLCwsMm5kIEJpbGxpbmcsIjExLDQxOSw0MDYuODQiLEFTQSBOby4gMjAyNS0wMDAwOTAsIk1heSAxMSwgMjAyNiIsIjEsNDI3LDQyNS44NiIsQVNBIE5vLiAyMDI1LTAwMDA5MSwiTWF5IDExLCAyMDI2IiwiMTIsODQ2LDgzMi43MCIsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQo5LFByb3ZpbmNlIG9mIFBhbmdhc2luYW4sIkNvbnN0cnVjdGlvbiBvZiBQYW5nYXNpbmFuIEJhbmd1cyBCcmVlZGluZyBhbmQgSGF0Y2hlcnkgaW4gQm9saW5hbywgUGFuZ2FzaW5hbiIsVkNSSSxPbi1nb2luZyw2LjYyJSwwLjAwJSwiMTQsMDUwLDAxNi4wNiIsLCIyMzUsNzQ5LDk5NS41NSIsIjE4OCw1OTksOTk2LjQ0IiwiMjMsNTc0LDk5OS41NiIsIjIxMiwxNzQsOTk2LjAwIiwsLCwsIjE4OCw1OTksOTk2LjQ0IiwsLCwsLCwiMjMsNTc0LDk5OS41NiIsLCwiMjEyLDE3NCw5OTYuMDAiLCwsLCwsLCwsLDAuMDAlLCwsMC4wMCUsLDYuNjIlLCJKdW4uIDE1LCAyMDI2IiwiMTg4LDU5OSw5OTYuNDQiLCIyMyw1NzQsOTk5LjU2IiwiMjEyLDE3NCw5OTYuMDAiLDAuMDAsMC4wMCwwLjAwDQosLCwsLCwsLCwsLCwsMjAyNCwwNi0wMTEwNTQyOC0yMDI0LTEyLTAxNyxBU0EgTm8uIDIwMjQtMDAwMDk0LCJEZWNlbWJlciAzLCAyMDI0IiwiMzIsMjYzLDkyMC4wMCIsIjI4LDI4OSw5OTkuNDYiLCIzLDk3Myw5MjAuNTQiLCwwNi0wMTEwNTU2NC0yMDI0LTEyLTAwMixBU0EgTm8uIDIwMjQtMDAwMjI5LCJEZWNlbWJlciAzLCAyMDI0IiwiOSw0NDgsNzEyLjY2IiwiMyw1MzYsMjQ5LjkzIiwiNSw5MTIsNDYyLjczIiwsLEFkdmFuY2UgcGF5bWVudCwiMjgsMjg5LDk5OS40NiIsQVNBIE5vLiAyMDI0LTAwMDA5NCwsIjMsNTM2LDI0OS45MyIsQVNBIE5vLiAyMDI0LTAwMDIyOSwsLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLDIwMjQsMDYtMDExMDU0MjgtMjAyNC0xMi0wMTYsQVNBIE5vLiAyMDI0LTAwMDIwNywiRGVjZW1iZXIgMywgMjAyNCIsIjQzLDMyNSw3ODEuMjQiLCwsLDA2LTAyMTAxMTUxLTIwMjUtMDQtMDAyLEFTQSBOby4gMjAyNS0wMDAwOTEsIkFwcmlsIDIxLCAyMDI1IiwiMiwwMjcsMjk0LjkzIiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwyMDI1LDA2LTAyMTAxMTYzLTIwMjUtMDQtMDAyLEFTQSBOby4gMjAyNS0wMDAwOTAsIkFwcmlsIDIxLCAyMDI1IiwiMTYsMjE4LDM1OS40NCIsLCwsMDYtMDIxMDExNTEtMjAyNi0wNS0wMTcsQVNBIE5vLiAyMDI2LTAwMDA2NiwiTWF5IDExLCAyMDI2IiwiMTIsMDk4LDk5MS45NyIsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsMjAyNiwwNi0wMjEwMTE2My0yMDI2LTA1LTAxNyxBU0EgTm8uIDIwMjYtMDAwMDY1LCJNYXkgMTEsIDIwMjYiLCI5Niw3OTEsOTM1Ljc2IiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQoxMCwiQmF5YW1iYW5nLCBQYW5nYXNpbmFuIixSb2FkIE9wZW5pbmcgYW5kIENvbmNyZXRpbmcgb2YgU2FuIEdhYnJpZWwgSUkgLSBQYW50b2wgRmFybS10by1NYXJrZXQgUm9hZCxGTVIsd2l0aCBOT0wxLDAuMDAlLDAuMDAlLDAuMDAsLCIzMDIsNTgyLDA1OC41NSIsIjI0MiwwNjUsNjQ2Ljg0IiwiMzAsMjU4LDIwNS44NiIsIjI3MiwzMjMsODUyLjcwIiwsLCwsIjE4OCw2ODEsODcyLjc4IiwsLCwsLCwiMjUsNjY3LDc4NC4xMCIsLCwiMjE0LDM0OSw2NTYuODgiLCwsMC4wMCwsLDAuMDAsLCwwLjAwLDAuMDAlLCwsMC4wMCUsLDAuMDAlLCwiMjQyLDA2NSw2NDYuODQiLCIzMCwyNTgsMjA1Ljg2IiwiMjcyLDMyMyw4NTIuNzAiLCI1MywzODMsNzc0LjA2IiwiNCw1OTAsNDIxLjc2IiwiNTcsOTc0LDE5NS44MiINCiwsLCwsLCwsLCwsLCwsLEFTQSBOby4gMjAyNS0wMDAwOTAsIk1heSA2LCAyMDI1IiwiMTc4LDc0MCw4MDAuMDAiLCwsLCxBU0EgTm8uIDIwMjUtMDAwMDkxLCJNYXkgNiwgMjAyNSIsIjIyLDM0Miw2MDAuMDAiLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsLCwsLCwsQVNBIE5vLiAyMDI2LTAwMDA2NSwiTWF5IDExLCAyMDI2IiwiOSw5NDEsMDcyLjc4IiwsLCwsQVNBIE5vLiAyMDI2LTAwMDA2NiwiTWF5IDExLCAyMDI2IiwiMywzMjUsMTg0LjEwIiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCjExLCJUYWd1ZGluLCBJbG9jb3MgU3VyIixFc3RhYmxpc2htZW50IG9mIFRhZ3VkaW4gU2xhdWdodGVyaG91c2UsVkNSSSxPbi1nb2luZywxMy45NCUsMTEuOTklLCIxLDQ0OCw1MjYuNDkiLCwiODIsNDI4LDIyMS4zNSIsIjY1LDk0Miw1NzcuMDgiLCI4LDI0Miw4MjIuMTQiLCI3NCwxODUsMzk5LjIyIiwsLCwsIjY1LDk0Miw1NzcuMDgiLCwsLCwsLCI4LDI0Miw4MjIuMTQiLCwsIjc0LDE4NSwzOTkuMjIiLCwsIjcsOTA0LDgxNi4xNCIsLCwiOTg4LDEwMi4wMSIsLCwiOCw4OTIsOTE4LjE2IiwxMS45OSUsLCIyLDk2Nyw0MTUuOTciLDExLjk5JSwsMTMuOTQlLCJKdW4uIDE1LCAyMDI2IiwiNTgsMDM3LDc2MC45NCIsIjcsMjU0LDcyMC4xMiIsIjY1LDI5Miw0ODEuMDYiLDAuMDAsLTAuMDEsLTAuMDENCiwsLCwsLCwsLCwsLCwsLEFTQSBOby4gMjAyNS0wMDAwOTAsIkFwcmlsIDIxLCAyMDI1IiwiNDYsMTcyLDAwMC4wMCIsIjIsNjM1LDcyNi43NCIsIjQzLDUzNiwyNzMuMjYiLCwsQVNBIE5vLiAyMDI1LTAwMDA5MSwiQXByaWwgMjEsIDIwMjUiLCI1LDc3MSw1MDAuMDAiLCIzMjksNDY1Ljg0IiwiNSw0NDIsMDM0LjE2IiwsLDFzdCBCaWxsaW5nLCIyLDYzNSw3MjYuNzQiLEFTQSBOby4gMjAyNS0wMDAwOTAsIk1heSAxOCwgMjAyNiIsIjMyOSw0NjUuODQiLEFTQSBOby4gMjAyNS0wMDAwOTEsIk1heSAxOCwgMjAyNiIsIjIsOTY1LDE5Mi41OSIsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCxBU0EgTm8uIDIwMjYtMDAwMDY1LCJNYXkgMTEsIDIwMjYiLCIxOSw3NzAsNTc3LjA4IiwsLCwsQVNBIE5vLiAyMDI2LTAwMDA2NiwiTWF5IDExLCAyMDI2IiwiMiw0NzEsMzIyLjE0IiwsLCwsMm5kIEJpbGxpbmcsIjUsMjY5LDA4OS40MCIsLCJKdWx5IDIxLCAyMDI2IiwiNjU4LDYzNi4xNyIsLCJKdWx5IDIxLCAyMDI2IiwiNSw5MjcsNzI1LjU3IiwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCjEyLCJEYXNvbCwgUGFuZ2FzaW5hbiIsUmVoYWJpbGl0YXRpb24gYW5kIFJvYWQgT3BlbmluZyBvZiBTYW4gVmljZW50ZS1WaWdhIEZhcm0tdG8tTWFya2V0IFJvYWQsRk1SIHdpdGggQnJpZGdlLHdpdGggTk9MMSwsLCwsIjI5MCw0NTksMDAwLjAwIiwiMjMyLDM2NywyMDAuMDAiLCIyOSwwNDUsOTAwLjAwIiwiMjYxLDQxMywxMDAuMDAiLCwsLCwiMTg4LDU3Niw4MzAuMDAiLCwsLCwsLCIyMyw1NzIsMTAzLjc1IiwsLCIyMTIsMTQ4LDkzMy43NSIsLCwsLCwsLCwsLCwsMC4wMCUsLCwsIjIzMiwzNjcsMjAwLjAwIiwiMjksMDQ1LDkwMC4wMCIsIjI2MSw0MTMsMTAwLjAwIiwiNDMsNzkwLDM3MC4wMCIsIjUsNDczLDc5Ni4yNSIsIjQ5LDI2NCwxNjYuMjUiDQosLCwsLCwsLCwsLCwsLCxBU0EgTm8uIDIwMjQtMDAwMDk0LCJEZWNlbWJlciAzLCAyMDI0IiwiNzksNTc2LDgzMC4wMCIsLCwsLEFTQSBOby4gMjAyNC0wMDAyMjksIkRlY2VtYmVyIDMsIDIwMjQiLCIyMyw1NzIsMTAzLjc1IiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLEFTQSBOby4gMjAyNC0wMDAyMDcsIkRlY2VtYmVyIDI2LCAyMDI0IiwiMTA5LDAwMCwwMDAuMDAiLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCjEzLFByb3ZpbmNlIG9mIExhIFVuaW9uLFJlaGFiaWxpdGF0aW9uIG9mIFJhbW90LVB1Z3VpbCBGYXJtIHRvIE1hcmtldCBSb2FkLEZNUixPbi1nb2luZywwLjg3NiwwLjAwJSwiMjI4LDY2Niw3MTcuMDgiLCwiMjkwLDAzOCw5NjEuMjkiLCIyMzIsMDMxLDE2OS4wMyIsIjI5LDAwMyw4OTYuMTMiLCIyNjEsMDM1LDA2NS4xNiIsLCwsLCIyMzIsMDMxLDE2OS4wMyIsLCwsLCwsIjI5LDAwMyw4OTYuMTMiLCwsIjI2MSwwMzUsMDY1LjE2IiwsLCwsLCwsLCwsLCwsLDAuODc2LCJKdW4uIDE1LCAyMDI2IiwiMjMyLDAzMSwxNjkuMDMiLCIyOSwwMDMsODk2LjEzIiwiMjYxLDAzNSwwNjUuMTYiLDAuMDAsMC4wMCwwLjAwDQosLCwsLCwsLCwsLCwsLCxBU0EgTm8uIDIwMjYtMDAwMDQ3LCJNYXJjaCA2LCAyMDI2IiwiNzYsNTUxLDI5NS45NiIsLCwsLEFTQSBOby4gMjAyNi0wMDAwNDgsIk1hcmNoIDYsIDIwMjYiLCI5LDU2OCw5MTIuMDAiLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLA0KLCwsLCwsLCwsIjI5OCw5OTksMDAwLjAwIiwiMjM5LDE5OSwyMDAuMDAiLCIyOSw4OTksOTAwLjAwIiwiMjY5LDA5OSwxMDAuMDAiLCwsQVNBIE5vLiAyMDI2LTAwMDA2NSwiTWF5IDExLCAyMDI2IiwiMTU1LDQ3OSw4NzMuMDciLCwsLCxBU0EgTm8uIDIwMjYtMDAwMDY2LCJNYXkgMTEsIDIwMjYiLCIxOSw0MzQsOTg0LjEzIiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwNCjE0LFByb3ZpbmNlIG9mIExhIFVuaW9uLENvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFN0b3JhZ2UgRmFjaWxpdHkgd2l0aCBTb2xhciBEcnllcixWQ1JJLE9uLWdvaW5nLCwsLCwiMTYsNzEwLDk5OS45OSIsIjEzLDM2OCw3OTkuOTkiLCIxLDY3MSwxMDAuMDAiLCIxNSwwMzksODk5Ljk5IiwsLCwsIjEzLDM2OCw3OTkuOTkiLCwsLCwsLCIxLDY3MSwxMDAuMDAiLCwsIjE1LDAzOSw4OTkuOTkiLCwsLCwsLCwsLCwsLCwsLCwsLCwwLjAwLDAuMDAsMC4wMA0KLCwsLCwsLCwsLCwsLCwsQVNBIE5vLiAyMDI2LTAwMDA2NSwiTWF5IDExLCAyMDI2IiwiMTMsMzY4LDc5OS45OSIsLCwsLEFTQSBOby4gMjAyNi0wMDAwNjYsIk1heSAxMSwgMjAyNiIsIjEsNjcxLDEwMC4wMCIsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQosLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsDQoxNSwiQmF0YWMgQ2l0eSwgSWxvY29zIE5vcnRlIixDb25zdHJ1Y3Rpb24gb2YgQmF0YWMgQ2l0eSBTbGF1Z2h0ZXJob3VzZSxWQ1JJLHdpdGggTk9MMSwsLCwsIjE2Niw2MDQsMDAwLjAwIiwiMTI0LDk1MywwMDAuMDAiLCIxNiw2NjAsNDAwLjAwIiwiMTQxLDYxMyw0MDAuMDAiLCwsLCwiMTE2LDYyMiw4MDAuMDAiLCwsLCwsLCIxNCw4NzksMjQ0LjQzIiwsLCIxMzEsNTAyLDA0NC40MyIsLCwsLCwsLCwsLCwsLCwsLCwsLCI4LDMzMCwyMDAuMDAiLCIxLDc4MSwxNTUuNTciLCIxMCwxMTEsMzU1LjU3Ig0KLCwsLCwsLCwsLCIxMTYsNjIyLDgwMC4wMCIsIjE2LDY2MCw0MDAuMDAiLCIxMzMsMjgzLDIwMC4wMCIsLCxBU0EgTm8uIDIwMjYtMDAwMDY1LCJNYXkgMTEsIDIwMjYiLCIxMTYsNjIyLDgwMC4wMCIsLCwsLEFTQSBOby4gMjAyNi0wMDAwNjYsIk1heSAxMSwgMjAyNiIsIjE0LDg3OSwyNDQuNDMiLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLA==";
 
-        // DOM refs
-        const sourceInput = document.getElementById('sourceInput');
-        const physicalSourceInput = document.getElementById('physicalSourceInput');
-        const loadBtn = document.getElementById('loadBtn');
-        const reloadBtn = document.getElementById('reloadBtn');
-        const filterInput = document.getElementById('filterInput');
-        const table = document.getElementById('dataTable');
-        const thead = document.getElementById('tableHead');
-        const tbody = document.getElementById('tableBody');
-        const loadingEl = document.getElementById('loadingIndicator');
-        const emptyEl = document.getElementById('emptyMessage');
-        const errorEl = document.getElementById('errorMessage');
-        const errorText = document.getElementById('errorText');
-        const statsDisplay = document.getElementById('statsDisplay');
-        const columnControls = document.getElementById('columnControls');
-        const compactToggles = document.getElementById('compactToggles');
-        const columnPreset = document.getElementById('columnPreset');
-        const resetColumnsBtn = document.getElementById('resetColumnsBtn');
+let RAW_PROJECTS = [];
+let charts = {};
+let sortState = {key:'no', dir:1};
 
-        // ----- COLUMN MAPPING: Col A-L + R(17), S(18) -----
-        const COLUMN_MAP = [
-            { index: 0, header: 'No.' },
-            { index: 1, header: 'Cluster' },
-            { index: 2, header: 'Region' },
-            { index: 3, header: 'Province' },
-            { index: 4, header: 'Municipality' },
-            { index: 5, header: 'Proponent LGU' },
-            { index: 6, header: 'LGU Income Class' },
-            { index: 7, header: 'SP Name' },
-            { index: 8, header: 'SP Type' },
-            { index: 9, header: 'Target Unit' },
-            { index: 10, header: 'Qty' },
-            { index: 11, header: 'Linear Meter' },
-            { index: 17, header: 'Status' },
-            { index: 18, header: 'Remarks' }
-        ];
+/* =========================================================
+   PARSING — mirrors the fixed column layout of the sheet:
+   one "summary" row per subproject (col 0 = subproject No.),
+   followed by several billing/ASA detail rows (col 0 blank).
+   ========================================================= */
+function numVal(s){
+  if(s===undefined || s===null) return 0;
+  s = String(s).trim().replace(/,/g,'');
+  if(s==='' || s==='-') return 0;
+  const v = parseFloat(s.replace('%',''));
+  return isNaN(v) ? 0 : v;
+}
+function pctVal(s){
+  if(s===undefined || s===null) return null;
+  s = String(s).trim();
+  if(s==='' || s==='-') return null;
+  if(s.indexOf('%')>=0){
+    const v = parseFloat(s.replace(/[%,]/g,''));
+    return isNaN(v)?null:v;
+  }
+  let v = parseFloat(s.replace(/,/g,''));
+  if(isNaN(v)) return null;
+  if(v<=1) v = v*100; // sheet sometimes stores fraction without a % sign
+  return v;
+}
+function parseProjects(rows){
+  const out = [];
+  for(const r of rows){
+    if(!r || r.length<40) continue;
+    const first = (r[0]||'').toString().trim();
+    if(/^\d+$/.test(first)){
+      const p = {
+        no: first,
+        location: (r[1]||'').trim(),
+        name: (r[2]||'').trim(),
+        type: (r[3]||'').trim(),
+        status: (r[4]||'').trim() || 'Unspecified',
+        phys_accomp: pctVal(r[5]) ?? pctVal(r[40]),
+        financial_status: pctVal(r[6]),
+        variance_amt: numVal(r[7]),
+        target_completion: (r[8]||'').trim() || (r[43]||'').trim(),
+        contract_cost: numVal(r[9]),
+        lp_counterpart: numVal(r[10]),
+        gop_counterpart: numVal(r[11]),
+        total_counterpart: numVal(r[12]),
+        lp_obligation: numVal(r[17]),
+        gop_obligation: numVal(r[24]),
+        total_obligation: numVal(r[27]),
+        lp_disbursement: numVal(r[30]),
+        gop_disbursement: numVal(r[33]),
+        total_disbursement: numVal(r[36]),
+        disbursement_rate: pctVal(r[37]),
+        total_undisbursed: numVal(r[46]),
+        total_unobligated: numVal(r[49]),
+      };
+      if(p.disbursement_rate===null){
+        p.disbursement_rate = p.total_obligation>0 ? (p.total_disbursement/p.total_obligation*100) : 0;
+      }
+      out.push(p);
+    }
+  }
+  return out;
+}
 
-        // ----- EXTRA COLUMN GROUPS pulled from the "Physical" data source, joined by "No." -----
-        const EXTRA_COLUMNS = [
-            // Physical: Col F, I
-            { key: 'phys_f', index: 5, header: 'Accomp', group: 'Physical' },
-            { key: 'phys_i', index: 8, header: 'Date of Completion', group: 'Physical' },
-            // Financial: Col G, H
-            { key: 'fin_g', index: 6, header: 'Status', group: 'Financial' },
-            { key: 'fin_h', index: 7, header: 'Variance/Billable Cost', group: 'Financial' },
-            // Project Cost: Col J, K, L, M
-            { key: 'pc_j', index: 9, header: 'Contract', group: 'Project Cost' },
-            { key: 'pc_k', index: 10, header: 'LP', group: 'Project Cost' },
-            { key: 'pc_l', index: 11, header: 'GOP', group: 'Project Cost' },
-            { key: 'pc_m', index: 12, header: 'Total (LP + GOP)', group: 'Project Cost' },
-            // Obligation LP: Col N, O, P, Q, R, S
-            { key: 'oblp_n', index: 13, header: 'Date of Obligation', group: 'Obligation LP' },
-            { key: 'oblp_o', index: 14, header: 'ORS No.', group: 'Obligation LP' },
-            { key: 'oblp_p', index: 15, header: 'LP-ASA', group: 'Obligation LP' },
-            { key: 'oblp_q', index: 16, header: 'Date', group: 'Obligation LP' },
-            { key: 'oblp_r', index: 17, header: 'LP Amount', group: 'Obligation LP' },
-            { key: 'oblp_s', index: 18, header: 'Released', group: 'Obligation LP' },
-            // Obligation GOP: Col U, V, W, X, Y, Z, AA
-            { key: 'obgop_u', index: 20, header: 'Date of Obligation', group: 'Obligation GOP' },
-            { key: 'obgop_v', index: 21, header: 'Obligation No.', group: 'Obligation GOP' },
-            { key: 'obgop_w', index: 22, header: 'GOP-ASA', group: 'Obligation GOP' },
-            { key: 'obgop_x', index: 23, header: 'Date', group: 'Obligation GOP' },
-            { key: 'obgop_y', index: 24, header: 'Amount', group: 'Obligation GOP' },
-            { key: 'obgop_z', index: 25, header: 'Released', group: 'Obligation GOP' },
-            { key: 'obgop_aa', index: 26, header: 'Remaining', group: 'Obligation GOP' },
-            // Total Obligation: Col AB
-            { key: 'totob_ab', index: 27, header: 'Total (LP+GOP)', group: 'Total Obligation' }
-        ];
+/* =========================================================
+   LOAD
+   ========================================================= */
+function b64ToCsvText(b64){
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder('utf-8').decode(bytes);
+}
 
-        // Column groups for preset switching
-        const COLUMN_GROUPS = {
-            main: ['col_0', 'col_1', 'col_2', 'col_3', 'col_4', 'col_5', 'col_6', 'col_7', 'col_8', 'col_9', 'col_10', 'col_11', 'col_17', 'col_18'],
-            physical: ['phys_f', 'phys_i'],
-            financial: ['fin_g', 'fin_h'],
-            projectcost: ['pc_j', 'pc_k', 'pc_l', 'pc_m'],
-            oblp: ['oblp_n', 'oblp_o', 'oblp_p', 'oblp_q', 'oblp_r', 'oblp_s'],
-            obgop: ['obgop_u', 'obgop_v', 'obgop_w', 'obgop_x', 'obgop_y', 'obgop_z', 'obgop_aa'],
-            totalob: ['totob_ab'],
-            minimal: ['col_0', 'col_1', 'col_2', 'col_3']
-        };
+async function loadData(forceLive){
+  const statusEl = document.getElementById('syncStatus');
+  const noteEl = document.getElementById('refreshNote');
+  noteEl.textContent = 'Syncing…';
+  try{
+    const resp = await fetch(SHEET_CSV_URL + (forceLive? ('&_ts='+Date.now()) : ''), {cache:'no-store'});
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    const text = await resp.text();
+    if(!text || text.length < 100) throw new Error('empty response');
+    finishLoad(text, true);
+  }catch(err){
+    console.warn('Live sheet fetch failed, using bundled snapshot:', err);
+    const text = b64ToCsvText(FALLBACK_CSV_B64);
+    finishLoad(text, false);
+  }
+}
 
-        // state
-        let allData = [];
-        let filteredData = [];
-        let currentSource = '';
-        let currentPhysicalSource = '';
-        let headerNames = [];
-        let columnVisibility = {};
-        let availableKeys = [];
+function finishLoad(csvText, live){
+  const parsed = Papa.parse(csvText, {skipEmptyLines:false});
+  RAW_PROJECTS = parseProjects(parsed.data);
+  const statusEl = document.getElementById('syncStatus');
+  const noteEl = document.getElementById('refreshNote');
+  if(live){
+    statusEl.textContent = 'Live sheet';
+    statusEl.className = 'v live';
+    noteEl.textContent = 'Synced ' + new Date().toLocaleTimeString();
+  } else {
+    statusEl.textContent = 'Cached snapshot';
+    statusEl.className = 'v cached';
+    noteEl.textContent = 'Live fetch unavailable — showing bundled snapshot';
+  }
+  document.getElementById('stampGenerated').textContent = new Date().toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'});
+  document.getElementById('footStamp').textContent = 'Rendered ' + new Date().toLocaleString('en-PH');
+  render();
+}
 
-        // Initialize all columns as visible
-        COLUMN_MAP.forEach((c, idx) => {
-            columnVisibility[`col_${idx}`] = true;
-        });
-        EXTRA_COLUMNS.forEach(c => {
-            columnVisibility[c.key] = true;
-        });
+/* =========================================================
+   HELPERS
+   ========================================================= */
+const PHP = n => '₱' + Math.round(n).toLocaleString('en-PH');
+const PHPm = n => '₱' + (n/1000000).toLocaleString('en-PH',{maximumFractionDigits:1}) + 'M';
+const pctFmt = n => (n===null||n===undefined) ? '—' : n.toFixed(1)+'%';
+function statusClass(s){
+  const t = s.toLowerCase();
+  if(t.indexOf('complet')>=0) return 'completed';
+  if(t.indexOf('nol1')>=0) return 'nol1';
+  return 'ongoing';
+}
+function truncName(s, n){ return s.length>n ? s.slice(0,n-1)+'…' : s; }
 
-        // helpers
-        function showError(msg) {
-            errorText.textContent = msg || 'Could not load data.';
-            errorEl.style.display = 'flex';
-            loadingEl.style.display = 'none';
-            table.style.display = 'none';
-            emptyEl.style.display = 'none';
-            columnControls.style.display = 'none';
-        }
-        function hideError() { errorEl.style.display = 'none'; }
-        function updateStats(count) {
-            statsDisplay.innerHTML = `<i class="far fa-file-alt"></i> ${count} record${count !== 1 ? 's' : ''}`;
-        }
+/* =========================================================
+   RENDER
+   ========================================================= */
+function render(){
+  const P = RAW_PROJECTS;
+  document.getElementById('stampCount').textContent = P.length;
+  document.getElementById('stampDate').textContent = 'Apr 2026';
 
-        // ----- Quote-aware CSV parser -----
-        function tokenizeCSV(csvText) {
-            const rows = [];
-            let row = [];
-            let field = '';
-            let inQuotes = false;
-            let i = 0;
-            const len = csvText.length;
+  renderKPIs(P);
+  renderCharts(P);
+  populateFilters(P);
+  renderTable();
+}
 
-            while (i < len) {
-                const char = csvText[i];
+function renderKPIs(P){
+  const totalCounterpart = P.reduce((a,p)=>a+p.total_counterpart,0);
+  const totalObligation = P.reduce((a,p)=>a+p.total_obligation,0);
+  const totalDisbursement = P.reduce((a,p)=>a+p.total_disbursement,0);
+  const totalUndisbursed = P.reduce((a,p)=>a+p.total_undisbursed,0);
+  const totalUnobligated = P.reduce((a,p)=>a+p.total_unobligated,0);
+  const obligationRate = totalCounterpart>0 ? totalObligation/totalCounterpart*100 : 0;
+  const disbursementRate = totalObligation>0 ? totalDisbursement/totalObligation*100 : 0;
 
-                if (inQuotes) {
-                    if (char === '"') {
-                        if (csvText[i + 1] === '"') { field += '"'; i += 2; continue; }
-                        inQuotes = false; i++; continue;
-                    }
-                    field += char; i++; continue;
-                }
+  const completed = P.filter(p=>p.status.toLowerCase().indexOf('complet')>=0).length;
+  const ongoing = P.filter(p=>p.status.toLowerCase()==='on-going').length;
+  const nol1 = P.filter(p=>p.status.toLowerCase().indexOf('nol1')>=0).length;
 
-                if (char === '"') { inQuotes = true; i++; continue; }
-                if (char === ',') { row.push(field); field = ''; i++; continue; }
-                if (char === '\r') { i++; continue; }
-                if (char === '\n') {
-                    row.push(field); field = '';
-                    rows.push(row); row = [];
-                    i++; continue;
-                }
-                field += char; i++;
-            }
-            if (field !== '' || row.length > 0) { row.push(field); rows.push(row); }
+  const withPhys = P.filter(p=>p.phys_accomp!==null && p.status.toLowerCase().indexOf('complet')<0);
+  const avgPhys = withPhys.length ? withPhys.reduce((a,p)=>a+p.phys_accomp,0)/withPhys.length : 0;
 
-            return rows
-                .filter(r => !(r.length === 1 && r[0].trim() === ''))
-                .map(r => r.map(v => v.replace(/\s+/g, ' ').trim()));
-        }
+  const slipping = P.filter(p=>p.phys_accomp!==null && p.financial_status!==null && p.financial_status > p.phys_accomp + 0.5).length;
 
-        function parseCSV(csvText) {
-            const rawRows = tokenizeCSV(csvText);
-            if (rawRows.length < 2) return { headers: [], rows: [] };
+  const lpTotal = P.reduce((a,p)=>a+p.lp_obligation,0);
+  const gopTotal = P.reduce((a,p)=>a+p.gop_obligation,0);
+  const lpShare = (lpTotal+gopTotal)>0 ? lpTotal/(lpTotal+gopTotal)*100 : 0;
 
-            const headers = rawRows[0];
-            const cleanHeaders = headers.map((h, idx) => h ? h : `col_${idx}`);
+  const kpis = [
+    {lbl:'Total PRDP Counterpart Cost', val:PHPm(totalCounterpart), sub:P.length+' subprojects', cls:''},
+    {lbl:'Total Obligated', val:PHPm(totalObligation), sub:obligationRate.toFixed(1)+'% of counterpart cost', cls: obligationRate<70?'warn':''},
+    {lbl:'Total Disbursed', val:PHPm(totalDisbursement), sub:disbursementRate.toFixed(1)+'% of obligation', cls: disbursementRate<30?'alert':(disbursementRate<60?'warn':'good')},
+    {lbl:'Undisbursed Balance', val:PHPm(totalUndisbursed), sub:'obligated, not yet paid out', cls:'warn'},
+    {lbl:'Unobligated Balance', val:PHPm(totalUnobligated), sub:'not yet set aside (ASA/ORS)', cls: totalUnobligated>50000000?'alert':''},
+    {lbl:'LP vs. GOP Obligated', val:lpShare.toFixed(0)+'% / '+(100-lpShare).toFixed(0)+'%', sub:'Loan Proceeds / GOP counterpart', cls:''},
+    {lbl:'Completed', val:completed, sub:'of '+P.length+' subprojects', cls:'good'},
+    {lbl:'On-going', val:ongoing, sub:'under construction', cls:''},
+    {lbl:'Awaiting NOL1 / Not Started', val:nol1, sub:'pipeline, pre-construction', cls: nol1>0?'warn':''},
+    {lbl:'Avg. Physical Accomplishment', val:avgPhys.toFixed(1)+'%', sub:'across active subprojects', cls:''},
+    {lbl:'Billing-Ahead-of-Work Flags', val:slipping, sub:'financial % exceeds physical %', cls: slipping>0?'alert':'good'},
+    {lbl:'Total Contract Value', val:PHPm(P.reduce((a,p)=>a+p.contract_cost,0)), sub:'sum of all subproject contracts', cls:''},
+  ];
+  const grid = document.getElementById('kpiGrid');
+  grid.innerHTML = kpis.map(k=>`
+    <div class="kpi ${k.cls}">
+      <div class="lbl">${k.lbl}</div>
+      <div class="val">${k.val}</div>
+      <div class="sub">${k.sub}</div>
+    </div>`).join('');
+}
 
-            const rows = rawRows.slice(1).map(values => {
-                const obj = {};
-                cleanHeaders.forEach((h, idx) => {
-                    obj[h] = (idx < values.length) ? values[idx] : '';
-                });
-                return obj;
-            });
+function destroyChart(key){ if(charts[key]){ charts[key].destroy(); delete charts[key]; } }
 
-            return { headers: cleanHeaders, rows };
-        }
+const CHART_FONT = {family:"'IBM Plex Mono', monospace", size:10.5};
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.color = '#4C5F72';
 
-        // ----- Extract data starting from row 3 (index 2) -----
-        function extractFromRow3(rows) {
-            if (rows.length <= 2) return [];
-            return rows.slice(2);
-        }
+function renderCharts(P){
+  const sorted = [...P].sort((a,b)=> a.no.padStart(3,'0').localeCompare(b.no.padStart(3,'0')));
+  const labels = sorted.map(p=>'#'+p.no+' '+truncName(p.name,26));
 
-        // ----- Check if row is a valid data row -----
-        function isValidDataRow(row) {
-            let colAValue = '';
-            if (headerNames[0] && row[headerNames[0]] !== undefined) {
-                colAValue = row[headerNames[0]];
-            } else {
-                const values = Object.values(row);
-                colAValue = values[0] || '';
-            }
-            
-            const hasColA = colAValue !== undefined && 
-                            colAValue !== null && 
-                            String(colAValue).trim() !== '';
-            
-            if (!hasColA) return false;
-            
-            const numValue = String(colAValue).trim();
-            const isNumeric = /^\d+$/.test(numValue);
-            const isMonth = /^(january|february|march|april|may|june|july|august|september|october|november|december)/i.test(numValue);
-            const isYear = /^\d{4}$/.test(numValue);
-            const isTarget = /target/i.test(numValue);
-            const isQuarter = /quarter/i.test(numValue);
-            
-            if (isMonth || isYear || isTarget || isQuarter) {
-                return false;
-            }
-            
-            if (isNumeric) {
-                let hasOtherData = false;
-                for (let i = 1; i < COLUMN_MAP.length; i++) {
-                    const col = COLUMN_MAP[i];
-                    const key = (col.index < headerNames.length) ? headerNames[col.index] : `col_${col.index}`;
-                    if (row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== '') {
-                        hasOtherData = true;
-                        break;
-                    }
-                }
-                return hasOtherData;
-            }
-            
-            let hasOtherData = false;
-            for (let i = 1; i < COLUMN_MAP.length; i++) {
-                const col = COLUMN_MAP[i];
-                const key = (col.index < headerNames.length) ? headerNames[col.index] : `col_${col.index}`;
-                if (row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== '') {
-                    hasOtherData = true;
-                    break;
-                }
-            }
-            return hasOtherData;
-        }
+  destroyChart('physFin');
+  charts.physFin = new Chart(document.getElementById('chartPhysFin'), {
+    type:'bar',
+    data:{ labels, datasets:[
+      {label:'Physical Accomplishment %', data:sorted.map(p=>p.phys_accomp), backgroundColor:'#1E5F8C'},
+      {label:'Financial Status %', data:sorted.map(p=>p.financial_status), backgroundColor:'#C9861B'},
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      scales:{ y:{beginAtZero:true, max:100, ticks:{callback:v=>v+'%'}, grid:{color:'#EBF0F3'}},
+               x:{ticks:{font:{size:10}, maxRotation:55, minRotation:35}, grid:{display:false}} },
+      plugins:{ legend:{position:'top', labels:{boxWidth:12,font:{size:11}}},
+                tooltip:{callbacks:{label:c=> c.dataset.label+': '+(c.raw===null?'—':c.raw.toFixed(1)+'%')}} }
+    }
+  });
 
-        // ----- Fetch & parse the secondary data source -----
-        async function loadPhysicalData(url) {
-            const result = { map: {} };
-            if (!url || url.trim() === '') return result;
+  const statusCounts = {};
+  P.forEach(p=>{ const s=p.status; statusCounts[s]=(statusCounts[s]||0)+1; });
+  destroyChart('status');
+  charts.status = new Chart(document.getElementById('chartStatus'), {
+    type:'doughnut',
+    data:{ labels:Object.keys(statusCounts), datasets:[{
+      data:Object.values(statusCounts),
+      backgroundColor:['#2F8F5B','#1E5F8C','#C9861B','#C0433A','#7C8DA0']
+    }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:11,font:{size:11}}}} }
+  });
 
-            try {
-                const response = await fetch(url.trim());
-                if (!response.ok) return result;
-                const text = await response.text();
-                const parsed = parseCSV(text.trim());
-                const physHeaderNames = parsed.headers;
-                const physRows = parsed.rows;
+  const typeMap = {};
+  P.forEach(p=>{ const t=p.type||'Unspecified'; typeMap[t]=(typeMap[t]||0)+p.total_counterpart; });
+  destroyChart('type');
+  charts.type = new Chart(document.getElementById('chartType'), {
+    type:'pie',
+    data:{ labels:Object.keys(typeMap), datasets:[{
+      data:Object.values(typeMap),
+      backgroundColor:['#1E5F8C','#2F8F5B','#C9861B','#7C8DA0','#C0433A']
+    }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom', labels:{boxWidth:11,font:{size:11}}},
+                tooltip:{callbacks:{label:c=> c.label+': '+PHPm(c.raw)}} } }
+  });
 
-                physRows.forEach(row => {
-                    const values = Object.values(row);
-                    let noVal = (physHeaderNames[0] && row[physHeaderNames[0]] !== undefined)
-                        ? row[physHeaderNames[0]] : values[0];
-                    noVal = noVal !== undefined && noVal !== null ? String(noVal).trim() : '';
-                    if (!noVal || !/^\d+$/.test(noVal)) return;
+  destroyChart('pipeline');
+  charts.pipeline = new Chart(document.getElementById('chartPipeline'), {
+    type:'bar',
+    data:{ labels, datasets:[
+      {label:'Counterpart Cost', data:sorted.map(p=>p.total_counterpart), backgroundColor:'#C9D6DF'},
+      {label:'Obligated', data:sorted.map(p=>p.total_obligation), backgroundColor:'#1E5F8C'},
+      {label:'Disbursed', data:sorted.map(p=>p.total_disbursement), backgroundColor:'#2F8F5B'},
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      scales:{ y:{beginAtZero:true, ticks:{callback:v=>PHPm(v)}, grid:{color:'#EBF0F3'}},
+               x:{ticks:{font:{size:10}, maxRotation:55, minRotation:35}, grid:{display:false}} },
+      plugins:{ legend:{position:'top', labels:{boxWidth:12,font:{size:11}}},
+                tooltip:{callbacks:{label:c=> c.dataset.label+': '+PHP(c.raw)}} }
+    }
+  });
 
-                    const getCol = (idx) => {
-                        const key = (idx < physHeaderNames.length) ? physHeaderNames[idx] : undefined;
-                        const val = (key && row[key] !== undefined) ? row[key] : values[idx];
-                        return (val === undefined || val === null) ? '' : val;
-                    };
+  const rankSorted = [...P].sort((a,b)=>a.disbursement_rate-b.disbursement_rate);
+  destroyChart('disbRank');
+  charts.disbRank = new Chart(document.getElementById('chartDisbRank'), {
+    type:'bar',
+    data:{ labels:rankSorted.map(p=>'#'+p.no+' '+truncName(p.name,20)),
+      datasets:[{ label:'Disbursement Rate %', data:rankSorted.map(p=>p.disbursement_rate),
+        backgroundColor:rankSorted.map(p=> p.disbursement_rate<20?'#C0433A':(p.disbursement_rate<60?'#C9861B':'#2F8F5B')) }]},
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      scales:{ x:{beginAtZero:true, max:100, ticks:{callback:v=>v+'%'}, grid:{color:'#EBF0F3'}},
+               y:{ticks:{font:{size:10}}, grid:{display:false}} },
+      plugins:{ legend:{display:false},
+                tooltip:{callbacks:{label:c=>c.raw.toFixed(1)+'%'}} }
+    }
+  });
 
-                    const entry = {};
-                    EXTRA_COLUMNS.forEach(c => { entry[c.key] = getCol(c.index); });
-                    result.map[noVal] = entry;
-                });
-            } catch (err) {
-                console.error('Physical data load error:', err);
-            }
-            return result;
-        }
+  const lpTotal = P.reduce((a,p)=>a+p.lp_obligation,0);
+  const gopTotal = P.reduce((a,p)=>a+p.gop_obligation,0);
+  destroyChart('fundSplit');
+  charts.fundSplit = new Chart(document.getElementById('chartFundSplit'), {
+    type:'doughnut',
+    data:{ labels:['LP (Loan Proceeds)','GOP (Counterpart)'], datasets:[{ data:[lpTotal,gopTotal], backgroundColor:['#1E5F8C','#C9861B'] }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom', labels:{boxWidth:11,font:{size:11}}},
+                tooltip:{callbacks:{label:c=> c.label+': '+PHPm(c.raw)}} } }
+  });
 
-        // ----- Get all columns -----
-        function getAllColumns() {
-            const cols = COLUMN_MAP.map((c, idx) => ({ key: `col_${idx}`, header: c.header, group: null }));
-            EXTRA_COLUMNS.forEach(c => cols.push({ key: c.key, header: c.header, group: c.group }));
-            return cols;
-        }
+  destroyChart('balances');
+  charts.balances = new Chart(document.getElementById('chartBalances'), {
+    type:'bar',
+    data:{ labels, datasets:[
+      {label:'Undisbursed (obligated, unpaid)', data:sorted.map(p=>p.total_undisbursed), backgroundColor:'#C9861B'},
+      {label:'Unobligated (not yet set aside)', data:sorted.map(p=>p.total_unobligated), backgroundColor:'#C0433A'},
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      scales:{ y:{beginAtZero:true, ticks:{callback:v=>PHPm(v)}, grid:{color:'#EBF0F3'}},
+               x:{ticks:{font:{size:9.5}, maxRotation:55, minRotation:35}, grid:{display:false}} },
+      plugins:{ legend:{position:'top', labels:{boxWidth:12,font:{size:11}}},
+                tooltip:{callbacks:{label:c=> c.dataset.label+': '+PHP(c.raw)}} }
+    }
+  });
 
-        // ----- Build compact column toggles -----
-        function buildCompactToggles() {
-            compactToggles.innerHTML = '';
-            const allColumns = getAllColumns();
-            
-            allColumns.forEach(c => {
-                if (!availableKeys.includes(c.key)) return;
-                
-                const label = document.createElement('label');
-                label.className = 'toggle-item';
-                
-                const cb = document.createElement('input');
-                cb.type = 'checkbox';
-                cb.checked = columnVisibility[c.key] !== false;
-                cb.dataset.col = c.key;
-                
-                const span = document.createElement('span');
-                span.className = 'col-label';
-                // Shorten long headers
-                let displayName = c.header;
-                if (displayName.length > 14) {
-                    displayName = displayName.slice(0, 12) + '…';
-                }
-                span.textContent = displayName;
-                
-                cb.addEventListener('change', function() {
-                    columnVisibility[this.dataset.col] = this.checked;
-                    updateColumnVisibility();
-                    updatePresetSelection();
-                });
-                
-                label.appendChild(cb);
-                label.appendChild(span);
-                compactToggles.appendChild(label);
-            });
-        }
+  const bySize = [...P].sort((a,b)=>b.contract_cost-a.contract_cost);
+  destroyChart('contract');
+  charts.contract = new Chart(document.getElementById('chartContract'), {
+    type:'bar',
+    data:{ labels:bySize.map(p=>'#'+p.no+' '+truncName(p.name,20)),
+      datasets:[{label:'Contract Cost', data:bySize.map(p=>p.contract_cost), backgroundColor:'#1E5F8C'}]},
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      scales:{ x:{beginAtZero:true, ticks:{callback:v=>PHPm(v)}, grid:{color:'#EBF0F3'}},
+               y:{ticks:{font:{size:10}}, grid:{display:false}} },
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>PHP(c.raw)}} }
+    }
+  });
+}
 
-        // ----- Update preset selection based on current visibility -----
-        function updatePresetSelection() {
-            // Check which preset matches current visibility
-            const allColumns = getAllColumns().filter(c => availableKeys.includes(c.key));
-            const visibleKeys = allColumns.filter(c => columnVisibility[c.key] !== false).map(c => c.key);
-            
-            if (visibleKeys.length === allColumns.length) {
-                columnPreset.value = 'all';
-                return;
-            }
-            
-            // Check if it matches a predefined group
-            for (const [groupName, groupKeys] of Object.entries(COLUMN_GROUPS)) {
-                const groupKeysFiltered = groupKeys.filter(k => availableKeys.includes(k));
-                const visibleInGroup = groupKeysFiltered.filter(k => columnVisibility[k] !== false);
-                
-                if (visibleInGroup.length === 0) continue;
-                
-                // Check if only these columns are visible
-                const onlyTheseVisible = visibleKeys.every(k => groupKeysFiltered.includes(k));
-                const allGroupVisible = groupKeysFiltered.every(k => columnVisibility[k] !== false);
-                
-                if (onlyTheseVisible && allGroupVisible && visibleKeys.length === groupKeysFiltered.length) {
-                    columnPreset.value = groupName;
-                    return;
-                }
-            }
-            
-            // Check if it's minimal (only first 4 columns)
-            const minimalKeys = ['col_0', 'col_1', 'col_2', 'col_3'].filter(k => availableKeys.includes(k));
-            if (visibleKeys.length === minimalKeys.length && 
-                visibleKeys.every(k => minimalKeys.includes(k))) {
-                columnPreset.value = 'minimal';
-                return;
-            }
-            
-            columnPreset.value = 'custom';
-        }
+/* =========================================================
+   FILTERS + TABLE
+   ========================================================= */
+function populateFilters(P){
+  const statusSel = document.getElementById('statusFilter');
+  const typeSel = document.getElementById('typeFilter');
+  const statuses = [...new Set(P.map(p=>p.status))].sort();
+  const types = [...new Set(P.map(p=>p.type||'Unspecified'))].sort();
+  statusSel.innerHTML = '<option value="">All statuses</option>' + statuses.map(s=>`<option value="${s}">${s}</option>`).join('');
+  typeSel.innerHTML = '<option value="">All types</option>' + types.map(t=>`<option value="${t}">${t}</option>`).join('');
+}
 
-        // ----- Apply preset -----
-        function applyPreset(preset) {
-            const allColumns = getAllColumns().filter(c => availableKeys.includes(c.key));
-            
-            if (preset === 'all') {
-                allColumns.forEach(c => columnVisibility[c.key] = true);
-            } else if (preset === 'minimal') {
-                allColumns.forEach(c => columnVisibility[c.key] = false);
-                ['col_0', 'col_1', 'col_2', 'col_3'].forEach(key => {
-                    if (availableKeys.includes(key)) columnVisibility[key] = true;
-                });
-            } else if (COLUMN_GROUPS[preset]) {
-                const groupKeys = COLUMN_GROUPS[preset].filter(k => availableKeys.includes(k));
-                allColumns.forEach(c => columnVisibility[c.key] = false);
-                groupKeys.forEach(key => columnVisibility[key] = true);
-            }
-            
-            // Update checkboxes
-            document.querySelectorAll('.toggle-item input[type="checkbox"]').forEach(cb => {
-                cb.checked = columnVisibility[cb.dataset.col] !== false;
-            });
-            
-            updateColumnVisibility();
-            renderTable();
-            setTimeout(updateColumnVisibility, 50);
-        }
+function getFiltered(){
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  const st = document.getElementById('statusFilter').value;
+  const ty = document.getElementById('typeFilter').value;
+  let rows = RAW_PROJECTS.filter(p=>{
+    if(st && p.status!==st) return false;
+    if(ty && (p.type||'Unspecified')!==ty) return false;
+    if(q && !(p.name.toLowerCase().includes(q) || p.location.toLowerCase().includes(q))) return false;
+    return true;
+  });
+  const {key,dir} = sortState;
+  rows.sort((a,b)=>{
+    let av=a[key], bv=b[key];
+    if(key==='no'){ av=parseInt(a.no); bv=parseInt(b.no); }
+    if(typeof av==='string'){ av=(av||'').toLowerCase(); bv=(bv||'').toLowerCase(); return av<bv?-1*dir:av>bv?1*dir:0; }
+    av = av??-Infinity; bv = bv??-Infinity;
+    return (av-bv)*dir;
+  });
+  return rows;
+}
 
-        // ----- Load data -----
-        async function loadDataFromUrl(url) {
-            if (!url || url.trim() === '') {
-                showError('Please paste a valid data URL.');
-                return;
-            }
-            const trimmedUrl = url.trim();
-            currentSource = trimmedUrl;
+function renderTable(){
+  const rows = getFiltered();
+  document.getElementById('rowCount').textContent = rows.length + ' of ' + RAW_PROJECTS.length + ' subprojects';
+  const body = document.getElementById('tblBody');
+  body.innerHTML = rows.map(p=>{
+    const phys = p.phys_accomp, fin = p.financial_status;
+    let flagHtml = '<span class="flag ok">—</span>';
+    if(phys!==null && fin!==null){
+      if(fin > phys + 0.5){ flagHtml = '<span class="flag slip">Financial &gt; Physical</span>'; }
+      else { flagHtml = '<span class="flag ok">On track</span>'; }
+    }
+    return `<tr>
+      <td>${p.no}</td>
+      <td>${p.location}</td>
+      <td>${p.name}</td>
+      <td>${p.type||'—'}</td>
+      <td><span class="badge ${statusClass(p.status)}">${p.status}</span></td>
+      <td class="num barcell">${pctFmt(phys)}<div class="mini-bar"><span style="width:${phys||0}%"></span></div></td>
+      <td class="num barcell">${pctFmt(fin)}<div class="mini-bar"><span class="fin" style="width:${fin||0}%"></span></div></td>
+      <td>${flagHtml}</td>
+      <td class="num">${PHP(p.total_counterpart)}</td>
+      <td class="num">${PHP(p.total_obligation)}</td>
+      <td class="num">${PHP(p.total_disbursement)}</td>
+      <td class="num">${PHP(p.total_undisbursed)}</td>
+      <td class="num">${PHP(p.total_unobligated)}</td>
+      <td>${p.target_completion||'—'}</td>
+    </tr>`;
+  }).join('');
+}
 
-            loadingEl.style.display = 'flex';
-            table.style.display = 'none';
-            emptyEl.style.display = 'none';
-            columnControls.style.display = 'none';
-            hideError();
-            allData = [];
-            filteredData = [];
-            headerNames = [];
+document.getElementById('searchBox').addEventListener('input', renderTable);
+document.getElementById('statusFilter').addEventListener('change', renderTable);
+document.getElementById('typeFilter').addEventListener('change', renderTable);
+document.querySelectorAll('#dataTable thead th').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(sortState.key===key){ sortState.dir *= -1; } else { sortState.key = key; sortState.dir = 1; }
+    renderTable();
+  });
+});
 
-            try {
-                const response = await fetch(trimmedUrl);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status} — ${response.statusText}`);
-                }
-                const text = await response.text();
-                const trimmedText = text.trim();
-
-                const isCSV = trimmedText.includes(',') && 
-                              (trimmedText.includes('\n') || trimmedText.includes('\r')) &&
-                              !trimmedText.startsWith('{') && !trimmedText.startsWith('[');
-
-                let rows = [];
-                let headers = [];
-
-                if (isCSV) {
-                    const parsed = parseCSV(trimmedText);
-                    headers = parsed.headers;
-                    rows = parsed.rows;
-                } else {
-                    try {
-                        const json = JSON.parse(trimmedText);
-                        let arrayData = Array.isArray(json) ? json : 
-                                        (json.data && Array.isArray(json.data) ? json.data : 
-                                        (json.items && Array.isArray(json.items) ? json.items :
-                                        (json.results && Array.isArray(json.results) ? json.results : [json])));
-                        if (arrayData.length > 0) {
-                            headers = Object.keys(arrayData[0]);
-                            rows = arrayData;
-                        } else {
-                            rows = [];
-                        }
-                    } catch (e) {
-                        if (trimmedText.includes(',') && trimmedText.includes('\n')) {
-                            const parsed = parseCSV(trimmedText);
-                            headers = parsed.headers;
-                            rows = parsed.rows;
-                        } else {
-                            throw new Error('Data format not recognized. Please provide CSV or JSON.');
-                        }
-                    }
-                }
-
-                headerNames = headers;
-
-                let dataRows = [];
-                if (isCSV) {
-                    dataRows = extractFromRow3(rows);
-                } else {
-                    dataRows = rows;
-                }
-
-                allData = dataRows
-                    .filter(row => isValidDataRow(row))
-                    .map(row => {
-                        const newRow = {};
-                        COLUMN_MAP.forEach((col, idx) => {
-                            const key = `col_${idx}`;
-                            if (col.index < headerNames.length && row[headerNames[col.index]] !== undefined) {
-                                newRow[key] = row[headerNames[col.index]];
-                            } else {
-                                const values = Object.values(row);
-                                newRow[key] = (col.index < values.length) ? values[col.index] : '';
-                            }
-                        });
-                        return newRow;
-                    });
-
-                allData = allData.filter(row => Object.values(row).some(v => v !== '' && v !== undefined && v !== null));
-
-                currentPhysicalSource = physicalSourceInput.value.trim();
-                const physical = await loadPhysicalData(currentPhysicalSource);
-                allData.forEach(row => {
-                    const noVal = row['col_0'] !== undefined ? String(row['col_0']).trim() : '';
-                    const match = physical.map[noVal];
-                    EXTRA_COLUMNS.forEach(c => {
-                        row[c.key] = match ? match[c.key] : '';
-                    });
-                });
-
-                filterInput.value = '';
-                filteredData = allData.slice();
-                
-                buildCompactToggles();
-                setupColumnControls();
-                renderTable();
-
-            } catch (err) {
-                console.error('Load error:', err);
-                showError(err.message || 'Failed to fetch. Check URL or format.');
-                loadingEl.style.display = 'none';
-                table.style.display = 'none';
-                emptyEl.style.display = 'none';
-                columnControls.style.display = 'none';
-            }
-        }
-
-        // ----- Setup column controls -----
-        function setupColumnControls() {
-            if (allData.length === 0 || availableKeys.length === 0) {
-                columnControls.style.display = 'none';
-                return;
-            }
-            
-            const allColumns = getAllColumns().filter(c => availableKeys.includes(c.key));
-            if (allColumns.length === 0) {
-                columnControls.style.display = 'none';
-                return;
-            }
-            
-            columnControls.style.display = 'flex';
-            
-            // Preset change handler
-            columnPreset.onchange = function() {
-                if (this.value === 'custom') return;
-                applyPreset(this.value);
-            };
-            
-            // Reset button
-            resetColumnsBtn.onclick = function() {
-                const allColumns = getAllColumns().filter(c => availableKeys.includes(c.key));
-                allColumns.forEach(c => columnVisibility[c.key] = true);
-                document.querySelectorAll('.toggle-item input[type="checkbox"]').forEach(cb => {
-                    cb.checked = true;
-                });
-                columnPreset.value = 'all';
-                updateColumnVisibility();
-                renderTable();
-                setTimeout(updateColumnVisibility, 50);
-            };
-        }
-
-        // ----- Update column visibility in table -----
-        function updateColumnVisibility() {
-            getAllColumns().forEach(c => {
-                if (!availableKeys.includes(c.key)) return;
-
-                const isVisible = columnVisibility[c.key] !== false;
-
-                thead.querySelectorAll(`th[data-col="${c.key}"]`).forEach(th => {
-                    th.classList.toggle('col-hidden', !isVisible);
-                });
-                tbody.querySelectorAll(`td[data-col="${c.key}"]`).forEach(td => {
-                    td.classList.toggle('col-hidden', !isVisible);
-                });
-
-                if (c.group) {
-                    const groupVisible = EXTRA_COLUMNS.filter(ec => ec.group === c.group).some(ec => columnVisibility[ec.key] !== false);
-                    thead.querySelectorAll(`th[data-group="${c.group}"]`).forEach(th => {
-                        th.classList.toggle('col-hidden', !groupVisible);
-                    });
-                }
-            });
-        }
-
-        // ----- Render table -----
-        function renderTable() {
-            hideError();
-
-            if (!filteredData || filteredData.length === 0) {
-                table.style.display = 'none';
-                emptyEl.style.display = 'block';
-                loadingEl.style.display = 'none';
-                columnControls.style.display = 'none';
-                updateStats(0);
-                return;
-            }
-
-            table.style.display = '';
-            emptyEl.style.display = 'none';
-            loadingEl.style.display = 'none';
-
-            const sample = filteredData[0];
-            availableKeys = Object.keys(sample);
-            const allColumns = getAllColumns().filter(c => availableKeys.includes(c.key));
-
-            const groupRow = document.createElement('tr');
-            const subRow = document.createElement('tr');
-            let subRowHasCells = false;
-            const seenGroups = new Set();
-
-            allColumns.forEach(c => {
-                if (!c.group) {
-                    const th = document.createElement('th');
-                    th.textContent = c.header;
-                    th.dataset.col = c.key;
-                    th.rowSpan = 2;
-                    if (columnVisibility[c.key] === false) th.classList.add('col-hidden');
-                    groupRow.appendChild(th);
-                } else {
-                    if (!seenGroups.has(c.group)) {
-                        seenGroups.add(c.group);
-                        const groupCols = allColumns.filter(gc => gc.group === c.group);
-                        const th = document.createElement('th');
-                        th.textContent = c.group;
-                        th.colSpan = groupCols.length;
-                        th.dataset.group = c.group;
-                        th.style.textAlign = 'center';
-                        const groupVisible = groupCols.some(gc => columnVisibility[gc.key] !== false);
-                        if (!groupVisible) th.classList.add('col-hidden');
-                        groupRow.appendChild(th);
-                    }
-                    const subTh = document.createElement('th');
-                    subTh.textContent = c.header;
-                    subTh.dataset.col = c.key;
-                    subTh.dataset.group = c.group;
-                    if (columnVisibility[c.key] === false) subTh.classList.add('col-hidden');
-                    subRow.appendChild(subTh);
-                    subRowHasCells = true;
-                }
-            });
-
-            thead.innerHTML = '';
-            thead.appendChild(groupRow);
-            if (subRowHasCells) thead.appendChild(subRow);
-
-            tbody.innerHTML = '';
-            filteredData.forEach(item => {
-                const row = document.createElement('tr');
-                allColumns.forEach(c => {
-                    const td = document.createElement('td');
-                    let val = item[c.key];
-                    if (val === null || val === undefined) val = '';
-                    else if (typeof val === 'object') {
-                        td.textContent = JSON.stringify(val).slice(0, 50) + (JSON.stringify(val).length > 50 ? '…' : '');
-                    } else {
-                        td.textContent = String(val);
-                    }
-                    td.dataset.col = c.key;
-                    if (columnVisibility[c.key] === false) {
-                        td.classList.add('col-hidden');
-                    }
-                    row.appendChild(td);
-                });
-                tbody.appendChild(row);
-            });
-
-            updateStats(filteredData.length);
-        }
-
-        // ----- Filter -----
-        function applyFilter() {
-            const query = filterInput.value.trim().toLowerCase();
-            if (!query) {
-                filteredData = allData.slice();
-            } else {
-                filteredData = allData.filter(item => {
-                    for (let key in item) {
-                        const val = item[key];
-                        if (val === null || val === undefined) continue;
-                        if (String(val).toLowerCase().includes(query)) return true;
-                    }
-                    return false;
-                });
-            }
-            renderTable();
-            setTimeout(updateColumnVisibility, 50);
-        }
-
-        // ----- Event listeners -----
-        loadBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const url = sourceInput.value.trim();
-            if (url) loadDataFromUrl(url);
-            else showError('Please paste a data URL first.');
-        });
-
-        reloadBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            let url = currentSource || sourceInput.value.trim();
-            if (!url) {
-                showError('No data source. Paste a URL and load first.');
-                return;
-            }
-            sourceInput.value = url;
-            loadDataFromUrl(url);
-        });
-
-        filterInput.addEventListener('input', applyFilter);
-
-        sourceInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                loadBtn.click();
-            }
-        });
-
-        physicalSourceInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                loadBtn.click();
-            }
-        });
-
-        // ----- Auto-load default -----
-        const defaultUrl = sourceInput.value.trim();
-        if (defaultUrl) {
-            setTimeout(() => loadDataFromUrl(defaultUrl), 120);
-        } else {
-            loadingEl.style.display = 'none';
-            emptyEl.style.display = 'block';
-            updateStats(0);
-        }
-
-    })();
+loadData(false);
 </script>
-
 </body>
 </html>
