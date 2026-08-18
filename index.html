@@ -150,42 +150,101 @@
 
         .column-controls {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             align-items: center;
-            gap: 0.5rem 1rem;
+            gap: 0.5rem;
             background: #f8fafc;
-            padding: 0.6rem 1.2rem;
+            padding: 0.4rem 0.8rem;
             border-radius: 60px;
             border: 1px solid #e6ecf3;
             margin-bottom: 1.5rem;
+            overflow-x: auto;
+            scrollbar-width: thin;
         }
-        .column-controls label {
-            font-weight: 500;
-            font-size: 0.8rem;
+        .column-controls::-webkit-scrollbar {
+            height: 4px;
+        }
+        .column-controls::-webkit-scrollbar-track {
+            background: #eef3f8;
+            border-radius: 10px;
+        }
+        .column-controls::-webkit-scrollbar-thumb {
+            background: #c5d4e2;
+            border-radius: 10px;
+        }
+        .column-controls select {
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            border: 1.5px solid #dbe1e9;
+            font-size: 0.75rem;
+            background: white;
+            outline: none;
+            flex-shrink: 0;
+            cursor: pointer;
             color: #1d3b4f;
+            font-weight: 500;
+        }
+        .column-controls select:focus {
+            border-color: #2d7aff;
+        }
+        .column-controls .compact-toggles {
+            display: flex;
+            gap: 2px;
+            overflow-x: auto;
+            padding: 2px 4px;
+            flex: 1;
+            scrollbar-width: thin;
+        }
+        .column-controls .compact-toggles::-webkit-scrollbar {
+            height: 3px;
+        }
+        .column-controls .compact-toggles::-webkit-scrollbar-thumb {
+            background: #c5d4e2;
+            border-radius: 10px;
+        }
+        .column-controls .toggle-item {
+            font-size: 0.65rem;
+            white-space: nowrap;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
+            padding: 0.15rem 0.4rem;
             cursor: pointer;
-            user-select: none;
-            padding: 0.2rem 0.6rem;
-            border-radius: 30px;
+            border-radius: 12px;
             transition: 0.1s;
+            color: #1d3b4f;
+            background: transparent;
         }
-        .column-controls label:hover { background: #eef3f8; }
-        .column-controls label input[type="checkbox"] {
-            margin-right: 3px;
+        .column-controls .toggle-item:hover {
+            background: #eef3f8;
+        }
+        .column-controls .toggle-item input[type="checkbox"] {
             accent-color: #2d7aff;
+            width: 12px;
+            height: 12px;
             cursor: pointer;
+            margin: 0;
         }
-        .column-controls .toggle-all {
+        .column-controls .toggle-item .col-label {
+            font-size: 0.6rem;
+            font-weight: 450;
+            letter-spacing: 0.2px;
+            color: #2d4a62;
+        }
+        .column-controls .divider {
+            width: 1px;
+            height: 24px;
+            background: #dde4ed;
+            flex-shrink: 0;
+            margin: 0 2px;
+        }
+        .column-controls .control-label {
+            font-size: 0.7rem;
             font-weight: 600;
-            color: #2d7aff;
-            border-right: 1px solid #dde4ed;
-            padding-right: 1rem;
-            margin-right: 0.5rem;
+            color: #5b7a93;
+            flex-shrink: 0;
+            margin-right: 2px;
         }
-        .column-controls .toggle-all label { font-weight: 600; color: #2d7aff; }
 
         .table-wrapper {
             overflow-x: auto;
@@ -278,7 +337,19 @@
             .stats { align-self: flex-start; }
             .source-area { border-radius: 30px; padding: 0.4rem 0.8rem; }
             .load-btn { width: 100%; justify-content: center; }
-            .column-controls { border-radius: 30px; padding: 0.6rem 1rem; }
+            .column-controls { 
+                border-radius: 30px; 
+                padding: 0.4rem 0.6rem;
+                flex-wrap: nowrap;
+            }
+            .column-controls .control-label { 
+                font-size: 0.6rem;
+            }
+            .column-controls select { 
+                font-size: 0.65rem;
+                padding: 0.2rem 0.5rem;
+                min-width: 100px;
+            }
         }
     </style>
 </head>
@@ -317,13 +388,26 @@
         <button class="reload-btn" id="reloadBtn"><i class="fas fa-sync-alt"></i> Reload</button>
     </div>
 
+    <!-- Compact Column Controls - Option 4 -->
     <div id="columnControls" class="column-controls" style="display: none;">
-        <span class="toggle-all">
-            <label>
-                <input type="checkbox" id="toggleAllColumns" checked /> Show All
-            </label>
-        </span>
-        <span id="columnCheckboxes"></span>
+        <span class="control-label"><i class="fas fa-columns"></i> View:</span>
+        <select id="columnPreset">
+            <option value="all">All Columns</option>
+            <option value="main">Main Only</option>
+            <option value="physical">Physical</option>
+            <option value="financial">Financial</option>
+            <option value="projectcost">Project Cost</option>
+            <option value="oblp">Obligation LP</option>
+            <option value="obgop">Obligation GOP</option>
+            <option value="totalob">Total Obligation</option>
+            <option value="minimal">Minimal</option>
+        </select>
+        <div class="divider"></div>
+        <div id="compactToggles" class="compact-toggles"></div>
+        <div class="divider"></div>
+        <button id="resetColumnsBtn" style="background: none; border: none; padding: 0.2rem 0.6rem; border-radius: 20px; cursor: pointer; font-size: 0.7rem; color: #2d7aff; font-weight: 500; flex-shrink: 0;">
+            <i class="fas fa-undo-alt"></i>
+        </button>
     </div>
 
     <div class="table-wrapper">
@@ -363,8 +447,9 @@
         const errorText = document.getElementById('errorText');
         const statsDisplay = document.getElementById('statsDisplay');
         const columnControls = document.getElementById('columnControls');
-        const columnCheckboxes = document.getElementById('columnCheckboxes');
-        const toggleAllBtn = document.getElementById('toggleAllColumns');
+        const compactToggles = document.getElementById('compactToggles');
+        const columnPreset = document.getElementById('columnPreset');
+        const resetColumnsBtn = document.getElementById('resetColumnsBtn');
 
         // ----- COLUMN MAPPING: Col A-L + R(17), S(18) -----
         const COLUMN_MAP = [
@@ -416,6 +501,18 @@
             { key: 'totob_ab', index: 27, header: 'Total (LP+GOP)', group: 'Total Obligation' }
         ];
 
+        // Column groups for preset switching
+        const COLUMN_GROUPS = {
+            main: ['col_0', 'col_1', 'col_2', 'col_3', 'col_4', 'col_5', 'col_6', 'col_7', 'col_8', 'col_9', 'col_10', 'col_11', 'col_17', 'col_18'],
+            physical: ['phys_f', 'phys_i'],
+            financial: ['fin_g', 'fin_h'],
+            projectcost: ['pc_j', 'pc_k', 'pc_l', 'pc_m'],
+            oblp: ['oblp_n', 'oblp_o', 'oblp_p', 'oblp_q', 'oblp_r', 'oblp_s'],
+            obgop: ['obgop_u', 'obgop_v', 'obgop_w', 'obgop_x', 'obgop_y', 'obgop_z', 'obgop_aa'],
+            totalob: ['totob_ab'],
+            minimal: ['col_0', 'col_1', 'col_2', 'col_3']
+        };
+
         // state
         let allData = [];
         let filteredData = [];
@@ -447,8 +544,7 @@
             statsDisplay.innerHTML = `<i class="far fa-file-alt"></i> ${count} record${count !== 1 ? 's' : ''}`;
         }
 
-        // ----- Quote-aware CSV parser (handles embedded newlines inside quoted cells,
-        //       e.g. a multi-line merged header like "Physical Accomplishment\n(as of April 2026)") -----
+        // ----- Quote-aware CSV parser -----
         function tokenizeCSV(csvText) {
             const rows = [];
             let row = [];
@@ -478,12 +574,8 @@
                 }
                 field += char; i++;
             }
-            // last field/row (if text doesn't end with newline)
             if (field !== '' || row.length > 0) { row.push(field); rows.push(row); }
 
-            // Drop only truly blank source lines (no commas at all) — matches the
-            // original line.trim() !== '' behavior. A comma-only row (e.g. a
-            // subheader row of empty cells) is kept, since it still has structure.
             return rows
                 .filter(r => !(r.length === 1 && r[0].trim() === ''))
                 .map(r => r.map(v => v.replace(/\s+/g, ' ').trim()));
@@ -513,9 +605,8 @@
             return rows.slice(2);
         }
 
-        // ----- IMPROVED: Check if row is a valid data row -----
+        // ----- Check if row is a valid data row -----
         function isValidDataRow(row) {
-            // Get Column A value (No.)
             let colAValue = '';
             if (headerNames[0] && row[headerNames[0]] !== undefined) {
                 colAValue = row[headerNames[0]];
@@ -524,31 +615,24 @@
                 colAValue = values[0] || '';
             }
             
-            // Check if Column A has a value
             const hasColA = colAValue !== undefined && 
                             colAValue !== null && 
                             String(colAValue).trim() !== '';
             
             if (!hasColA) return false;
             
-            // Check if it's a numeric value (like "1", "2", "3") - typical for "No." column
             const numValue = String(colAValue).trim();
             const isNumeric = /^\d+$/.test(numValue);
-            
-            // Check if it's NOT a month/year or other text that shouldn't be in No. column
             const isMonth = /^(january|february|march|april|may|june|july|august|september|october|november|december)/i.test(numValue);
             const isYear = /^\d{4}$/.test(numValue);
             const isTarget = /target/i.test(numValue);
             const isQuarter = /quarter/i.test(numValue);
             
-            // Reject rows with month names, years, "Target", "Quarter" in the No. column
             if (isMonth || isYear || isTarget || isQuarter) {
                 return false;
             }
             
-            // For numeric values, also check if there's at least one other column with data
             if (isNumeric) {
-                // Check if any other column has a value
                 let hasOtherData = false;
                 for (let i = 1; i < COLUMN_MAP.length; i++) {
                     const col = COLUMN_MAP[i];
@@ -561,7 +645,6 @@
                 return hasOtherData;
             }
             
-            // If Col A has a value but it's not numeric, still include it if it has other data
             let hasOtherData = false;
             for (let i = 1; i < COLUMN_MAP.length; i++) {
                 const col = COLUMN_MAP[i];
@@ -574,9 +657,7 @@
             return hasOtherData;
         }
 
-        // ----- Fetch & parse the secondary data source, keyed by "No." -----
-        // Pulls every column referenced by EXTRA_COLUMNS (Physical, Financial, Project Cost,
-        // Obligation LP, Obligation GOP, Total Obligation).
+        // ----- Fetch & parse the secondary data source -----
         async function loadPhysicalData(url) {
             const result = { map: {} };
             if (!url || url.trim() === '') return result;
@@ -587,9 +668,6 @@
                 const text = await response.text();
                 const parsed = parseCSV(text.trim());
                 const physHeaderNames = parsed.headers;
-                // Note: no extractFromRow3 offset here — this source's row 2 is a totals
-                // row (not a blank subheader), so the numeric "No." check below is what
-                // actually identifies real data rows, starting correctly at No. 1.
                 const physRows = parsed.rows;
 
                 physRows.forEach(row => {
@@ -597,7 +675,7 @@
                     let noVal = (physHeaderNames[0] && row[physHeaderNames[0]] !== undefined)
                         ? row[physHeaderNames[0]] : values[0];
                     noVal = noVal !== undefined && noVal !== null ? String(noVal).trim() : '';
-                    if (!noVal || !/^\d+$/.test(noVal)) return; // only keyed data rows (No. 1, 2, 3...)
+                    if (!noVal || !/^\d+$/.test(noVal)) return;
 
                     const getCol = (idx) => {
                         const key = (idx < physHeaderNames.length) ? physHeaderNames[idx] : undefined;
@@ -613,6 +691,116 @@
                 console.error('Physical data load error:', err);
             }
             return result;
+        }
+
+        // ----- Get all columns -----
+        function getAllColumns() {
+            const cols = COLUMN_MAP.map((c, idx) => ({ key: `col_${idx}`, header: c.header, group: null }));
+            EXTRA_COLUMNS.forEach(c => cols.push({ key: c.key, header: c.header, group: c.group }));
+            return cols;
+        }
+
+        // ----- Build compact column toggles -----
+        function buildCompactToggles() {
+            compactToggles.innerHTML = '';
+            const allColumns = getAllColumns();
+            
+            allColumns.forEach(c => {
+                if (!availableKeys.includes(c.key)) return;
+                
+                const label = document.createElement('label');
+                label.className = 'toggle-item';
+                
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.checked = columnVisibility[c.key] !== false;
+                cb.dataset.col = c.key;
+                
+                const span = document.createElement('span');
+                span.className = 'col-label';
+                // Shorten long headers
+                let displayName = c.header;
+                if (displayName.length > 14) {
+                    displayName = displayName.slice(0, 12) + '…';
+                }
+                span.textContent = displayName;
+                
+                cb.addEventListener('change', function() {
+                    columnVisibility[this.dataset.col] = this.checked;
+                    updateColumnVisibility();
+                    updatePresetSelection();
+                });
+                
+                label.appendChild(cb);
+                label.appendChild(span);
+                compactToggles.appendChild(label);
+            });
+        }
+
+        // ----- Update preset selection based on current visibility -----
+        function updatePresetSelection() {
+            // Check which preset matches current visibility
+            const allColumns = getAllColumns().filter(c => availableKeys.includes(c.key));
+            const visibleKeys = allColumns.filter(c => columnVisibility[c.key] !== false).map(c => c.key);
+            
+            if (visibleKeys.length === allColumns.length) {
+                columnPreset.value = 'all';
+                return;
+            }
+            
+            // Check if it matches a predefined group
+            for (const [groupName, groupKeys] of Object.entries(COLUMN_GROUPS)) {
+                const groupKeysFiltered = groupKeys.filter(k => availableKeys.includes(k));
+                const visibleInGroup = groupKeysFiltered.filter(k => columnVisibility[k] !== false);
+                
+                if (visibleInGroup.length === 0) continue;
+                
+                // Check if only these columns are visible
+                const onlyTheseVisible = visibleKeys.every(k => groupKeysFiltered.includes(k));
+                const allGroupVisible = groupKeysFiltered.every(k => columnVisibility[k] !== false);
+                
+                if (onlyTheseVisible && allGroupVisible && visibleKeys.length === groupKeysFiltered.length) {
+                    columnPreset.value = groupName;
+                    return;
+                }
+            }
+            
+            // Check if it's minimal (only first 4 columns)
+            const minimalKeys = ['col_0', 'col_1', 'col_2', 'col_3'].filter(k => availableKeys.includes(k));
+            if (visibleKeys.length === minimalKeys.length && 
+                visibleKeys.every(k => minimalKeys.includes(k))) {
+                columnPreset.value = 'minimal';
+                return;
+            }
+            
+            columnPreset.value = 'custom';
+        }
+
+        // ----- Apply preset -----
+        function applyPreset(preset) {
+            const allColumns = getAllColumns().filter(c => availableKeys.includes(c.key));
+            
+            if (preset === 'all') {
+                allColumns.forEach(c => columnVisibility[c.key] = true);
+            } else if (preset === 'minimal') {
+                allColumns.forEach(c => columnVisibility[c.key] = false);
+                ['col_0', 'col_1', 'col_2', 'col_3'].forEach(key => {
+                    if (availableKeys.includes(key)) columnVisibility[key] = true;
+                });
+            } else if (COLUMN_GROUPS[preset]) {
+                const groupKeys = COLUMN_GROUPS[preset].filter(k => availableKeys.includes(k));
+                allColumns.forEach(c => columnVisibility[c.key] = false);
+                groupKeys.forEach(key => columnVisibility[key] = true);
+            }
+            
+            // Update checkboxes
+            document.querySelectorAll('.toggle-item input[type="checkbox"]').forEach(cb => {
+                cb.checked = columnVisibility[cb.dataset.col] !== false;
+            });
+            
+            updateColumnVisibility();
+            renderTable();
+            setTimeout(updateColumnVisibility, 50);
         }
 
         // ----- Load data -----
@@ -678,7 +866,6 @@
 
                 headerNames = headers;
 
-                // Start from row 3 for CSV
                 let dataRows = [];
                 if (isCSV) {
                     dataRows = extractFromRow3(rows);
@@ -686,7 +873,6 @@
                     dataRows = rows;
                 }
 
-                // Build allData: select columns A-L + R(17), S(18) AND filter by valid data row
                 allData = dataRows
                     .filter(row => isValidDataRow(row))
                     .map(row => {
@@ -703,11 +889,8 @@
                         return newRow;
                     });
 
-                // Remove any rows that are completely empty
                 allData = allData.filter(row => Object.values(row).some(v => v !== '' && v !== undefined && v !== null));
 
-                // ----- Merge in all EXTRA_COLUMNS groups (Physical, Financial, Project Cost,
-                //       Obligation LP, Obligation GOP, Total Obligation), matched by No. -----
                 currentPhysicalSource = physicalSourceInput.value.trim();
                 const physical = await loadPhysicalData(currentPhysicalSource);
                 allData.forEach(row => {
@@ -721,7 +904,8 @@
                 filterInput.value = '';
                 filteredData = allData.slice();
                 
-                buildColumnControls();
+                buildCompactToggles();
+                setupColumnControls();
                 renderTable();
 
             } catch (err) {
@@ -734,71 +918,42 @@
             }
         }
 
-        // ----- Combined column list: main COLUMN_MAP + the "Physical" group (Col F & I) -----
-        function getAllColumns() {
-            const cols = COLUMN_MAP.map((c, idx) => ({ key: `col_${idx}`, header: c.header, group: null }));
-            EXTRA_COLUMNS.forEach(c => cols.push({ key: c.key, header: c.header, group: c.group }));
-            return cols;
-        }
-
-        // ----- Build column visibility controls -----
-        function buildColumnControls() {
-            if (allData.length === 0) {
+        // ----- Setup column controls -----
+        function setupColumnControls() {
+            if (allData.length === 0 || availableKeys.length === 0) {
                 columnControls.style.display = 'none';
                 return;
             }
-
-            const sample = allData[0];
-            availableKeys = Object.keys(sample);
-            const allColumns = getAllColumns();
-
-            let hasVisibleColumns = false;
-            let html = '';
-
-            allColumns.forEach(c => {
-                if (availableKeys.includes(c.key)) {
-                    hasVisibleColumns = true;
-                    const isChecked = columnVisibility[c.key] !== false;
-                    const label = c.group ? `${c.group}: ${c.header}` : c.header;
-                    html += `
-                        <label>
-                            <input type="checkbox" class="col-toggle" data-col="${c.key}" ${isChecked ? 'checked' : ''} />
-                            ${label}
-                        </label>
-                    `;
-                }
-            });
-
-            if (hasVisibleColumns) {
-                columnControls.style.display = 'flex';
-                columnCheckboxes.innerHTML = html;
-                
-                document.querySelectorAll('.col-toggle').forEach(cb => {
-                    cb.addEventListener('change', function() {
-                        const colKey = this.dataset.col;
-                        columnVisibility[colKey] = this.checked;
-                        updateColumnVisibility();
-                        updateToggleAllState();
-                    });
-                });
-
-                toggleAllBtn.addEventListener('change', function() {
-                    const isChecked = this.checked;
-                    document.querySelectorAll('.col-toggle').forEach(cb => {
-                        cb.checked = isChecked;
-                        const colKey = cb.dataset.col;
-                        columnVisibility[colKey] = isChecked;
-                    });
-                    updateColumnVisibility();
-                });
-
-                updateToggleAllState();
-            } else {
+            
+            const allColumns = getAllColumns().filter(c => availableKeys.includes(c.key));
+            if (allColumns.length === 0) {
                 columnControls.style.display = 'none';
+                return;
             }
+            
+            columnControls.style.display = 'flex';
+            
+            // Preset change handler
+            columnPreset.onchange = function() {
+                if (this.value === 'custom') return;
+                applyPreset(this.value);
+            };
+            
+            // Reset button
+            resetColumnsBtn.onclick = function() {
+                const allColumns = getAllColumns().filter(c => availableKeys.includes(c.key));
+                allColumns.forEach(c => columnVisibility[c.key] = true);
+                document.querySelectorAll('.toggle-item input[type="checkbox"]').forEach(cb => {
+                    cb.checked = true;
+                });
+                columnPreset.value = 'all';
+                updateColumnVisibility();
+                renderTable();
+                setTimeout(updateColumnVisibility, 50);
+            };
         }
 
-        // ----- Update column visibility in table (matched by data-col, not position) -----
+        // ----- Update column visibility in table -----
         function updateColumnVisibility() {
             getAllColumns().forEach(c => {
                 if (!availableKeys.includes(c.key)) return;
@@ -812,7 +967,6 @@
                     td.classList.toggle('col-hidden', !isVisible);
                 });
 
-                // Collapse/expand the "Physical" group label if both its sub-columns are hidden/shown
                 if (c.group) {
                     const groupVisible = EXTRA_COLUMNS.filter(ec => ec.group === c.group).some(ec => columnVisibility[ec.key] !== false);
                     thead.querySelectorAll(`th[data-group="${c.group}"]`).forEach(th => {
@@ -822,16 +976,7 @@
             });
         }
 
-        // ----- Update "Show All" checkbox state -----
-        function updateToggleAllState() {
-            const checkboxes = document.querySelectorAll('.col-toggle');
-            if (checkboxes.length === 0) return;
-            
-            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-            toggleAllBtn.checked = allChecked;
-        }
-
-        // ----- Render table with custom headers (2-tier header for grouped columns) -----
+        // ----- Render table -----
         function renderTable() {
             hideError();
 
@@ -852,9 +997,7 @@
             availableKeys = Object.keys(sample);
             const allColumns = getAllColumns().filter(c => availableKeys.includes(c.key));
 
-            // Row 1: ungrouped columns span both header rows; grouped columns show their group label
             const groupRow = document.createElement('tr');
-            // Row 2: only grouped columns show their individual sub-header here
             const subRow = document.createElement('tr');
             let subRowHasCells = false;
             const seenGroups = new Set();
@@ -984,19 +1127,6 @@
 
     })();
 </script>
-
-<!-- 
-    FIXED: Extra rows (months, years, "Target", "Quarter") are now filtered out.
-    - Only rows with numeric "No." values are captured (like 1, 2, 3...)
-    - Rows with "August", "2026", "Target", "Quarter" in Col A are rejected.
-    - Data starts from Row 3.
-    - Columns A-L + R(17), S(18) are displayed.
-
-    ADDED: "Physical" column group, pulled from a second data source (Col F & Col I).
-    - Col F header is fetched live from the merged cell F1:F2 of the Physical source.
-    - Col I header is fixed as "Date of Completion".
-    - Rows are matched to the main listing by "No." (Col A).
--->
 
 </body>
 </html>
