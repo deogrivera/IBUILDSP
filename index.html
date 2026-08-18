@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>I-BUILD Subproject Monitor — PRDP RPCO I</title>
+<title>PRDP I-BUILD Subproject Monitor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -12,25 +12,25 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-  :root{
-    --paper:#F3F6F8;
-    --panel:#FFFFFF;
-    --ink:#152233;
-    --ink-soft:#4C5F72;
-    --line:#C9D6DF;
-    --blue:#1E5F8C;
-    --blue-deep:#123C59;
-    --blue-tint:#E7F0F5;
-    --amber:#C9861B;
-    --amber-tint:#FBF0DD;
-    --green:#2F8F5B;
-    --green-tint:#E4F3EA;
-    --red:#C0433A;
-    --red-tint:#FBE7E5;
+  :root {
+    --paper: #F3F6F8;
+    --panel: #FFFFFF;
+    --ink: #152233;
+    --ink-soft: #4C5F72;
+    --line: #C9D6DF;
+    --blue: #1E5F8C;
+    --blue-deep: #123C59;
+    --blue-tint: #E7F0F5;
+    --amber: #C9861B;
+    --amber-tint: #FBF0DD;
+    --green: #2F8F5B;
+    --green-tint: #E4F3EA;
+    --red: #C0433A;
+    --red-tint: #FBE7E5;
     --grid: rgba(30,95,140,0.09);
   }
   *{box-sizing:border-box;}
-  body{
+  body {
     margin:0;
     background:var(--paper);
     background-image:
@@ -46,19 +46,19 @@
 
   .wrap{max-width:1360px; margin:0 auto; padding:22px 28px 60px;}
 
-  /* ---------- Title block, drafting-table style ---------- */
-  .titleblock{
+  /* Title block */
+  .titleblock {
     display:grid;
     grid-template-columns: 1fr 340px;
     border:1.5px solid var(--blue-deep);
     background:var(--panel);
     box-shadow: 4px 4px 0 rgba(18,60,89,0.08);
   }
-  .titleblock .main{
+  .titleblock .main {
     padding:22px 26px;
     border-right:1.5px solid var(--blue-deep);
   }
-  .eyebrow{
+  .eyebrow {
     font-family:'IBM Plex Mono',monospace;
     font-size:11px;
     letter-spacing:.14em;
@@ -66,7 +66,7 @@
     color:var(--blue);
     margin:0 0 8px;
   }
-  .titleblock h1{
+  .titleblock h1 {
     font-family:'Space Grotesk',sans-serif;
     font-size:30px;
     line-height:1.15;
@@ -74,22 +74,22 @@
     color:var(--blue-deep);
     letter-spacing:-0.01em;
   }
-  .titleblock .sub{
+  .titleblock .sub {
     font-size:14px;
     color:var(--ink-soft);
     max-width:60ch;
   }
-  .stamp{
+  .stamp {
     display:grid;
     grid-template-columns: 1fr 1fr;
   }
-  .stamp .cell{
+  .stamp .cell {
     padding:11px 16px;
     border-bottom:1px solid var(--line);
     border-right:1px solid var(--line);
   }
   .stamp .cell:nth-child(2n){border-right:none;}
-  .stamp .cell .k{
+  .stamp .cell .k {
     font-family:'IBM Plex Mono',monospace;
     font-size:9.5px;
     letter-spacing:.09em;
@@ -98,7 +98,7 @@
     display:block;
     margin-bottom:3px;
   }
-  .stamp .cell .v{
+  .stamp .cell .v {
     font-family:'IBM Plex Mono',monospace;
     font-size:13px;
     font-weight:600;
@@ -106,14 +106,13 @@
   }
   #syncStatus.v.live{color:var(--green);}
   #syncStatus.v.cached{color:var(--amber);}
-  #syncStatus.v.error{color:var(--red);}
 
-  .refresh-row{
+  .refresh-row {
     display:flex; justify-content:flex-end; align-items:center; gap:10px;
     margin:10px 2px 22px;
   }
   #refreshNote{font-size:12px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;}
-  #refreshBtn{
+  #refreshBtn {
     font-family:'IBM Plex Mono',monospace;
     font-size:12px;
     background:var(--blue-deep);
@@ -125,34 +124,34 @@
   }
   #refreshBtn:hover{background:var(--blue);}
 
-  /* ---------- Section headers ---------- */
-  .section-head{
+  /* Section headers */
+  .section-head {
     display:flex; align-items:baseline; gap:12px;
     margin:38px 0 14px;
   }
-  .section-head .num{
+  .section-head .num {
     font-family:'IBM Plex Mono',monospace;
     font-size:12px;
     color:#fff; background:var(--blue);
     padding:3px 8px;
   }
-  .section-head h2{
+  .section-head h2 {
     font-family:'Space Grotesk',sans-serif;
     font-size:19px;
     margin:0;
     color:var(--blue-deep);
   }
-  .section-head .note{
+  .section-head .note {
     font-size:12.5px; color:var(--ink-soft); margin-left:auto; max-width:46ch; text-align:right;
   }
 
-  /* ---------- KPI cards ---------- */
-  .kpi-grid{
+  /* KPI cards */
+  .kpi-grid {
     display:grid;
     grid-template-columns:repeat(6,1fr);
     gap:12px;
   }
-  .kpi{
+  .kpi {
     background:var(--panel);
     border:1px solid var(--line);
     border-top:3px solid var(--blue);
@@ -162,63 +161,63 @@
   .kpi.alert{border-top-color:var(--red);}
   .kpi.warn{border-top-color:var(--amber);}
   .kpi.good{border-top-color:var(--green);}
-  .kpi .lbl{
+  .kpi .lbl {
     font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;
     margin-bottom:8px; line-height:1.3; min-height:28px;
   }
-  .kpi .val{
+  .kpi .val {
     font-family:'Space Grotesk',sans-serif;
     font-size:23px; font-weight:700; color:var(--blue-deep); line-height:1.1;
   }
-  .kpi .sub{
+  .kpi .sub {
     font-family:'IBM Plex Mono',monospace;
     font-size:11px; color:var(--ink-soft); margin-top:5px;
   }
 
-  /* ---------- Charts ---------- */
-  .chart-grid{
+  /* Charts */
+  .chart-grid {
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:14px;
   }
   .chart-grid.wide{grid-template-columns:1fr;}
-  .panel{
+  .panel {
     background:var(--panel);
     border:1px solid var(--line);
     padding:16px 18px 12px;
   }
-  .panel h3{
+  .panel h3 {
     font-family:'Space Grotesk',sans-serif;
     font-size:14.5px; margin:0 0 3px; color:var(--ink);
   }
-  .panel .howto{
+  .panel .howto {
     font-size:12px; color:var(--ink-soft); margin:0 0 12px; line-height:1.5;
     border-left:2px solid var(--blue-tint); padding-left:9px;
   }
   .panel .chart-holder{position:relative; height:290px;}
   .panel .chart-holder.tall{height:400px;}
 
-  /* ---------- Map ---------- */
-  #siteMap{
+  /* Map */
+  #siteMap {
     height:520px; width:100%; border:1px solid var(--line);
     filter: saturate(0.85);
   }
-  .map-layout{ display:grid; grid-template-columns: 1fr 300px; gap:14px; }
-  .map-legend{
+  .map-layout { display:grid; grid-template-columns: 1fr 300px; gap:14px; }
+  .map-legend {
     display:flex; gap:16px; flex-wrap:wrap; margin:10px 0 0;
     font-size:12px; color:var(--ink-soft);
   }
   .map-legend .item{display:flex; align-items:center; gap:6px;}
   .map-legend .dot{width:11px; height:11px; border-radius:50%; display:inline-block; border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,0.25);}
-  .site-list{
+  .site-list {
     background:var(--panel); border:1px solid var(--line);
     max-height:520px; overflow-y:auto;
   }
-  .site-list .site-item{
+  .site-list .site-item {
     padding:10px 12px; border-bottom:1px solid #EBF0F3; cursor:pointer;
   }
   .site-list .site-item:hover{background:var(--blue-tint);}
-  .site-list .site-item .sno{
+  .site-list .site-item .sno {
     font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--blue); margin-right:6px;
   }
   .site-list .site-item .sname{font-size:12.5px; font-weight:600; color:var(--ink);}
@@ -230,22 +229,22 @@
   .leaflet-popup-content .pmeta{color:var(--ink-soft); font-size:11px; margin-bottom:6px;}
   .leaflet-popup-content .prow{display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:11.5px; margin-top:2px;}
 
-  /* ---------- Table ---------- */
-  .table-controls{
+  /* Table */
+  .table-controls {
     display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; align-items:center;
   }
-  .table-controls input[type=text]{
+  .table-controls input[type=text] {
     font-family:'Inter',sans-serif; font-size:13px;
     padding:8px 10px; border:1px solid var(--line); background:#fff; flex:1; min-width:220px;
   }
-  .table-controls select{
+  .table-controls select {
     font-family:'Inter',sans-serif; font-size:13px;
     padding:8px 10px; border:1px solid var(--line); background:#fff;
   }
   .table-controls .count{font-size:12px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; margin-left:auto;}
   .tbl-wrap{overflow-x:auto; border:1px solid var(--line);}
   table{border-collapse:collapse; width:100%; min-width:1180px; background:#fff;}
-  thead th{
+  thead th {
     position:sticky; top:0;
     background:var(--blue-deep); color:#fff;
     font-family:'IBM Plex Mono',monospace;
@@ -253,12 +252,12 @@
     text-align:left; padding:9px 10px; cursor:pointer; white-space:nowrap;
   }
   thead th:hover{background:var(--blue);}
-  tbody td{
+  tbody td {
     padding:9px 10px; font-size:12.5px; border-bottom:1px solid #EBF0F3; vertical-align:top;
   }
   tbody tr:hover{background:var(--blue-tint);}
   td.num, th.num{text-align:right; font-family:'IBM Plex Mono',monospace;}
-  .badge{
+  .badge {
     display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10.5px;
     padding:2px 7px; border-radius:2px; white-space:nowrap;
   }
@@ -273,46 +272,13 @@
   .mini-bar span{position:absolute; left:0; top:0; height:100%; background:var(--blue);}
   .mini-bar span.fin{background:var(--amber); opacity:.85;}
 
-  /* ---------- Error notification ---------- */
-  .error-banner{
-    background:var(--red-tint);
-    border:2px solid var(--red);
-    color:var(--red);
-    padding:20px 24px;
-    margin:20px 0;
-    border-radius:4px;
-    font-family:'IBM Plex Mono',monospace;
-    display:none;
-  }
-  .error-banner h3{
-    margin:0 0 8px 0;
-    font-size:16px;
-    font-family:'Space Grotesk',sans-serif;
-  }
-  .error-banner p{
-    margin:4px 0;
-    font-size:13px;
-  }
-  .error-banner .btn-retry{
-    background:var(--red);
-    color:#fff;
-    border:none;
-    padding:8px 20px;
-    margin-top:10px;
-    cursor:pointer;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12px;
-    border-radius:3px;
-  }
-  .error-banner .btn-retry:hover{background:#a3352e;}
-
-  footer{
+  footer {
     margin-top:44px; padding-top:16px; border-top:1px solid var(--line);
     font-size:11.5px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;
     display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
   }
 
-  @media (max-width:1050px){
+  @media (max-width:1050px) {
     .titleblock{grid-template-columns:1fr;}
     .titleblock .main{border-right:none; border-bottom:1.5px solid var(--blue-deep);}
     .kpi-grid{grid-template-columns:repeat(3,1fr);}
@@ -320,7 +286,7 @@
     .map-layout{grid-template-columns:1fr;}
     .site-list{max-height:260px;}
   }
-  @media (max-width:640px){
+  @media (max-width:640px) {
     .kpi-grid{grid-template-columns:repeat(2,1fr);}
     .wrap{padding:16px 14px 40px;}
     .section-head .note{display:none;}
@@ -344,20 +310,12 @@
     </div>
   </div>
 
-  <!-- Error Banner -->
-  <div class="error-banner" id="errorBanner">
-    <h3>⚠️ Data Load Failed</h3>
-    <p>Unable to fetch data from the Google Sheet. Please check your internet connection and ensure the sheet is publicly accessible.</p>
-    <p style="font-size:12px; opacity:0.8;" id="errorDetails"></p>
-    <button class="btn-retry" onclick="loadData(true)">↻ Retry</button>
-  </div>
-
   <div class="refresh-row">
     <span id="refreshNote"></span>
     <button id="refreshBtn" onclick="loadData(true)">↻ RE-SYNC FROM SHEET</button>
   </div>
 
-  <!-- ============ KPIs ============ -->
+  <!-- KPIs -->
   <div class="section-head">
     <span class="num">01</span>
     <h2>Portfolio KPIs</h2>
@@ -365,7 +323,7 @@
   </div>
   <div class="kpi-grid" id="kpiGrid"></div>
 
-  <!-- ============ Charts row 1 ============ -->
+  <!-- Charts row 1 -->
   <div class="section-head">
     <span class="num">02</span>
     <h2>Where the money is versus where the work is</h2>
@@ -392,7 +350,7 @@
     </div>
   </div>
 
-  <!-- ============ Charts row 2: funnel ============ -->
+  <!-- Charts row 2: funnel -->
   <div class="section-head">
     <span class="num">03</span>
     <h2>Fund utilization pipeline</h2>
@@ -432,7 +390,7 @@
     </div>
   </div>
 
-  <!-- ============ Site Map ============ -->
+  <!-- Site Map -->
   <div class="section-head">
     <span class="num">04</span>
     <h2>Where the sites are</h2>
@@ -451,7 +409,7 @@
     <div class="site-list" id="siteList"></div>
   </div>
 
-  <!-- ============ Table ============ -->
+  <!-- Table -->
   <div class="section-head">
     <span class="num">05</span>
     <h2>Subproject detail</h2>
@@ -502,10 +460,10 @@
 
 <script>
 /* =========================================================
-   DATA SOURCE - Updated with your 5 GIDs
+   DATA SOURCES
    ========================================================= */
-const SPREADSHEET_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRhSBfaw-U9YH1Kq1n7NvZ-gqFYn1OVz3326ZsT5f3ZazvfINlb0Ln8DC_G07_oleBkRS4EIxySYWhy/pub";
-const GIDS = {
+const BASE_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRhSBfaw-U9YH1Kq1n7NvZ-gqFYn1OVz3326ZsT5f3ZazvfINlb0Ln8DC_G07_oleBkRS4EIxySYWhy/pub?gid=";
+const SHEET_GIDS = {
   profile: "744116802",
   oblig_lp: "708721244",
   oblig_gop: "880364128",
@@ -513,222 +471,218 @@ const GIDS = {
   disb_gop: "1254496839"
 };
 
-function getSheetUrl(gid) {
-  return `${SPREADSHEET_BASE}?gid=${gid}&single=true&output=csv`;
-}
-
 let RAW_PROJECTS = [];
 let charts = {};
 let sortState = {key:'no', dir:1};
 let siteMap = null;
 let mapMarkers = {};
 
-/* Geocoded per-subproject site coordinates */
-const SITE_COORDS = {
-  '1':  {lat:18.3141291, lng:120.7809676, approx:false},
-  '2':  {lat:15.9717880, lng:120.2178785, approx:false},
-  '3':  {lat:15.9961641, lng:120.4054387, approx:false},
-  '4':  {lat:15.9821734, lng:120.8142279, approx:false},
-  '5':  {lat:15.8612554, lng:120.6314948, approx:false},
-  '6':  {lat:15.8464360, lng:120.5214548, approx:false},
-  '7':  {lat:15.8094724, lng:120.4571434, approx:false},
-  '8':  {lat:18.0624699, lng:120.5203363, approx:false},
-  '9':  {lat:16.3074246, lng:119.8583772, approx:false},
-  '10': {lat:15.8094724, lng:120.4571434, approx:false},
-  '11': {lat:16.9387501, lng:120.4703258, approx:false},
-  '12': {lat:15.9625872, lng:119.9046594, approx:false},
-  '13': {lat:16.5975302, lng:120.4933624, approx:true},
-  '14': {lat:16.6159238, lng:120.3210180, approx:true},
-  '15': {lat:18.0564065, lng:120.5649659, approx:false},
-};
-
 /* =========================================================
-   PARSING
+   HELPERS
    ========================================================= */
-function numVal(s){
-  if(s===undefined || s===null) return 0;
-  s = String(s).trim().replace(/,/g,'');
-  if(s==='' || s==='-') return 0;
-  const v = parseFloat(s.replace('%',''));
+function numVal(s) {
+  if (s === undefined || s === null) return 0;
+  s = String(s).trim().replace(/,/g, '');
+  if (s === '' || s === '-') return 0;
+  const v = parseFloat(s.replace('%', ''));
   return isNaN(v) ? 0 : v;
 }
-function pctVal(s){
-  if(s===undefined || s===null) return null;
+
+function pctVal(s) {
+  if (s === undefined || s === null) return null;
   s = String(s).trim();
-  if(s==='' || s==='-') return null;
-  if(s.indexOf('%')>=0){
-    const v = parseFloat(s.replace(/[%,]/g,''));
-    return isNaN(v)?null:v;
+  if (s === '' || s === '-') return null;
+  if (s.indexOf('%') >= 0) {
+    const v = parseFloat(s.replace(/[%,]/g, ''));
+    return isNaN(v) ? null : v;
   }
-  let v = parseFloat(s.replace(/,/g,''));
-  if(isNaN(v)) return null;
-  if(v<=1) v = v*100;
+  let v = parseFloat(s.replace(/,/g, ''));
+  if (isNaN(v)) return null;
+  if (v <= 1) v = v * 100;
   return v;
 }
-function parseProjects(rows){
-  const out = [];
-  for(const r of rows){
-    if(!r || r.length<40) continue;
-    const first = (r[0]||'').toString().trim();
-    if(/^\d+$/.test(first)){
-      const p = {
-        no: first,
-        location: (r[1]||'').trim(),
-        name: (r[2]||'').trim(),
-        type: (r[3]||'').trim(),
-        status: (r[4]||'').trim() || 'Unspecified',
-        phys_accomp: pctVal(r[5]) ?? pctVal(r[40]),
-        financial_status: pctVal(r[6]),
-        variance_amt: numVal(r[7]),
-        target_completion: (r[8]||'').trim() || (r[43]||'').trim(),
-        contract_cost: numVal(r[9]),
-        lp_counterpart: numVal(r[10]),
-        gop_counterpart: numVal(r[11]),
-        total_counterpart: numVal(r[12]),
-        lp_obligation: numVal(r[17]),
-        gop_obligation: numVal(r[24]),
-        total_obligation: numVal(r[27]),
-        lp_disbursement: numVal(r[30]),
-        gop_disbursement: numVal(r[33]),
-        total_disbursement: numVal(r[36]),
-        disbursement_rate: pctVal(r[37]),
-        total_undisbursed: numVal(r[46]),
-        total_unobligated: numVal(r[49]),
-      };
-      if(p.disbursement_rate===null){
-        p.disbursement_rate = p.total_obligation>0 ? (p.total_disbursement/p.total_obligation*100) : 0;
-      }
-      out.push(p);
-    }
+
+function findSubprojectId(row) {
+  // Look for a numeric ID in the first column
+  const val = (row[0] || '').toString().trim();
+  if (/^\d+$/.test(val)) return val;
+  return null;
+}
+
+function extractProfileData(rows) {
+  const profiles = {};
+  for (const r of rows) {
+    if (!r || r.length < 10) continue;
+    const id = findSubprojectId(r);
+    if (!id) continue;
+    profiles[id] = {
+      no: id,
+      location: (r[1] || '').trim(),
+      name: (r[2] || '').trim(),
+      type: (r[3] || '').trim(),
+      status: (r[4] || '').trim() || 'Unspecified',
+      phys_accomp: pctVal(r[5]),
+      financial_status: pctVal(r[6]),
+      variance_amt: numVal(r[7]),
+      target_completion: (r[8] || '').trim(),
+      contract_cost: numVal(r[9]),
+      total_counterpart: numVal(r[9]), // will be overridden if LP+GOP available
+    };
   }
-  return out;
+  return profiles;
+}
+
+function extractObligationData(rows, isLP) {
+  const data = {};
+  for (const r of rows) {
+    if (!r || r.length < 3) continue;
+    const id = findSubprojectId(r);
+    if (!id) continue;
+    const amount = numVal(r[1]);
+    if (!data[id]) data[id] = { lp: 0, gop: 0 };
+    if (isLP) data[id].lp = amount;
+    else data[id].gop = amount;
+  }
+  return data;
+}
+
+function extractDisbursementData(rows, isLP) {
+  const data = {};
+  for (const r of rows) {
+    if (!r || r.length < 3) continue;
+    const id = findSubprojectId(r);
+    if (!id) continue;
+    const amount = numVal(r[1]);
+    if (!data[id]) data[id] = { lp: 0, gop: 0 };
+    if (isLP) data[id].lp = amount;
+    else data[id].gop = amount;
+  }
+  return data;
+}
+
+function mergeData(profiles, obligData, disbData) {
+  const result = [];
+  for (const [id, profile] of Object.entries(profiles)) {
+    const oblig = obligData[id] || { lp: 0, gop: 0 };
+    const disb = disbData[id] || { lp: 0, gop: 0 };
+    
+    const total_obligation = oblig.lp + oblig.gop;
+    const total_disbursement = disb.lp + disb.gop;
+    const total_counterpart = profile.total_counterpart || total_obligation || 0;
+    
+    // Recalculate counterpart if we have better data
+    const lp_obligation = oblig.lp;
+    const gop_obligation = oblig.gop;
+    const lp_disbursement = disb.lp;
+    const gop_disbursement = disb.gop;
+    
+    result.push({
+      ...profile,
+      total_counterpart: total_counterpart || total_obligation,
+      lp_obligation,
+      gop_obligation,
+      total_obligation,
+      lp_disbursement,
+      gop_disbursement,
+      total_disbursement,
+      disbursement_rate: total_obligation > 0 ? (total_disbursement / total_obligation * 100) : 0,
+      total_undisbursed: total_obligation - total_disbursement,
+      total_unobligated: Math.max(0, total_counterpart - total_obligation),
+    });
+  }
+  return result;
 }
 
 /* =========================================================
    LOAD
    ========================================================= */
-function showError(message) {
-  const banner = document.getElementById('errorBanner');
-  const details = document.getElementById('errorDetails');
-  banner.style.display = 'block';
-  details.textContent = message || 'Unknown error occurred.';
-  document.getElementById('syncStatus').textContent = 'Error';
-  document.getElementById('syncStatus').className = 'v error';
-  document.getElementById('refreshNote').textContent = 'Data load failed. Click retry.';
+async function fetchSheet(gid) {
+  const url = BASE_URL + gid + "&single=true&output=csv";
+  const resp = await fetch(url + "&_ts=" + Date.now(), { cache: 'no-store' });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status} for gid ${gid}`);
+  return await resp.text();
 }
 
-function hideError() {
-  document.getElementById('errorBanner').style.display = 'none';
-}
-
-async function loadData(forceLive){
-  hideError();
+async function loadData(forceLive) {
   const statusEl = document.getElementById('syncStatus');
   const noteEl = document.getElementById('refreshNote');
-  noteEl.textContent = 'Syncing…';
+  noteEl.textContent = 'Syncing...';
   
   try {
-    // Fetch all 5 sheets in parallel
-    const urls = Object.values(GIDS).map(gid => getSheetUrl(gid));
-    const fetchPromises = urls.map(url => 
-      fetch(url + (forceLive ? ('&_ts='+Date.now()) : ''), {cache:'no-store'})
-    );
+    // Fetch all sheets in parallel
+    const [profileCSV, obligLpCSV, obligGopCSV, disbLpCSV, disbGopCSV] = await Promise.all([
+      fetchSheet(SHEET_GIDS.profile),
+      fetchSheet(SHEET_GIDS.oblig_lp),
+      fetchSheet(SHEET_GIDS.oblig_gop),
+      fetchSheet(SHEET_GIDS.disb_lp),
+      fetchSheet(SHEET_GIDS.disb_gop)
+    ]);
     
-    const responses = await Promise.all(fetchPromises);
+    // Parse all CSVs
+    const profileRows = Papa.parse(profileCSV, { skipEmptyLines: false }).data;
+    const obligLpRows = Papa.parse(obligLpCSV, { skipEmptyLines: false }).data;
+    const obligGopRows = Papa.parse(obligGopCSV, { skipEmptyLines: false }).data;
+    const disbLpRows = Papa.parse(disbLpCSV, { skipEmptyLines: false }).data;
+    const disbGopRows = Papa.parse(disbGopCSV, { skipEmptyLines: false }).data;
     
-    // Check all responses
-    for (let i = 0; i < responses.length; i++) {
-      if (!responses[i].ok) {
-        throw new Error(`Sheet ${i+1} returned HTTP ${responses[i].status}`);
-      }
+    // Extract data
+    const profiles = extractProfileData(profileRows);
+    const obligLpData = extractObligationData(obligLpRows, true);
+    const obligGopData = extractObligationData(obligGopRows, false);
+    const disbLpData = extractDisbursementData(disbLpRows, true);
+    const disbGopData = extractDisbursementData(disbGopRows, false);
+    
+    // Merge obligation data
+    const obligData = {};
+    for (const [id, val] of Object.entries(obligLpData)) {
+      if (!obligData[id]) obligData[id] = { lp: 0, gop: 0 };
+      obligData[id].lp = val.lp;
+    }
+    for (const [id, val] of Object.entries(obligGopData)) {
+      if (!obligData[id]) obligData[id] = { lp: 0, gop: 0 };
+      obligData[id].gop = val.gop;
     }
     
-    // Get all CSV texts
-    const texts = await Promise.all(responses.map(r => r.text()));
-    
-    // Parse each CSV and combine data
-    let allRows = [];
-    for (const text of texts) {
-      if (!text || text.length < 100) {
-        throw new Error('One of the sheets returned empty data');
-      }
-      const parsed = Papa.parse(text, {skipEmptyLines: false});
-      // Only take rows that have a number in first column (subproject rows)
-      const validRows = parsed.data.filter(row => {
-        const first = (row[0]||'').toString().trim();
-        return /^\d+$/.test(first);
-      });
-      allRows = allRows.concat(validRows);
+    // Merge disbursement data
+    const disbData = {};
+    for (const [id, val] of Object.entries(disbLpData)) {
+      if (!disbData[id]) disbData[id] = { lp: 0, gop: 0 };
+      disbData[id].lp = val.lp;
+    }
+    for (const [id, val] of Object.entries(disbGopData)) {
+      if (!disbData[id]) disbData[id] = { lp: 0, gop: 0 };
+      disbData[id].gop = val.gop;
     }
     
-    if (allRows.length === 0) {
-      throw new Error('No subproject data found in the sheets');
-    }
+    // Merge everything
+    RAW_PROJECTS = mergeData(profiles, obligData, disbData);
     
-    RAW_PROJECTS = parseProjects(allRows);
-    
+    // Update status
     statusEl.textContent = 'Live sheet';
     statusEl.className = 'v live';
-    noteEl.textContent = 'Synced ' + new Date().toLocaleTimeString() + ' (' + RAW_PROJECTS.length + ' subprojects)';
-    document.getElementById('stampGenerated').textContent = new Date().toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'});
-    document.getElementById('footStamp').textContent = 'Rendered ' + new Date().toLocaleString('en-PH');
+    noteEl.textContent = 'Synced ' + new Date().toLocaleTimeString();
     
-    render();
-    
-  } catch(err) {
-    console.error('Data load error:', err);
-    showError(err.message || 'Failed to load data from Google Sheets');
+  } catch (err) {
+    console.warn('Live fetch failed:', err);
+    statusEl.textContent = 'Error loading data';
+    statusEl.className = 'v cached';
+    noteEl.textContent = 'Failed to load from sheets. Please try again.';
     RAW_PROJECTS = [];
-    renderEmpty();
   }
+  
+  document.getElementById('stampGenerated').textContent = new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
+  document.getElementById('footStamp').textContent = 'Rendered ' + new Date().toLocaleString('en-PH');
+  render();
 }
-
-function renderEmpty() {
-  document.getElementById('stampCount').textContent = '0';
-  document.getElementById('stampDate').textContent = '—';
-  document.getElementById('kpiGrid').innerHTML = '<div class="kpi" style="grid-column:1/-1;text-align:center;padding:40px;color:var(--ink-soft);">No data loaded. Please check the data source.</div>';
-  document.getElementById('tblBody').innerHTML = '<tr><td colspan="14" style="text-align:center;padding:30px;color:var(--ink-soft);">No data available</td></tr>';
-  document.getElementById('rowCount').textContent = '0 of 0 subprojects';
-  ['chartPhysFin','chartStatus','chartType','chartPipeline','chartDisbRank','chartFundSplit','chartBalances','chartContract'].forEach(id => {
-    const canvas = document.getElementById(id);
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#C9D6DF';
-      ctx.font = '14px Inter, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('No data available', canvas.width/2, canvas.height/2);
-    }
-  });
-}
-
-/* =========================================================
-   HELPERS
-   ========================================================= */
-const PHP = n => '₱' + Math.round(n).toLocaleString('en-PH');
-const PHPm = n => '₱' + (n/1000000).toLocaleString('en-PH',{maximumFractionDigits:1}) + 'M';
-const pctFmt = n => (n===null||n===undefined) ? '—' : n.toFixed(1)+'%';
-function statusClass(s){
-  const t = s.toLowerCase();
-  if(t.indexOf('complet')>=0) return 'completed';
-  if(t.indexOf('nol1')>=0) return 'nol1';
-  return 'ongoing';
-}
-function truncName(s, n){ return s.length>n ? s.slice(0,n-1)+'…' : s; }
 
 /* =========================================================
    RENDER
    ========================================================= */
-function render(){
+function render() {
   const P = RAW_PROJECTS;
-  if (P.length === 0) {
-    renderEmpty();
-    return;
-  }
-  
   document.getElementById('stampCount').textContent = P.length;
   document.getElementById('stampDate').textContent = 'Apr 2026';
-
+  
   renderKPIs(P);
   renderCharts(P);
   renderMap(P);
@@ -736,321 +690,410 @@ function render(){
   renderTable();
 }
 
-function statusColor(status){
+function statusColor(status) {
   const t = status.toLowerCase();
-  if(t.indexOf('complet')>=0) return '#2F8F5B';
-  if(t.indexOf('nol1')>=0) return '#C9861B';
+  if (t.indexOf('complet') >= 0) return '#2F8F5B';
+  if (t.indexOf('nol1') >= 0) return '#C9861B';
   return '#1E5F8C';
 }
 
-function renderMap(P){
-  if(!siteMap){
-    siteMap = L.map('siteMap', {scrollWheelZoom:false}).setView([16.6, 120.55], 8);
+function statusClass(s) {
+  const t = s.toLowerCase();
+  if (t.indexOf('complet') >= 0) return 'completed';
+  if (t.indexOf('nol1') >= 0) return 'nol1';
+  return 'ongoing';
+}
+
+const PHP = n => '₱' + Math.round(n).toLocaleString('en-PH');
+const PHPm = n => '₱' + (n/1000000).toLocaleString('en-PH', { maximumFractionDigits: 1 }) + 'M';
+const pctFmt = n => (n === null || n === undefined) ? '—' : n.toFixed(1) + '%';
+function truncName(s, n) { return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+
+function renderKPIs(P) {
+  const totalCounterpart = P.reduce((a, p) => a + p.total_counterpart, 0);
+  const totalObligation = P.reduce((a, p) => a + p.total_obligation, 0);
+  const totalDisbursement = P.reduce((a, p) => a + p.total_disbursement, 0);
+  const totalUndisbursed = P.reduce((a, p) => a + p.total_undisbursed, 0);
+  const totalUnobligated = P.reduce((a, p) => a + p.total_unobligated, 0);
+  const obligationRate = totalCounterpart > 0 ? totalObligation / totalCounterpart * 100 : 0;
+  const disbursementRate = totalObligation > 0 ? totalDisbursement / totalObligation * 100 : 0;
+  
+  const completed = P.filter(p => p.status.toLowerCase().indexOf('complet') >= 0).length;
+  const ongoing = P.filter(p => p.status.toLowerCase() === 'on-going').length;
+  const nol1 = P.filter(p => p.status.toLowerCase().indexOf('nol1') >= 0).length;
+  
+  const withPhys = P.filter(p => p.phys_accomp !== null && p.status.toLowerCase().indexOf('complet') < 0);
+  const avgPhys = withPhys.length ? withPhys.reduce((a, p) => a + p.phys_accomp, 0) / withPhys.length : 0;
+  
+  const slipping = P.filter(p => p.phys_accomp !== null && p.financial_status !== null && p.financial_status > p.phys_accomp + 0.5).length;
+  
+  const lpTotal = P.reduce((a, p) => a + p.lp_obligation, 0);
+  const gopTotal = P.reduce((a, p) => a + p.gop_obligation, 0);
+  const lpShare = (lpTotal + gopTotal) > 0 ? lpTotal / (lpTotal + gopTotal) * 100 : 0;
+  
+  const kpis = [
+    { lbl: 'Total PRDP Counterpart Cost', val: PHPm(totalCounterpart), sub: P.length + ' subprojects', cls: '' },
+    { lbl: 'Total Obligated', val: PHPm(totalObligation), sub: obligationRate.toFixed(1) + '% of counterpart cost', cls: obligationRate < 70 ? 'warn' : '' },
+    { lbl: 'Total Disbursed', val: PHPm(totalDisbursement), sub: disbursementRate.toFixed(1) + '% of obligation', cls: disbursementRate < 30 ? 'alert' : (disbursementRate < 60 ? 'warn' : 'good') },
+    { lbl: 'Undisbursed Balance', val: PHPm(totalUndisbursed), sub: 'obligated, not yet paid out', cls: 'warn' },
+    { lbl: 'Unobligated Balance', val: PHPm(totalUnobligated), sub: 'not yet set aside (ASA/ORS)', cls: totalUnobligated > 50000000 ? 'alert' : '' },
+    { lbl: 'LP vs. GOP Obligated', val: lpShare.toFixed(0) + '% / ' + (100 - lpShare).toFixed(0) + '%', sub: 'Loan Proceeds / GOP counterpart', cls: '' },
+    { lbl: 'Completed', val: completed, sub: 'of ' + P.length + ' subprojects', cls: 'good' },
+    { lbl: 'On-going', val: ongoing, sub: 'under construction', cls: '' },
+    { lbl: 'Awaiting NOL1 / Not Started', val: nol1, sub: 'pipeline, pre-construction', cls: nol1 > 0 ? 'warn' : '' },
+    { lbl: 'Avg. Physical Accomplishment', val: avgPhys.toFixed(1) + '%', sub: 'across active subprojects', cls: '' },
+    { lbl: 'Billing-Ahead-of-Work Flags', val: slipping, sub: 'financial % exceeds physical %', cls: slipping > 0 ? 'alert' : 'good' },
+    { lbl: 'Total Contract Value', val: PHPm(P.reduce((a, p) => a + p.contract_cost, 0)), sub: 'sum of all subproject contracts', cls: '' },
+  ];
+  
+  const grid = document.getElementById('kpiGrid');
+  grid.innerHTML = kpis.map(k => `
+    <div class="kpi ${k.cls}">
+      <div class="lbl">${k.lbl}</div>
+      <div class="val">${k.val}</div>
+      <div class="sub">${k.sub}</div>
+    </div>
+  `).join('');
+}
+
+function destroyChart(key) {
+  if (charts[key]) { charts[key].destroy(); delete charts[key]; }
+}
+
+const CHART_FONT = { family: "'IBM Plex Mono', monospace", size: 10.5 };
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.color = '#4C5F72';
+
+function renderCharts(P) {
+  const sorted = [...P].sort((a, b) => a.no.padStart(3, '0').localeCompare(b.no.padStart(3, '0')));
+  const labels = sorted.map(p => '#' + p.no + ' ' + truncName(p.name, 26));
+  
+  destroyChart('physFin');
+  charts.physFin = new Chart(document.getElementById('chartPhysFin'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Physical Accomplishment %', data: sorted.map(p => p.phys_accomp), backgroundColor: '#1E5F8C' },
+        { label: 'Financial Status %', data: sorted.map(p => p.financial_status), backgroundColor: '#C9861B' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' }, grid: { color: '#EBF0F3' } },
+        x: { ticks: { font: { size: 10 }, maxRotation: 55, minRotation: 35 }, grid: { display: false } }
+      },
+      plugins: {
+        legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: c => c.dataset.label + ': ' + (c.raw === null ? '—' : c.raw.toFixed(1) + '%') } }
+      }
+    }
+  });
+  
+  const statusCounts = {};
+  P.forEach(p => { const s = p.status; statusCounts[s] = (statusCounts[s] || 0) + 1; });
+  destroyChart('status');
+  charts.status = new Chart(document.getElementById('chartStatus'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(statusCounts),
+      datasets: [{ data: Object.values(statusCounts), backgroundColor: ['#2F8F5B', '#1E5F8C', '#C9861B', '#C0433A', '#7C8DA0'] }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 11, font: { size: 11 } } } } }
+  });
+  
+  const typeMap = {};
+  P.forEach(p => { const t = p.type || 'Unspecified'; typeMap[t] = (typeMap[t] || 0) + p.total_counterpart; });
+  destroyChart('type');
+  charts.type = new Chart(document.getElementById('chartType'), {
+    type: 'pie',
+    data: {
+      labels: Object.keys(typeMap),
+      datasets: [{ data: Object.values(typeMap), backgroundColor: ['#1E5F8C', '#2F8F5B', '#C9861B', '#7C8DA0', '#C0433A'] }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 11, font: { size: 11 } } },
+        tooltip: { callbacks: { label: c => c.label + ': ' + PHPm(c.raw) } }
+      }
+    }
+  });
+  
+  destroyChart('pipeline');
+  charts.pipeline = new Chart(document.getElementById('chartPipeline'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Counterpart Cost', data: sorted.map(p => p.total_counterpart), backgroundColor: '#C9D6DF' },
+        { label: 'Obligated', data: sorted.map(p => p.total_obligation), backgroundColor: '#1E5F8C' },
+        { label: 'Disbursed', data: sorted.map(p => p.total_disbursement), backgroundColor: '#2F8F5B' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: v => PHPm(v) }, grid: { color: '#EBF0F3' } },
+        x: { ticks: { font: { size: 10 }, maxRotation: 55, minRotation: 35 }, grid: { display: false } }
+      },
+      plugins: {
+        legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: c => c.dataset.label + ': ' + PHP(c.raw) } }
+      }
+    }
+  });
+  
+  const rankSorted = [...P].sort((a, b) => a.disbursement_rate - b.disbursement_rate);
+  destroyChart('disbRank');
+  charts.disbRank = new Chart(document.getElementById('chartDisbRank'), {
+    type: 'bar',
+    data: {
+      labels: rankSorted.map(p => '#' + p.no + ' ' + truncName(p.name, 20)),
+      datasets: [{
+        label: 'Disbursement Rate %',
+        data: rankSorted.map(p => p.disbursement_rate),
+        backgroundColor: rankSorted.map(p => p.disbursement_rate < 20 ? '#C0433A' : (p.disbursement_rate < 60 ? '#C9861B' : '#2F8F5B'))
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' }, grid: { color: '#EBF0F3' } },
+        y: { ticks: { font: { size: 10 } }, grid: { display: false } }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => c.raw.toFixed(1) + '%' } }
+      }
+    }
+  });
+  
+  const lpTotal = P.reduce((a, p) => a + p.lp_obligation, 0);
+  const gopTotal = P.reduce((a, p) => a + p.gop_obligation, 0);
+  destroyChart('fundSplit');
+  charts.fundSplit = new Chart(document.getElementById('chartFundSplit'), {
+    type: 'doughnut',
+    data: {
+      labels: ['LP (Loan Proceeds)', 'GOP (Counterpart)'],
+      datasets: [{ data: [lpTotal, gopTotal], backgroundColor: ['#1E5F8C', '#C9861B'] }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 11, font: { size: 11 } } },
+        tooltip: { callbacks: { label: c => c.label + ': ' + PHPm(c.raw) } }
+      }
+    }
+  });
+  
+  destroyChart('balances');
+  charts.balances = new Chart(document.getElementById('chartBalances'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Undisbursed (obligated, unpaid)', data: sorted.map(p => p.total_undisbursed), backgroundColor: '#C9861B' },
+        { label: 'Unobligated (not yet set aside)', data: sorted.map(p => p.total_unobligated), backgroundColor: '#C0433A' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: v => PHPm(v) }, grid: { color: '#EBF0F3' } },
+        x: { ticks: { font: { size: 9.5 }, maxRotation: 55, minRotation: 35 }, grid: { display: false } }
+      },
+      plugins: {
+        legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: c => c.dataset.label + ': ' + PHP(c.raw) } }
+      }
+    }
+  });
+  
+  const bySize = [...P].sort((a, b) => b.contract_cost - a.contract_cost);
+  destroyChart('contract');
+  charts.contract = new Chart(document.getElementById('chartContract'), {
+    type: 'bar',
+    data: {
+      labels: bySize.map(p => '#' + p.no + ' ' + truncName(p.name, 20)),
+      datasets: [{ label: 'Contract Cost', data: bySize.map(p => p.contract_cost), backgroundColor: '#1E5F8C' }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { beginAtZero: true, ticks: { callback: v => PHPm(v) }, grid: { color: '#EBF0F3' } },
+        y: { ticks: { font: { size: 10 } }, grid: { display: false } }
+      },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => PHP(c.raw) } } }
+    }
+  });
+}
+
+function renderMap(P) {
+  if (!siteMap) {
+    siteMap = L.map('siteMap', { scrollWheelZoom: false }).setView([16.6, 120.55], 8);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
       maxZoom: 18
     }).addTo(siteMap);
   } else {
-    Object.values(mapMarkers).forEach(m=>siteMap.removeLayer(m));
+    Object.values(mapMarkers).forEach(m => siteMap.removeLayer(m));
     mapMarkers = {};
   }
-
+  
   const bounds = [];
   const listEl = document.getElementById('siteList');
   let listHtml = '';
-
-  P.forEach(p=>{
-    const c = SITE_COORDS[p.no];
-    if(!c) return;
+  
+  // Generate coordinates from location data (fallback if not provided)
+  const locationCoords = {
+    'Vintar, Ilocos Norte': [18.3141291, 120.7809676],
+    'Province of Pangasinan': [15.9717880, 120.2178785],
+    'Rosales, Pangasinan': [15.8612554, 120.6314948],
+    'Alcala, Pangasinan': [15.8464360, 120.5214548],
+    'Bayambang, Pangasinan': [15.8094724, 120.4571434],
+    'PaOay, Ilocos Norte': [18.0624699, 120.5203363],
+    'Tagudin, Ilocos Sur': [16.9387501, 120.4703258],
+    'Dasol, Pangasinan': [15.9625872, 119.9046594],
+    'Province of La Union': [16.5975302, 120.4933624],
+    'Batac City, Ilocos Norte': [18.0564065, 120.5649659],
+  };
+  
+  P.forEach(p => {
+    // Try to find coordinates from location string
+    let coords = null;
+    for (const [key, val] of Object.entries(locationCoords)) {
+      if (p.location && p.location.includes(key)) {
+        coords = { lat: val[0], lng: val[1], approx: false };
+        break;
+      }
+    }
+    // Fallback for La Union specific
+    if (!coords && p.location && p.location.includes('La Union')) {
+      if (p.name && p.name.includes('Ramot-Puguil')) {
+        coords = { lat: 16.5975302, lng: 120.4933624, approx: true };
+      } else {
+        coords = { lat: 16.6159238, lng: 120.3210180, approx: true };
+      }
+    }
+    if (!coords) return;
+    
     const color = statusColor(p.status);
-    const maxCost = Math.max(...P.map(x=>x.total_counterpart));
+    const maxCost = Math.max(...P.map(x => x.total_counterpart));
     const r = 7 + (p.total_counterpart / maxCost) * 14;
-
-    const marker = L.circleMarker([c.lat, c.lng], {
-      radius: r, color:'#fff', weight:2, fillColor: color, fillOpacity: 0.85
+    
+    const marker = L.circleMarker([coords.lat, coords.lng], {
+      radius: r, color: '#fff', weight: 2, fillColor: color, fillOpacity: 0.85
     }).addTo(siteMap);
-
-    const physTxt = p.phys_accomp===null ? '—' : p.phys_accomp.toFixed(1)+'%';
-    const finTxt = p.financial_status===null ? '—' : p.financial_status.toFixed(1)+'%';
+    
+    const physTxt = p.phys_accomp === null ? '—' : p.phys_accomp.toFixed(1) + '%';
+    const finTxt = p.financial_status === null ? '—' : p.financial_status.toFixed(1) + '%';
     marker.bindPopup(
-      '<b>#'+p.no+' '+p.name+'</b>'+
-      '<div class="pmeta">'+p.location+(c.approx?' <span style="color:#C9861B">(approximate)</span>':'')+' · '+(p.type||'—')+' · '+p.status+'</div>'+
-      '<div class="prow"><span>Physical</span><span>'+physTxt+'</span></div>'+
-      '<div class="prow"><span>Financial</span><span>'+finTxt+'</span></div>'+
-      '<div class="prow"><span>Counterpart cost</span><span>'+PHPm(p.total_counterpart)+'</span></div>'+
-      '<div class="prow"><span>Disbursed</span><span>'+PHPm(p.total_disbursement)+'</span></div>'
+      '<b>#' + p.no + ' ' + p.name + '</b>' +
+      '<div class="pmeta">' + p.location + (coords.approx ? ' <span style="color:#C9861B">(approximate)</span>' : '') + ' · ' + (p.type || '—') + ' · ' + p.status + '</div>' +
+      '<div class="prow"><span>Physical</span><span>' + physTxt + '</span></div>' +
+      '<div class="prow"><span>Financial</span><span>' + finTxt + '</span></div>' +
+      '<div class="prow"><span>Counterpart cost</span><span>' + PHPm(p.total_counterpart) + '</span></div>' +
+      '<div class="prow"><span>Disbursed</span><span>' + PHPm(p.total_disbursement) + '</span></div>'
     );
     mapMarkers[p.no] = marker;
-    bounds.push([c.lat, c.lng]);
-
+    bounds.push([coords.lat, coords.lng]);
+    
     listHtml += `<div class="site-item" onclick="focusSite('${p.no}')">
-      <div><span class="sno">#${p.no}</span><span class="sname">${truncName(p.name,42)}</span></div>
-      <div class="sloc">${p.location}${c.approx?' <span class="approx-tag">≈ approx</span>':''} · ${p.type||'—'}</div>
+      <div><span class="sno">#${p.no}</span><span class="sname">${truncName(p.name, 42)}</span></div>
+      <div class="sloc">${p.location}${coords.approx ? ' <span class="approx-tag">≈ approx</span>' : ''} · ${p.type || '—'}</div>
       <div class="sprog" style="color:${color}">${p.status} — ${physTxt} physical / ${finTxt} financial</div>
     </div>`;
   });
-
+  
   listEl.innerHTML = listHtml;
-  if(bounds.length) siteMap.fitBounds(bounds, {padding:[24,24]});
-  setTimeout(()=>siteMap.invalidateSize(), 200);
+  if (bounds.length) siteMap.fitBounds(bounds, { padding: [24, 24] });
+  setTimeout(() => siteMap.invalidateSize(), 200);
 }
 
-function focusSite(no){
-  const c = SITE_COORDS[no];
+function focusSite(no) {
   const m = mapMarkers[no];
-  if(!c || !m) return;
-  siteMap.flyTo([c.lat, c.lng], 12, {duration:0.6});
+  if (!m) return;
+  const latlng = m.getLatLng();
+  siteMap.flyTo(latlng, 12, { duration: 0.6 });
   m.openPopup();
-  document.getElementById('siteMap').scrollIntoView({behavior:'smooth', block:'center'});
+  document.getElementById('siteMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-function renderKPIs(P){
-  const totalCounterpart = P.reduce((a,p)=>a+p.total_counterpart,0);
-  const totalObligation = P.reduce((a,p)=>a+p.total_obligation,0);
-  const totalDisbursement = P.reduce((a,p)=>a+p.total_disbursement,0);
-  const totalUndisbursed = P.reduce((a,p)=>a+p.total_undisbursed,0);
-  const totalUnobligated = P.reduce((a,p)=>a+p.total_unobligated,0);
-  const obligationRate = totalCounterpart>0 ? totalObligation/totalCounterpart*100 : 0;
-  const disbursementRate = totalObligation>0 ? totalDisbursement/totalObligation*100 : 0;
-
-  const completed = P.filter(p=>p.status.toLowerCase().indexOf('complet')>=0).length;
-  const ongoing = P.filter(p=>p.status.toLowerCase()==='on-going').length;
-  const nol1 = P.filter(p=>p.status.toLowerCase().indexOf('nol1')>=0).length;
-
-  const withPhys = P.filter(p=>p.phys_accomp!==null && p.status.toLowerCase().indexOf('complet')<0);
-  const avgPhys = withPhys.length ? withPhys.reduce((a,p)=>a+p.phys_accomp,0)/withPhys.length : 0;
-
-  const slipping = P.filter(p=>p.phys_accomp!==null && p.financial_status!==null && p.financial_status > p.phys_accomp + 0.5).length;
-
-  const lpTotal = P.reduce((a,p)=>a+p.lp_obligation,0);
-  const gopTotal = P.reduce((a,p)=>a+p.gop_obligation,0);
-  const lpShare = (lpTotal+gopTotal)>0 ? lpTotal/(lpTotal+gopTotal)*100 : 0;
-
-  const kpis = [
-    {lbl:'Total PRDP Counterpart Cost', val:PHPm(totalCounterpart), sub:P.length+' subprojects', cls:''},
-    {lbl:'Total Obligated', val:PHPm(totalObligation), sub:obligationRate.toFixed(1)+'% of counterpart cost', cls: obligationRate<70?'warn':''},
-    {lbl:'Total Disbursed', val:PHPm(totalDisbursement), sub:disbursementRate.toFixed(1)+'% of obligation', cls: disbursementRate<30?'alert':(disbursementRate<60?'warn':'good')},
-    {lbl:'Undisbursed Balance', val:PHPm(totalUndisbursed), sub:'obligated, not yet paid out', cls:'warn'},
-    {lbl:'Unobligated Balance', val:PHPm(totalUnobligated), sub:'not yet set aside (ASA/ORS)', cls: totalUnobligated>50000000?'alert':''},
-    {lbl:'LP vs. GOP Obligated', val:lpShare.toFixed(0)+'% / '+(100-lpShare).toFixed(0)+'%', sub:'Loan Proceeds / GOP counterpart', cls:''},
-    {lbl:'Completed', val:completed, sub:'of '+P.length+' subprojects', cls:'good'},
-    {lbl:'On-going', val:ongoing, sub:'under construction', cls:''},
-    {lbl:'Awaiting NOL1 / Not Started', val:nol1, sub:'pipeline, pre-construction', cls: nol1>0?'warn':''},
-    {lbl:'Avg. Physical Accomplishment', val:avgPhys.toFixed(1)+'%', sub:'across active subprojects', cls:''},
-    {lbl:'Billing-Ahead-of-Work Flags', val:slipping, sub:'financial % exceeds physical %', cls: slipping>0?'alert':'good'},
-    {lbl:'Total Contract Value', val:PHPm(P.reduce((a,p)=>a+p.contract_cost,0)), sub:'sum of all subproject contracts', cls:''},
-  ];
-  const grid = document.getElementById('kpiGrid');
-  grid.innerHTML = kpis.map(k=>`
-    <div class="kpi ${k.cls}">
-      <div class="lbl">${k.lbl}</div>
-      <div class="val">${k.val}</div>
-      <div class="sub">${k.sub}</div>
-    </div>`).join('');
-}
-
-function destroyChart(key){ if(charts[key]){ charts[key].destroy(); delete charts[key]; } }
-
-const CHART_FONT = {family:"'IBM Plex Mono', monospace", size:10.5};
-Chart.defaults.font.family = "'Inter', sans-serif";
-Chart.defaults.color = '#4C5F72';
-
-function renderCharts(P){
-  const sorted = [...P].sort((a,b)=> a.no.padStart(3,'0').localeCompare(b.no.padStart(3,'0')));
-  const labels = sorted.map(p=>'#'+p.no+' '+truncName(p.name,26));
-
-  destroyChart('physFin');
-  charts.physFin = new Chart(document.getElementById('chartPhysFin'), {
-    type:'bar',
-    data:{ labels, datasets:[
-      {label:'Physical Accomplishment %', data:sorted.map(p=>p.phys_accomp), backgroundColor:'#1E5F8C'},
-      {label:'Financial Status %', data:sorted.map(p=>p.financial_status), backgroundColor:'#C9861B'},
-    ]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      scales:{ y:{beginAtZero:true, max:100, ticks:{callback:v=>v+'%'}, grid:{color:'#EBF0F3'}},
-               x:{ticks:{font:{size:10}, maxRotation:55, minRotation:35}, grid:{display:false}} },
-      plugins:{ legend:{position:'top', labels:{boxWidth:12,font:{size:11}}},
-                tooltip:{callbacks:{label:c=> c.dataset.label+': '+(c.raw===null?'—':c.raw.toFixed(1)+'%')}} }
-    }
-  });
-
-  const statusCounts = {};
-  P.forEach(p=>{ const s=p.status; statusCounts[s]=(statusCounts[s]||0)+1; });
-  destroyChart('status');
-  charts.status = new Chart(document.getElementById('chartStatus'), {
-    type:'doughnut',
-    data:{ labels:Object.keys(statusCounts), datasets:[{
-      data:Object.values(statusCounts),
-      backgroundColor:['#2F8F5B','#1E5F8C','#C9861B','#C0433A','#7C8DA0']
-    }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:11,font:{size:11}}}} }
-  });
-
-  const typeMap = {};
-  P.forEach(p=>{ const t=p.type||'Unspecified'; typeMap[t]=(typeMap[t]||0)+p.total_counterpart; });
-  destroyChart('type');
-  charts.type = new Chart(document.getElementById('chartType'), {
-    type:'pie',
-    data:{ labels:Object.keys(typeMap), datasets:[{
-      data:Object.values(typeMap),
-      backgroundColor:['#1E5F8C','#2F8F5B','#C9861B','#7C8DA0','#C0433A']
-    }]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{position:'bottom', labels:{boxWidth:11,font:{size:11}}},
-                tooltip:{callbacks:{label:c=> c.label+': '+PHPm(c.raw)}} } }
-  });
-
-  destroyChart('pipeline');
-  charts.pipeline = new Chart(document.getElementById('chartPipeline'), {
-    type:'bar',
-    data:{ labels, datasets:[
-      {label:'Counterpart Cost', data:sorted.map(p=>p.total_counterpart), backgroundColor:'#C9D6DF'},
-      {label:'Obligated', data:sorted.map(p=>p.total_obligation), backgroundColor:'#1E5F8C'},
-      {label:'Disbursed', data:sorted.map(p=>p.total_disbursement), backgroundColor:'#2F8F5B'},
-    ]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      scales:{ y:{beginAtZero:true, ticks:{callback:v=>PHPm(v)}, grid:{color:'#EBF0F3'}},
-               x:{ticks:{font:{size:10}, maxRotation:55, minRotation:35}, grid:{display:false}} },
-      plugins:{ legend:{position:'top', labels:{boxWidth:12,font:{size:11}}},
-                tooltip:{callbacks:{label:c=> c.dataset.label+': '+PHP(c.raw)}} }
-    }
-  });
-
-  const rankSorted = [...P].sort((a,b)=>a.disbursement_rate-b.disbursement_rate);
-  destroyChart('disbRank');
-  charts.disbRank = new Chart(document.getElementById('chartDisbRank'), {
-    type:'bar',
-    data:{ labels:rankSorted.map(p=>'#'+p.no+' '+truncName(p.name,20)),
-      datasets:[{ label:'Disbursement Rate %', data:rankSorted.map(p=>p.disbursement_rate),
-        backgroundColor:rankSorted.map(p=> p.disbursement_rate<20?'#C0433A':(p.disbursement_rate<60?'#C9861B':'#2F8F5B')) }]},
-    options:{
-      indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      scales:{ x:{beginAtZero:true, max:100, ticks:{callback:v=>v+'%'}, grid:{color:'#EBF0F3'}},
-               y:{ticks:{font:{size:10}}, grid:{display:false}} },
-      plugins:{ legend:{display:false},
-                tooltip:{callbacks:{label:c=>c.raw.toFixed(1)+'%'}} }
-    }
-  });
-
-  const lpTotal = P.reduce((a,p)=>a+p.lp_obligation,0);
-  const gopTotal = P.reduce((a,p)=>a+p.gop_obligation,0);
-  destroyChart('fundSplit');
-  charts.fundSplit = new Chart(document.getElementById('chartFundSplit'), {
-    type:'doughnut',
-    data:{ labels:['LP (Loan Proceeds)','GOP (Counterpart)'], datasets:[{ data:[lpTotal,gopTotal], backgroundColor:['#1E5F8C','#C9861B'] }]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{position:'bottom', labels:{boxWidth:11,font:{size:11}}},
-                tooltip:{callbacks:{label:c=> c.label+': '+PHPm(c.raw)}} } }
-  });
-
-  destroyChart('balances');
-  charts.balances = new Chart(document.getElementById('chartBalances'), {
-    type:'bar',
-    data:{ labels, datasets:[
-      {label:'Undisbursed (obligated, unpaid)', data:sorted.map(p=>p.total_undisbursed), backgroundColor:'#C9861B'},
-      {label:'Unobligated (not yet set aside)', data:sorted.map(p=>p.total_unobligated), backgroundColor:'#C0433A'},
-    ]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      scales:{ y:{beginAtZero:true, ticks:{callback:v=>PHPm(v)}, grid:{color:'#EBF0F3'}},
-               x:{ticks:{font:{size:9.5}, maxRotation:55, minRotation:35}, grid:{display:false}} },
-      plugins:{ legend:{position:'top', labels:{boxWidth:12,font:{size:11}}},
-                tooltip:{callbacks:{label:c=> c.dataset.label+': '+PHP(c.raw)}} }
-    }
-  });
-
-  const bySize = [...P].sort((a,b)=>b.contract_cost-a.contract_cost);
-  destroyChart('contract');
-  charts.contract = new Chart(document.getElementById('chartContract'), {
-    type:'bar',
-    data:{ labels:bySize.map(p=>'#'+p.no+' '+truncName(p.name,20)),
-      datasets:[{label:'Contract Cost', data:bySize.map(p=>p.contract_cost), backgroundColor:'#1E5F8C'}]},
-    options:{
-      indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      scales:{ x:{beginAtZero:true, ticks:{callback:v=>PHPm(v)}, grid:{color:'#EBF0F3'}},
-               y:{ticks:{font:{size:10}}, grid:{display:false}} },
-      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>PHP(c.raw)}} }
-    }
-  });
-}
-
-/* =========================================================
-   FILTERS + TABLE
-   ========================================================= */
-function populateFilters(P){
+function populateFilters(P) {
   const statusSel = document.getElementById('statusFilter');
   const typeSel = document.getElementById('typeFilter');
-  const statuses = [...new Set(P.map(p=>p.status))].sort();
-  const types = [...new Set(P.map(p=>p.type||'Unspecified'))].sort();
-  statusSel.innerHTML = '<option value="">All statuses</option>' + statuses.map(s=>`<option value="${s}">${s}</option>`).join('');
-  typeSel.innerHTML = '<option value="">All types</option>' + types.map(t=>`<option value="${t}">${t}</option>`).join('');
+  const statuses = [...new Set(P.map(p => p.status))].sort();
+  const types = [...new Set(P.map(p => p.type || 'Unspecified'))].sort();
+  statusSel.innerHTML = '<option value="">All statuses</option>' + statuses.map(s => `<option value="${s}">${s}</option>`).join('');
+  typeSel.innerHTML = '<option value="">All types</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
 }
 
-function getFiltered(){
+function getFiltered() {
   const q = document.getElementById('searchBox').value.trim().toLowerCase();
   const st = document.getElementById('statusFilter').value;
   const ty = document.getElementById('typeFilter').value;
-  let rows = RAW_PROJECTS.filter(p=>{
-    if(st && p.status!==st) return false;
-    if(ty && (p.type||'Unspecified')!==ty) return false;
-    if(q && !(p.name.toLowerCase().includes(q) || p.location.toLowerCase().includes(q))) return false;
+  let rows = RAW_PROJECTS.filter(p => {
+    if (st && p.status !== st) return false;
+    if (ty && (p.type || 'Unspecified') !== ty) return false;
+    if (q && !(p.name.toLowerCase().includes(q) || p.location.toLowerCase().includes(q))) return false;
     return true;
   });
-  const {key,dir} = sortState;
-  rows.sort((a,b)=>{
-    let av=a[key], bv=b[key];
-    if(key==='no'){ av=parseInt(a.no); bv=parseInt(b.no); }
-    if(typeof av==='string'){ av=(av||'').toLowerCase(); bv=(bv||'').toLowerCase(); return av<bv?-1*dir:av>bv?1*dir:0; }
-    av = av??-Infinity; bv = bv??-Infinity;
-    return (av-bv)*dir;
+  const { key, dir } = sortState;
+  rows.sort((a, b) => {
+    let av = a[key], bv = b[key];
+    if (key === 'no') { av = parseInt(a.no); bv = parseInt(b.no); }
+    if (typeof av === 'string') { av = (av || '').toLowerCase(); bv = (bv || '').toLowerCase(); return av < bv ? -1 * dir : av > bv ? 1 * dir : 0; }
+    av = av ?? -Infinity; bv = bv ?? -Infinity;
+    return (av - bv) * dir;
   });
   return rows;
 }
 
-function renderTable(){
+function renderTable() {
   const rows = getFiltered();
   document.getElementById('rowCount').textContent = rows.length + ' of ' + RAW_PROJECTS.length + ' subprojects';
   const body = document.getElementById('tblBody');
-  body.innerHTML = rows.map(p=>{
+  body.innerHTML = rows.map(p => {
     const phys = p.phys_accomp, fin = p.financial_status;
     let flagHtml = '<span class="flag ok">—</span>';
-    if(phys!==null && fin!==null){
-      if(fin > phys + 0.5){ flagHtml = '<span class="flag slip">Financial > Physical</span>'; }
+    if (phys !== null && fin !== null) {
+      if (fin > phys + 0.5) { flagHtml = '<span class="flag slip">Financial > Physical</span>'; }
       else { flagHtml = '<span class="flag ok">On track</span>'; }
     }
     return `<tr>
       <td>${p.no}</td>
       <td>${p.location}</td>
       <td>${p.name}</td>
-      <td>${p.type||'—'}</td>
+      <td>${p.type || '—'}</td>
       <td><span class="badge ${statusClass(p.status)}">${p.status}</span></td>
-      <td class="num barcell">${pctFmt(phys)}<div class="mini-bar"><span style="width:${phys||0}%"></span></div></td>
-      <td class="num barcell">${pctFmt(fin)}<div class="mini-bar"><span class="fin" style="width:${fin||0}%"></span></div></td>
+      <td class="num barcell">${pctFmt(phys)}<div class="mini-bar"><span style="width:${phys || 0}%"></span></div></td>
+      <td class="num barcell">${pctFmt(fin)}<div class="mini-bar"><span class="fin" style="width:${fin || 0}%"></span></div></td>
       <td>${flagHtml}</td>
       <td class="num">${PHP(p.total_counterpart)}</td>
       <td class="num">${PHP(p.total_obligation)}</td>
       <td class="num">${PHP(p.total_disbursement)}</td>
       <td class="num">${PHP(p.total_undisbursed)}</td>
       <td class="num">${PHP(p.total_unobligated)}</td>
-      <td>${p.target_completion||'—'}</td>
+      <td>${p.target_completion || '—'}</td>
     </tr>`;
   }).join('');
 }
 
+// Event listeners
 document.getElementById('searchBox').addEventListener('input', renderTable);
 document.getElementById('statusFilter').addEventListener('change', renderTable);
 document.getElementById('typeFilter').addEventListener('change', renderTable);
-document.querySelectorAll('#dataTable thead th').forEach(th=>{
-  th.addEventListener('click', ()=>{
+document.querySelectorAll('#dataTable thead th').forEach(th => {
+  th.addEventListener('click', () => {
     const key = th.dataset.key;
-    if(sortState.key===key){ sortState.dir *= -1; } else { sortState.key = key; sortState.dir = 1; }
+    if (sortState.key === key) { sortState.dir *= -1; } else { sortState.key = key; sortState.dir = 1; }
     renderTable();
   });
 });
 
-// Auto-load on page load
+// Initial load
 loadData(false);
 </script>
 </body>
