@@ -121,6 +121,12 @@
   .panel .chart-holder{position:relative; height:290px;}
   .panel .chart-holder.tall{height:460px;}
   .panel .chart-holder.short{height:230px;}
+  .chart-error{
+    position:absolute; top:8px; left:8px; right:8px; z-index:2;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.5;
+    color:var(--red); background:var(--red-tint); border:1px solid var(--red);
+    padding:8px 10px; display:none;
+  }
 
   /* ---------- Legend chips ---------- */
   .legend-row{ display:flex; gap:16px; flex-wrap:wrap; margin:0 0 10px; font-size:12px; color:var(--ink-soft); }
@@ -604,6 +610,35 @@ function renderKPIs(){
    ========================================================= */
 function destroyCharts(){ Object.values(charts).forEach(c=>c && c.destroy()); charts = {}; }
 
+/* Creates a chart inside #<canvasId>, and if it fails for any reason
+   (Chart.js not loaded, bad config, canvas missing, etc.) shows a
+   visible on-page error in that panel instead of failing silently. */
+function mountChart(canvasId, config){
+  const canvas = document.getElementById(canvasId);
+  const holder = canvas ? canvas.parentElement : null;
+  let errEl = holder ? holder.querySelector('.chart-error') : null;
+  if(holder && !errEl){
+    errEl = document.createElement('div');
+    errEl.className = 'chart-error';
+    holder.appendChild(errEl);
+  }
+  if(errEl) errEl.style.display = 'none';
+  if(canvas) canvas.style.display = '';
+  try{
+    if(typeof Chart === 'undefined') throw new Error('Chart.js did not load (blocked script or offline CDN)');
+    if(!canvas) throw new Error('Canvas #'+canvasId+' not found in page');
+    return new Chart(canvas, config);
+  }catch(e){
+    console.error('Chart "'+canvasId+'" failed:', e);
+    if(errEl){
+      errEl.textContent = '\u26A0 Chart failed to render: ' + e.message;
+      errEl.style.display = 'block';
+    }
+    if(canvas) canvas.style.display = 'none';
+    return null;
+  }
+}
+
 function renderCharts(){
   destroyCharts();
   const blue = '#1E5F8C', blueDeep='#123C59', purple='#6B4F9E', green='#2F8F5B', amber='#C9861B', red='#C0433A';
@@ -616,8 +651,7 @@ function renderCharts(){
   const disbGOP = SP.reduce((a,p)=>a+p.disb_gop,0);
 
   // 1. Fund flow: LP vs GOP, Counterpart / Obligated / Disbursed
-  try{
-  charts.fundFlow = new Chart(document.getElementById('chartFundFlow'), {
+  charts.fundFlow = mountChart('chartFundFlow', {
     type:'bar',
     data:{
       labels:['Counterpart','Obligated','Disbursed'],
@@ -635,12 +669,10 @@ function renderCharts(){
       }
     }
   });
-  }catch(e){ console.error('chartFundFlow failed:', e); }
 
   // 2. Disbursement rate LP vs GOP per subproject (horizontal)
   const spSorted = [...SP].sort((a,b)=> (b.disb_rate_total||0)-(a.disb_rate_total||0));
-  try{
-  charts.disbRateBySource = new Chart(document.getElementById('chartDisbRateBySource'), {
+  charts.disbRateBySource = mountChart('chartDisbRateBySource', {
     type:'bar',
     data:{
       labels: spSorted.map(p=>'#'+p.no+' '+truncName(p.name,26)),
@@ -658,12 +690,10 @@ function renderCharts(){
       }
     }
   });
-  }catch(e){ console.error('chartDisbRateBySource failed:', e); }
 
   // 3. Physical vs financial accomplishment
   const spByPhys = [...SP].sort((a,b)=>(b.phys_accomp||0)-(a.phys_accomp||0));
-  try{
-  charts.physFin = new Chart(document.getElementById('chartPhysFin'), {
+  charts.physFin = mountChart('chartPhysFin', {
     type:'bar',
     data:{
       labels: spByPhys.map(p=>'#'+p.no+' '+truncName(p.name,24)),
@@ -681,11 +711,9 @@ function renderCharts(){
       }
     }
   });
-  }catch(e){ console.error('chartPhysFin failed:', e); }
 
   // 4. LP/GOP split donut
-  try{
-  charts.fundSplit = new Chart(document.getElementById('chartFundSplit'), {
+  charts.fundSplit = mountChart('chartFundSplit', {
     type:'doughnut',
     data:{ labels:['LP','GOP'], datasets:[{data:[totalLP,totalGOP], backgroundColor:[blue,purple], borderWidth:0}] },
     options:{
@@ -694,15 +722,13 @@ function renderCharts(){
         tooltip:{callbacks:{label:ctx=>ctx.label+': '+PHPm(ctx.raw)+' ('+(ctx.raw/(totalLP+totalGOP)*100).toFixed(1)+'%)'}}}
     }
   });
-  }catch(e){ console.error('chartFundSplit failed:', e); }
 
   // 5. Status breakdown donut
   const statusCounts = {};
   SP.forEach(p=>{ const c=statusClass(p.status); statusCounts[c]=(statusCounts[c]||0)+1; });
   const statusLabels = {completed:'Completed', ongoing:'On-going', nol1:'With NOL1'};
   const scKeys = Object.keys(statusCounts);
-  try{
-  charts.status = new Chart(document.getElementById('chartStatus'), {
+  charts.status = mountChart('chartStatus', {
     type:'doughnut',
     data:{
       labels: scKeys.map(k=>statusLabels[k]||k),
@@ -711,7 +737,6 @@ function renderCharts(){
     options:{ responsive:true, maintainAspectRatio:false, cutout:'62%',
       plugins:{legend:{position:'bottom', labels:{font:{family:'IBM Plex Mono',size:11}}}} }
   });
-  }catch(e){ console.error('chartStatus failed:', e); }
 }
 
 /* =========================================================
