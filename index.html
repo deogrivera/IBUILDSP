@@ -1,110 +1,866 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sub-Project Financial Performance Dashboard</title>
-  <!-- Tailwind CSS for Styling -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- PapaParse for CSV Parsing -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-  <!-- Chart.js for Data Visualization -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I-BUILD Fund Source Correlation — PRDP RPCO I</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --paper:#F3F6F8;
+    --panel:#FFFFFF;
+    --ink:#152233;
+    --ink-soft:#4C5F72;
+    --line:#C9D6DF;
+    --blue:#1E5F8C;
+    --blue-deep:#123C59;
+    --blue-tint:#E7F0F5;
+    --amber:#C9861B;
+    --amber-tint:#FBF0DD;
+    --green:#2F8F5B;
+    --green-tint:#E4F3EA;
+    --red:#C0433A;
+    --red-tint:#FBE7E5;
+    --purple:#6B4F9E;
+    --purple-tint:#EEE9F5;
+    --grid: rgba(30,95,140,0.09);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 28px 28px;
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--blue); color:#fff;}
+  a{color:var(--blue);}
+  .wrap{max-width:1360px; margin:0 auto; padding:22px 28px 60px;}
+
+  /* ---------- Title block ---------- */
+  .titleblock{
+    display:grid;
+    grid-template-columns: 1fr 340px;
+    border:1.5px solid var(--blue-deep);
+    background:var(--panel);
+    box-shadow: 4px 4px 0 rgba(18,60,89,0.08);
+  }
+  .titleblock .main{ padding:22px 26px; border-right:1.5px solid var(--blue-deep); }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--blue); margin:0 0 8px;
+  }
+  .titleblock h1{
+    font-family:'Space Grotesk',sans-serif; font-size:29px; line-height:1.15;
+    margin:0 0 6px; color:var(--blue-deep); letter-spacing:-0.01em;
+  }
+  .titleblock .sub{ font-size:14px; color:var(--ink-soft); max-width:62ch; }
+  .stamp{ display:grid; grid-template-columns: 1fr 1fr; }
+  .stamp .cell{ padding:11px 16px; border-bottom:1px solid var(--line); border-right:1px solid var(--line); }
+  .stamp .cell:nth-child(2n){border-right:none;}
+  .stamp .cell .k{
+    font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--ink-soft); display:block; margin-bottom:3px;
+  }
+  .stamp .cell .v{ font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:var(--blue-deep); }
+  #syncStatus.v.live{color:var(--green);}
+  #syncStatus.v.cached{color:var(--amber);}
+  #syncStatus.v.partial{color:var(--amber);}
+
+  .refresh-row{ display:flex; justify-content:flex-end; align-items:center; gap:10px; margin:10px 2px 22px; }
+  #refreshNote{font-size:12px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;}
+  #refreshBtn{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; background:var(--blue-deep); color:#fff;
+    border:none; padding:8px 14px; cursor:pointer; letter-spacing:.04em;
+  }
+  #refreshBtn:hover{background:var(--blue);}
+
+  /* ---------- Section headers ---------- */
+  .section-head{ display:flex; align-items:baseline; gap:12px; margin:38px 0 14px; }
+  .section-head .num{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; color:#fff; background:var(--blue); padding:3px 8px;
+  }
+  .section-head h2{ font-family:'Space Grotesk',sans-serif; font-size:19px; margin:0; color:var(--blue-deep); }
+  .section-head .note{ font-size:12.5px; color:var(--ink-soft); margin-left:auto; max-width:48ch; text-align:right; }
+
+  /* ---------- KPI cards ---------- */
+  .kpi-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:12px; }
+  .kpi{
+    background:var(--panel); border:1px solid var(--line); border-top:3px solid var(--blue);
+    padding:14px 15px; position:relative;
+  }
+  .kpi.alert{border-top-color:var(--red);}
+  .kpi.warn{border-top-color:var(--amber);}
+  .kpi.good{border-top-color:var(--green);}
+  .kpi.purple{border-top-color:var(--purple);}
+  .kpi .lbl{
+    font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;
+    margin-bottom:8px; line-height:1.3; min-height:28px;
+  }
+  .kpi .val{ font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:700; color:var(--blue-deep); line-height:1.1; }
+  .kpi .sub{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); margin-top:5px; }
+
+  /* ---------- Charts ---------- */
+  .chart-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .chart-grid.wide{grid-template-columns:1fr;}
+  .chart-grid.thirds{grid-template-columns:1.3fr 1fr;}
+  .panel{ background:var(--panel); border:1px solid var(--line); padding:16px 18px 12px; }
+  .panel h3{ font-family:'Space Grotesk',sans-serif; font-size:14.5px; margin:0 0 3px; color:var(--ink); }
+  .panel .howto{
+    font-size:12px; color:var(--ink-soft); margin:0 0 12px; line-height:1.5;
+    border-left:2px solid var(--blue-tint); padding-left:9px;
+  }
+  .panel .chart-holder{position:relative; height:290px;}
+  .panel .chart-holder.tall{height:460px;}
+  .panel .chart-holder.short{height:230px;}
+
+  /* ---------- Legend chips ---------- */
+  .legend-row{ display:flex; gap:16px; flex-wrap:wrap; margin:0 0 10px; font-size:12px; color:var(--ink-soft); }
+  .legend-row .item{display:flex; align-items:center; gap:6px;}
+  .legend-row .dot{width:10px; height:10px; border-radius:2px; display:inline-block;}
+
+  /* ---------- Table ---------- */
+  .table-controls{ display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+  .table-controls input, .table-controls select{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; padding:7px 10px;
+    border:1px solid var(--line); background:#fff; color:var(--ink);
+  }
+  .table-controls input{flex:1; min-width:200px;}
+  .table-controls .exportBtn{
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; background:var(--blue-deep); color:#fff;
+    border:none; padding:7px 12px; cursor:pointer; letter-spacing:.03em;
+  }
+  .table-controls .exportBtn:hover{background:var(--blue);}
+  .table-scroll{ overflow-x:auto; border:1px solid var(--line); background:#fff; }
+  table.datatable{ width:100%; border-collapse:collapse; font-size:12.5px; white-space:nowrap; }
+  table.datatable thead th{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em;
+    color:#fff; background:var(--blue-deep); padding:9px 10px; text-align:right; cursor:pointer;
+    position:sticky; top:0; user-select:none;
+  }
+  table.datatable thead th.left{text-align:left;}
+  table.datatable thead th:hover{background:var(--blue);}
+  table.datatable thead th .arrow{opacity:.55; margin-left:3px; font-size:9px;}
+  table.datatable tbody td{ padding:8px 10px; border-bottom:1px solid var(--line); text-align:right; }
+  table.datatable tbody td.left{text-align:left; white-space:normal; max-width:340px;}
+  table.datatable tbody tr:nth-child(even){background:var(--blue-tint);}
+  table.datatable tbody tr:hover{background:var(--amber-tint);}
+  .badge{
+    display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10px; padding:2px 7px;
+    letter-spacing:.03em; text-transform:uppercase;
+  }
+  .badge.completed{background:var(--green-tint); color:var(--green);}
+  .badge.ongoing{background:var(--blue-tint); color:var(--blue);}
+  .badge.nol1{background:var(--amber-tint); color:var(--amber);}
+  .fund-lp{color:var(--blue); font-weight:600;}
+  .fund-gop{color:var(--purple); font-weight:600;}
+  .neg{color:var(--red);}
+
+  footer{ margin-top:44px; padding-top:16px; border-top:1px solid var(--line); font-size:11.5px; color:var(--ink-soft);
+    font-family:'IBM Plex Mono',monospace; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+
+  @media (max-width:1100px){
+    .kpi-grid{grid-template-columns:repeat(3,1fr);}
+    .chart-grid, .chart-grid.thirds{grid-template-columns:1fr;}
+    .titleblock{grid-template-columns:1fr;}
+    .titleblock .main{border-right:none; border-bottom:1.5px solid var(--blue-deep);}
+  }
+  @media (max-width:640px){ .kpi-grid{grid-template-columns:repeat(2,1fr);} }
+</style>
 </head>
-<body class="bg-gray-100 min-h-screen p-6">
-  <div class="max-w-7xl mx-auto space-y-6">
-    
-    <!-- Header -->
-    <header class="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-800">Sub-Project Performance Dashboard</h1>
-        <p class="text-sm text-gray-500">Real-time Obligation & Disbursement Monitoring</p>
-      </div>
-      <button id="refreshBtn" onclick="loadDashboardData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-        Refresh Data
-      </button>
-    </header>
+<body>
+<div class="wrap">
 
-    <!-- KPI Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-        <span class="text-xs font-semibold uppercase text-gray-400">Total SP Profiles</span>
-        <div id="kpi-profiles" class="text-2xl font-bold text-gray-800 mt-1">--</div>
-      </div>
-      <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-        <span class="text-xs font-semibold uppercase text-gray-400">Total Obligations (LP + GOP)</span>
-        <div id="kpi-obligations" class="text-2xl font-bold text-blue-600 mt-1">--</div>
-      </div>
-      <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-        <span class="text-xs font-semibold uppercase text-gray-400">Total Disbursements (LP + GOP)</span>
-        <div id="kpi-disbursements" class="text-2xl font-bold text-emerald-600 mt-1">--</div>
-      </div>
-      <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-        <span class="text-xs font-semibold uppercase text-gray-400">Financial Execution Rate</span>
-        <div id="kpi-rate" class="text-2xl font-bold text-purple-600 mt-1">--</div>
-      </div>
+  <div class="titleblock">
+    <div class="main">
+      <p class="eyebrow">PRDP RPCO I &middot; I-BUILD Monitoring</p>
+      <h1>Fund Source Correlation Dashboard</h1>
+      <div class="sub">Correlates <strong>SP Profile</strong> with obligation and disbursement transactions split by <strong>LP</strong> (Loan Proceeds) and <strong>GOP</strong> (counterpart) fund sources, across 15 I-BUILD subprojects.</div>
     </div>
-
-    <!-- Charts Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">Obligations vs. Disbursements (LP vs. GOP)</h2>
-        <canvas id="fundingChart" class="w-full h-64"></canvas>
-      </div>
-      <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">Disbursement Progress</h2>
-        <canvas id="progressChart" class="w-full h-64"></canvas>
-      </div>
+    <div class="stamp">
+      <div class="cell"><span class="k">Subprojects</span><span class="v" id="stampCount">—</span></div>
+      <div class="cell"><span class="k">Data Sources</span><span class="v">5 sheets</span></div>
+      <div class="cell"><span class="k">Sync Status</span><span class="v" id="syncStatus">Loading…</span></div>
+      <div class="cell"><span class="k">Generated</span><span class="v" id="stampGenerated">—</span></div>
     </div>
-
   </div>
 
-  <script>
-    const CSV_URLS = {
-      spProfile: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRhSBfaw-U9YH1Kq1n7NvZ-gqFYn1OVz3326ZsT5f3ZazvfINlb0Ln8DC_G07_oleBkRS4EIxySYWhy/pub?gid=744116802&single=true&output=csv",
-      obligLP: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRhSBfaw-U9YH1Kq1n7NvZ-gqFYn1OVz3326ZsT5f3ZazvfINlb0Ln8DC_G07_oleBkRS4EIxySYWhy/pub?gid=708721244&single=true&output=csv",
-      obligGOP: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRhSBfaw-U9YH1Kq1n7NvZ-gqFYn1OVz3326ZsT5f3ZazvfINlb0Ln8DC_G07_oleBkRS4EIxySYWhy/pub?gid=880364128&single=true&output=csv",
-      disbLP: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRhSBfaw-U9YH1Kq1n7NvZ-gqFYn1OVz3326ZsT5f3ZazvfINlb0Ln8DC_G07_oleBkRS4EIxySYWhy/pub?gid=782775444&single=true&output=csv",
-      disbGOP: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRhSBfaw-U9YH1Kq1n7NvZ-gqFYn1OVz3326ZsT5f3ZazvfINlb0Ln8DC_G07_oleBkRS4EIxySYWhy/pub?gid=1254496839&single=true&output=csv"
+  <div class="refresh-row">
+    <span id="refreshNote"></span>
+    <button id="refreshBtn" onclick="loadAll(true)">Refresh Live Data</button>
+  </div>
+
+  <!-- ============ KPIs ============ -->
+  <div class="section-head">
+    <span class="num">01</span>
+    <h2>Portfolio KPIs</h2>
+    <span class="note">Correlated across SP Profile, Oblig-LP, Oblig-GOP, Disb-LP, Disb-GOP</span>
+  </div>
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <!-- ============ Charts ============ -->
+  <div class="section-head">
+    <span class="num">02</span>
+    <h2>Fund Flow — LP vs. GOP</h2>
+    <span class="note">Contract &rarr; Obligated &rarr; Disbursed, split by fund source</span>
+  </div>
+  <div class="chart-grid">
+    <div class="panel">
+      <h3>Obligation vs. disbursement by fund source</h3>
+      <p class="howto">Portfolio totals for LP and GOP: how much of each fund source has been obligated (ASA'd) vs. actually disbursed to contractors. The gap between paired bars is the undisbursed balance.</p>
+      <div class="chart-holder"><canvas id="chartFundFlow"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Disbursement rate: LP vs. GOP, per subproject</h3>
+      <p class="howto">Disbursed &divide; Obligated, per fund source, per subproject. Where the GOP bar trails the LP bar, GOP releases are lagging behind LP — a common pattern since GOP counterpart processing runs on a separate track.</p>
+      <div class="chart-holder tall"><canvas id="chartDisbRateBySource"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-grid thirds">
+    <div class="panel">
+      <h3>Physical vs. financial accomplishment</h3>
+      <p class="howto">Physical % (work certified on-site) vs. financial % (contract value actually disbursed). Physical normally runs ahead of financial — contractors get paid after work is certified and billed.</p>
+      <div class="chart-holder tall"><canvas id="chartPhysFin"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>LP / GOP contract split</h3>
+      <p class="howto">PRDP's standard co-financing ratio is 90% LP / 10% GOP counterpart. This checks the actual portfolio split.</p>
+      <div class="chart-holder short"><canvas id="chartFundSplit"></canvas></div>
+      <h3 style="margin-top:18px;">Status breakdown</h3>
+      <div class="chart-holder short"><canvas id="chartStatus"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ============ Subproject correlation table ============ -->
+  <div class="section-head">
+    <span class="num">03</span>
+    <h2>Subproject Correlation Summary</h2>
+    <span class="note">One row per subproject — profile joined with summed LP/GOP obligation &amp; disbursement</span>
+  </div>
+  <div class="table-controls">
+    <input type="text" id="spSearch" placeholder="Search subproject name, location, type…">
+    <select id="spStatusFilter"><option value="">All statuses</option></select>
+    <button class="exportBtn" onclick="exportCSV('sp')">Export CSV</button>
+  </div>
+  <div class="table-scroll"><table class="datatable" id="spTable">
+    <thead><tr id="spTableHead"></tr></thead>
+    <tbody id="spTableBody"></tbody>
+  </table></div>
+
+  <!-- ============ Transaction detail table ============ -->
+  <div class="section-head">
+    <span class="num">04</span>
+    <h2>ASA Transaction Detail</h2>
+    <span class="note">Every obligation &amp; disbursement line from all 4 fund-source sheets, in one filterable table</span>
+  </div>
+  <div class="table-controls">
+    <input type="text" id="txSearch" placeholder="Search subproject, ASA number, ORS number…">
+    <select id="txTypeFilter">
+      <option value="">All transaction types</option>
+      <option value="Obligation">Obligation only</option>
+      <option value="Disbursement">Disbursement only</option>
+    </select>
+    <select id="txFundFilter">
+      <option value="">All fund sources</option>
+      <option value="LP">LP only</option>
+      <option value="GOP">GOP only</option>
+    </select>
+    <button class="exportBtn" onclick="exportCSV('tx')">Export CSV</button>
+  </div>
+  <div class="table-scroll"><table class="datatable" id="txTable">
+    <thead><tr id="txTableHead"></tr></thead>
+    <tbody id="txTableBody"></tbody>
+  </table></div>
+
+  <footer>
+    <span>I-BUILD Fund Source Correlation &middot; PRDP RPCO I &middot; DA-RFO I</span>
+    <span id="footStamp"></span>
+  </footer>
+</div>
+
+<script>
+/* =========================================================
+   DATA SOURCES — 5 published-to-web CSV tabs from the
+   "IBUILD SP Consolidator" spreadsheet
+   ========================================================= */
+const PUB_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRhSBfaw-U9YH1Kq1n7NvZ-gqFYn1OVz3326ZsT5f3ZazvfINlb0Ln8DC_G07_oleBkRS4EIxySYWhy/pub?single=true&output=csv&gid=";
+const CSV_URLS = {
+  profile:  PUB_BASE + "744116802",
+  obligLP:  PUB_BASE + "708721244",
+  obligGOP: PUB_BASE + "880364128",
+  disbLP:   PUB_BASE + "782775444",
+  disbGOP:  PUB_BASE + "1254496839",
+};
+
+/* Bundled fallback snapshots (base64 CSV), used only if a live fetch fails.
+   Captured from the uploaded source sheets. */
+const FALLBACK_B64 = {
+  profile:  "Tm8uLE5hbWUgb2YgU3ViIFByb2plY3QsTXVuaS9Qcm92LFR5cGUsU3RhdHVzLFBoeXNpY2FsIEFjY29tcGxpc2htZW50LEZpbmFuY2lhbCBTdGF0dXMsVmFyaWFuY2UvQmlsbGFibGUgQ29zdCxEYXRlIENvbXBsZXRlZCxDb250cmFjdCBBbW91bnQsTFAsR09QLFRvdGFsIChMUCtHT1ApDQoxLENvbnN0cnVjdGlvbiBvZiBTYW4gSm9zZSBNdWx0aS1QdXJwb3NlIFdhcmVob3VzZSB3aXRoIFNvbGFyIERyeWVyLCJWaW50YXIsIElsb2NvcyBOb3J0ZSIsVkNSSSxDb21wbGV0ZWQsMTAwLjAwJSwxMDAuMDAlLDAuMDAsIlNlcHRlbWJlciAxMSwgMjAyNSAoQ29tcGxldGVkKSIsIjExLDQwNyw5MTkuODkiLCI5LDEyNiwzMzUuOTEiLCIxLDE0MCw3OTEuOTkiLCIxMCwyNjcsMTI3LjkwIg0KMiwiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gQnVnYWxsb24sUGFuZ2FzaW5hbiIsUHJvdmluY2Ugb2YgUGFuZ2FzaW5hbixWQ1JJLENvbXBsZXRlZCwxMDAuMDAlLDEwMC4wMCUsMC4wMCwiQXByaWwgNiwgMjAyNiAoYXMgcGVyIFRFIE5vLiA2KSIsIjQyLDAzMSw5MDUuODUiLCIzMyw2MjUsNTI0LjY4IiwiNCwyMDMsMTkwLjU5IiwiMzcsODI4LDcxNS4yNyINCjMsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIFN0YS4gQmFyYmFyYSwgUGFuZ2FzaW5hbiIsUHJvdmluY2Ugb2YgUGFuZ2FzaW5hbixWQ1JJLENvbXBsZXRlZCwxMDAuMDAlLDEwMC4wMCUsMC4wMCwsIjQxLDE5MSwzMDkuMTAiLCIzMiw5NTMsMDQ3LjI4IiwiNCwxMTksMTMwLjkxIiwiMzcsMDcyLDE3OC4xOSINCjQsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIFNhbiBRdWludGluLCBQYW5nYXNpbmFuIixQcm92aW5jZSBvZiBQYW5nYXNpbmFuLFZDUkksQ29tcGxldGVkLDEwMC4wMCUsOTUuMjElLCIxLDgyNiwwMDAuNzUiLCJBcHJpbCAxMiwgMjAyNiAoYXMgcGVyIFRFIE5vLiA0KSIsIjQyLDM1MSw0NzcuMTEiLCIzMyw4ODEsMTgxLjY5IiwiNCwyMzUsMTQ3LjcxIiwiMzgsMTE2LDMyOS40MCINCjUsRXN0YWJsaXNobWVudCBvZiBSb3NhbGVzIFNsYXVnaHRlcmhvdXNlLCJSb3NhbGVzLCBQYW5nYXNpbmFuIixWQ1JJLE9uLWdvaW5nLDU5LjM1JSwyMS4zOCUsIjI2LDg3MiwyNTkuMzkiLCJTZXB0ZW1iZXIgNiwgMjAyNiAoYXMgcGVyIFRFIE5vLiAxKSIsIjc4LDYzOSw4MjguNDgiLCI2Miw5MTEsODYyLjc4IiwiNyw4NjMsOTgyLjg1IiwiNzAsNzc1LDg0NS42MyINCjYsQ29uc3RydWN0aW9uIG9mIEFsY2FsYSBDb2xkIFN0b3JhZ2UgZm9yIE9uaW9uLCJBbGNhbGEsIFBhbmdhc2luYW4iLFZDUkksT24tZ29pbmcsMTUuMzglLDguNTclLCIxMSw2MjcsOTc4LjgzIiwiT2N0b2JlciAxMSwgMjAyNgooYXMgcGVyIFRFIE5vLiAxKSIsIjE4OSw3MzEsNDcwLjk2IiwiMTUxLDc4NSwxNzYuNzYiLCIxOCw5NzMsMTQ3LjEwIiwiMTcwLDc1OCwzMjMuODYiDQo3LENvbnN0cnVjdGlvbiBvZiBCYXlhbWJhbmcgT25pb24gQ29sZCBTdG9yYWdlIEZhY2lsaXR5LCJCYXlhbWJhbmcsIFBhbmdhc2luYW4iLFZDUkksT24tZ29pbmcsMzMuMjAlLDEwLjQyJSwiNTAsMjQ5LDU2Ni4xNyIsIkphbnVhcnkgMSwgMjAyNyAoYXMgcGVyIFRFIE5vLiA0KSIsIjI0NSwwNDUsODc4Ljk1IiwiMTk2LDAzNiw3MDMuMTYiLCIyNCw1MDQsNTg3LjkwIiwiMjIwLDU0MSwyOTEuMDYiDQo4LENvbnN0cnVjdGlvbiBvZiBVYmJvZyBCcmlkZ2Ugd2l0aCBBcHByb2FjaGVzLCJQYW9heSwgSWxvY29zIE5vcnRlIixCcmlkZ2UsT24tZ29pbmcsMzcuMjglLDI3LjcwJSwiOCw3ODAsNjE5LjgxIiwsIjEwMSw3OTAsOTk2LjMzIiwiODEsNDMyLDc5Ny4wNyIsIjEwLDE3OSwwOTkuNjMiLCI5MSw2MTEsODk2LjcwIg0KOSwiQ29uc3RydWN0aW9uIG9mIFBhbmdhc2luYW4gQmFuZ3VzIEJyZWVkaW5nIGFuZCBIYXRjaGVyeSBpbiBCb2xpbmFvLCBQYW5nYXNpbmFuIixQcm92aW5jZSBvZiBQYW5nYXNpbmFuLFZDUkksT24tZ29pbmcsNi42MiUsMC4wMCUsIjE0LDA1MCwwMTYuMDYiLCwiMjM1LDc0OSw5OTUuNTUiLCIxODgsNTk5LDk5Ni40NCIsIjIzLDU3NCw5OTkuNTYiLCIyMTIsMTc0LDk5Ni4wMCINCjEwLFJvYWQgT3BlbmluZyBhbmQgQ29uY3JldGluZyBvZiBTYW4gR2FicmllbCBJSSAtIFBhbnRvbCBGYXJtLXRvLU1hcmtldCBSb2FkLCJCYXlhbWJhbmcsIFBhbmdhc2luYW4iLEZNUix3aXRoIE5PTDEsMC4wMCUsMC4wMCUsMC4wMCwsIjMwMiw1ODIsMDU4LjU1IiwiMjQyLDA2NSw2NDYuODQiLCIzMCwyNTgsMjA1Ljg2IiwiMjcyLDMyMyw4NTIuNzAiDQoxMSxFc3RhYmxpc2htZW50IG9mIFRhZ3VkaW4gU2xhdWdodGVyaG91c2UsIlRhZ3VkaW4sIElsb2NvcyBTdXIiLFZDUkksT24tZ29pbmcsMTMuOTQlLDExLjk5JSwiMSw0NDgsNTI2LjQ5IiwsIjgyLDQyOCwyMjEuMzUiLCI2NSw5NDIsNTc3LjA4IiwiOCwyNDIsODIyLjE0IiwiNzQsMTg1LDM5OS4yMiINCjEyLFJlaGFiaWxpdGF0aW9uIGFuZCBSb2FkIE9wZW5pbmcgb2YgU2FuIFZpY2VudGUtVmlnYSBGYXJtLXRvLU1hcmtldCBSb2FkLCJEYXNvbCwgUGFuZ2FzaW5hbiIsRk1SIHdpdGggQnJpZGdlLHdpdGggTk9MMSwsLCwsIjI5MCw0NTksMDAwLjAwIiwiMjMyLDM2NywyMDAuMDAiLCIyOSwwNDUsOTAwLjAwIiwiMjYxLDQxMywxMDAuMDAiDQoxMyxSZWhhYmlsaXRhdGlvbiBvZiBSYW1vdC1QdWd1aWwgRmFybSB0byBNYXJrZXQgUm9hZCxQcm92aW5jZSBvZiBMYSBVbmlvbixGTVIsT24tZ29pbmcsODcuNjAlLDAuMDAlLCIyMjgsNjY2LDcxNy4wOCIsLCIyOTAsMDM4LDk2MS4yOSIsIjIzMiwwMzEsMTY5LjAzIiwiMjksMDAzLDg5Ni4xMyIsIjI2MSwwMzUsMDY1LjE2Ig0KMTQsQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgU3RvcmFnZSBGYWNpbGl0eSB3aXRoIFNvbGFyIERyeWVyLFByb3ZpbmNlIG9mIExhIFVuaW9uLFZDUkksT24tZ29pbmcsLCwsLCIxNiw3MTAsOTk5Ljk5IiwiMTMsMzY4LDc5OS45OSIsIjEsNjcxLDEwMC4wMCIsIjE1LDAzOSw4OTkuOTkiDQoxNSxDb25zdHJ1Y3Rpb24gb2YgQmF0YWMgQ2l0eSBTbGF1Z2h0ZXJob3VzZSwiQmF0YWMgQ2l0eSwgSWxvY29zIE5vcnRlIixWQ1JJLHdpdGggTk9MMSwsLCwsIjE2Niw2MDQsMDAwLjAwIiwiMTI0LDk1MywwMDAuMDAiLCIxNiw2NjAsNDAwLjAwIiwiMTQxLDYxMyw0MDAuMDAi",
+  obligLP:  "Tm8uLE5hbWUgb2YgU3ViIFByb2plY3QsRGF0ZSBvZiBPYmxpZ2F0aW9uLE9SUyBOdW1iZXIsTFAtQVNBLERhdGUsTFAgQW1vdW50LFJlbGVhc2VkLFJlbWFpbmluZw0KMSxDb25zdHJ1Y3Rpb24gb2YgU2FuIEpvc2UgTXVsdGktUHVycG9zZSBXYXJlaG91c2Ugd2l0aCBTb2xhciBEcnllciwyMDI0LCxBU0EgTm8uIDIwMjQtMDAwMDk0LCJTZXB0ZW1iZXIgMTEsIDIwMjQgIiwiMiw2ODcsMTc1LjAwIiwiMiw2ODcsMTc1LjAwIiwwLjAwDQoxLENvbnN0cnVjdGlvbiBvZiBTYW4gSm9zZSBNdWx0aS1QdXJwb3NlIFdhcmVob3VzZSB3aXRoIFNvbGFyIERyeWVyLDIwMjQsLEFTQSBOby4gMjAyNC0wMDAyMDcsIkRlY2VtYmVyIDMsIDIwMjQgIiwiNiw0MzksMTYwLjkxIiwiNiw0MzksMTYwLjkxIiwwLjAwDQoyLCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBCdWdhbGxvbixQYW5nYXNpbmFuIiwyMDI0LDA2LTAxMTA1NDI4LTIwMjQtMDktMDAyLEFTQSBOby4gMjAyNC0wMDAwOTQsIlNlcHRlbWJlciAyMywgMjAyNCAiLCI5LDQ2OCw0NTAuMDAiLCI5LDQ2OCw0NTAuMDAiLDAuMDANCjIsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIEJ1Z2FsbG9uLFBhbmdhc2luYW4iLDIwMjQsMDYtMDExMDU0MjgtMjAyNC0xMi0wMzksQVNBIE5vLiAyMDI0LTAwMDA5NCwiRGVjZW1iZXIgMjYsIDIwMjQgIiwiNiw3MjUsMTA0Ljk0IiwiNiw3MjUsMTA0Ljk0IiwwLjAwDQoyLCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBCdWdhbGxvbixQYW5nYXNpbmFuIiwyMDI0LDA2LTAxMTA1NDI4LTIwMjQtMTItMDE4LEFTQSBOby4gMjAyNC0wMDAyMDcsIkRlY2VtYmVyIDMsIDIwMjQgIiwiMTcsNDMxLDk2OS43NCIsIjE3LDQzMSw5NjkuNzQiLDAuMDANCjMsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIFN0YS4gQmFyYmFyYSwgUGFuZ2FzaW5hbiIsMjAyNCwwNi0wMTEwNTQyOC0yMDI0LTA5LTAwMyxBU0EgTm8uIDIwMjQtMDAwMDk0LCJTZXB0ZW1iZXIgMjMsIDIwMjQgIiwiOSw1MDUsNTc1LjAwIiwiOSw1MDUsNTc1LjAwIiwwLjAwDQozLCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBTdGEuIEJhcmJhcmEsIFBhbmdhc2luYW4iLDIwMjQsMDYtMDExMDU0MjgtMjAyNC0xMi0wNDAsQVNBIE5vLiAyMDI0LTAwMDA5NCwiRGVjZW1iZXIgMjYsIDIwMjQgIiwiNywyMDMsNjk1LjA2IiwiNywyMDMsNjk1LjA2IiwwLjAwDQozLCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBTdGEuIEJhcmJhcmEsIFBhbmdhc2luYW4iLDIwMjQsMDYtMDExMDU0MjgtMjAyNC0xMi0wMjMsQVNBIE5vLiAyMDI0LTAwMDIwNywiRGVjZW1iZXIgMywgMjAyNCAiLCIxMyw1NjEsNTU4LjEwIiwiMTMsNTYxLDU1OC4xMCIsMC4wMA0KMywiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gU3RhLiBCYXJiYXJhLCBQYW5nYXNpbmFuIiwyMDI1LDA2LTAyMTAxMTYzLTIwMjUtMDQtMDA2LEFTQSBOby4gMjAyNS0wMDAwOTAsIkFwcmlsIDIxLCAyMDI1ICIsIjIsNjgyLDIxOS4xMiIsIjIsNjgyLDIxOS4xMiIsMC4wMA0KNCwiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gU2FuIFF1aW50aW4sIFBhbmdhc2luYW4iLDIwMjQsMDYtMDExMDU0MjgtMjAyNC0xMi0wMjAsQVNBIE5vLiAyMDI0LTAwMDA5NCwiRGVjZW1iZXIgMywgMjAyNCAiLCI4LDY3NSwxOTUuMDAiLCI4LDY3NSwxOTUuMDAiLDAuMDANCjQsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIFNhbiBRdWludGluLCBQYW5nYXNpbmFuIiwyMDI0LDA2LTAxMTA1NDI4LTIwMjQtMTItMDE5LEFTQSBOby4gMjAyNC0wMDAyMDcsIkRlY2VtYmVyIDMsIDIwMjQgIiwiMTUsMDQxLDYzMi4xOCIsIjE1LDA0MSw2MzIuMTgiLDAuMDANCjQsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIFNhbiBRdWludGluLCBQYW5nYXNpbmFuIiwyMDI1LDA2LTAyMTAxMTYzLTIwMjQtMDQtMDA3LEFTQSBOby4gMjAyNS0wMDAwOTAsIkFwcmlsIDIxLCAyMDI1ICIsIjEwLDE2NCwzNTQuNTEiLCI4LDU0MSwyNDIuNzMiLCIxLDYyMywxMTEuNzgiDQo1LEVzdGFibGlzaG1lbnQgb2YgUm9zYWxlcyBTbGF1Z2h0ZXJob3VzZSwsLEFTQSBOby4gMjAyNC0wMDAwOTQsIlNlcHRlbWJlciAzMCwgMjAyNCAiLCIxOCw0MjAsOTc1LjAwIiwiMTgsNDIwLDk3NS4wMCIsMC4wMA0KNSxFc3RhYmxpc2htZW50IG9mIFJvc2FsZXMgU2xhdWdodGVyaG91c2UsLCxBU0EgTm8uIDIwMjQtMDAwMjA3LCJEZWNlbWJlciAzLCAyMDI0ICIsIjE0LDM4MywxNTcuODMiLCI3LDAwMCwwMDUuNjciLCI3LDM4MywxNTIuMTYiDQo1LEVzdGFibGlzaG1lbnQgb2YgUm9zYWxlcyBTbGF1Z2h0ZXJob3VzZSwsLEFTQSBOby4gMjAyNS0wMDAwOTAsIkFwcmlsIDIxLCAyMDI1ICIsIjMwLDEwNyw3MjkuOTUiLCwiMzAsMTA3LDcyOS45NSINCjYsQ29uc3RydWN0aW9uIG9mIEFsY2FsYSBDb2xkIFN0b3JhZ2UgZm9yIE9uaW9uLCwsQVNBIE5vLiAyMDI0LTAwMDA5NCwiRGVjZW1iZXIgMywgMjAyNCAiLCIyNiwxMzYsNTQwLjAwIiwiMTMsMDAyLDUwNy42MCIsIjEzLDEzNCwwMzIuNDAiDQo2LENvbnN0cnVjdGlvbiBvZiBBbGNhbGEgQ29sZCBTdG9yYWdlIGZvciBPbmlvbiwsLEFTQSBOby4gMjAyNC0wMDAyMDcsIkRlY2VtYmVyIDMsIDIwMjQgIiwiMzUsODE2LDc0MC4wMCIsLA0KNixDb25zdHJ1Y3Rpb24gb2YgQWxjYWxhIENvbGQgU3RvcmFnZSBmb3IgT25pb24sLCxBU0EgTm8uIDIwMjUtMDAwMDkwLCJBcHJpbCAyMSwgMjAyNSAiLCI0NCwwNDksNzc3Ljc4IiwsDQo2LENvbnN0cnVjdGlvbiBvZiBBbGNhbGEgQ29sZCBTdG9yYWdlIGZvciBPbmlvbiwsLEFTQSBOby4gMjAyNi0wMDAwNjUsIk1heSAxMSwgMjAyNiAiLCI0NSw3ODIsMTE4Ljk4IiwsDQo3LENvbnN0cnVjdGlvbiBvZiBCYXlhbWJhbmcgT25pb24gQ29sZCBTdG9yYWdlIEZhY2lsaXR5LCwsQVNBIE5vLiAyMDI1LTAwMDA5MCwiTWF5IDYsIDIwMjUgIiwiMTE4LDA4NywyMDAuMDAiLCIyMCw0MTcsOTA0LjQxIiwiOTcsNjY5LDI5NS41OSINCjcsQ29uc3RydWN0aW9uIG9mIEJheWFtYmFuZyBPbmlvbiBDb2xkIFN0b3JhZ2UgRmFjaWxpdHksLCxBU0EgTm8uIDIwMjYtMDAwMDY1LCJNYXkgMTEsIDIwMjYgIiwiNzcsOTQ5LDUwMy4xNiIsLCI3Nyw5NDksNTAzLjE2Ig0KOCxDb25zdHJ1Y3Rpb24gb2YgVWJib2cgQnJpZGdlIHdpdGggQXBwcm9hY2hlcywsLEFTQSBOby4gMjAyNS0wMDAwOTAsIk1heSA2LCAyMDI1ICIsIjYxLDU4OCw4MDAuMDAiLCIyMiw1NTMsMTUxLjM2IiwiMzksMDM1LDY0OC42NCINCjgsQ29uc3RydWN0aW9uIG9mIFViYm9nIEJyaWRnZSB3aXRoIEFwcHJvYWNoZXMsLCxBU0EgTm8uIDIwMjYtMDAwMDY1LCJNYXkgMTEsIDIwMjYgIiwiMTksODQzLDk5Ny4wNyIsLCIxOSw4NDMsOTk3LjA3Ig0KOSwiQ29uc3RydWN0aW9uIG9mIFBhbmdhc2luYW4gQmFuZ3VzIEJyZWVkaW5nIGFuZCBIYXRjaGVyeSBpbiBCb2xpbmFvLCBQYW5nYXNpbmFuIiwyMDI0LDA2LTAxMTA1NDI4LTIwMjQtMTItMDE3LEFTQSBOby4gMjAyNC0wMDAwOTQsIkRlY2VtYmVyIDMsIDIwMjQgIiwiMzIsMjYzLDkyMC4wMCIsIjI4LDI4OSw5OTkuNDYiLCIzLDk3Myw5MjAuNTQiDQo5LCJDb25zdHJ1Y3Rpb24gb2YgUGFuZ2FzaW5hbiBCYW5ndXMgQnJlZWRpbmcgYW5kIEhhdGNoZXJ5IGluIEJvbGluYW8sIFBhbmdhc2luYW4iLDIwMjQsMDYtMDExMDU0MjgtMjAyNC0xMi0wMTYsQVNBIE5vLiAyMDI0LTAwMDIwNywiRGVjZW1iZXIgMywgMjAyNCAiLCI0MywzMjUsNzgxLjI0IiwsDQo5LCJDb25zdHJ1Y3Rpb24gb2YgUGFuZ2FzaW5hbiBCYW5ndXMgQnJlZWRpbmcgYW5kIEhhdGNoZXJ5IGluIEJvbGluYW8sIFBhbmdhc2luYW4iLDIwMjUsMDYtMDIxMDExNjMtMjAyNS0wNC0wMDIsQVNBIE5vLiAyMDI1LTAwMDA5MCwiQXByaWwgMjEsIDIwMjUgIiwiMTYsMjE4LDM1OS40NCIsLA0KOSwiQ29uc3RydWN0aW9uIG9mIFBhbmdhc2luYW4gQmFuZ3VzIEJyZWVkaW5nIGFuZCBIYXRjaGVyeSBpbiBCb2xpbmFvLCBQYW5nYXNpbmFuIiwyMDI2LDA2LTAyMTAxMTYzLTIwMjYtMDUtMDE3LEFTQSBOby4gMjAyNi0wMDAwNjUsIk1heSAxMSwgMjAyNiAiLCI5Niw3OTEsOTM1Ljc2IiwsDQoxMCxSb2FkIE9wZW5pbmcgYW5kIENvbmNyZXRpbmcgb2YgU2FuIEdhYnJpZWwgSUkgLSBQYW50b2wgRmFybS10by1NYXJrZXQgUm9hZCwsLEFTQSBOby4gMjAyNS0wMDAwOTAsIk1heSA2LCAyMDI1ICIsIjE3OCw3NDAsODAwLjAwIiwsDQoxMCxSb2FkIE9wZW5pbmcgYW5kIENvbmNyZXRpbmcgb2YgU2FuIEdhYnJpZWwgSUkgLSBQYW50b2wgRmFybS10by1NYXJrZXQgUm9hZCwsLEFTQSBOby4gMjAyNi0wMDAwNjUsIk1heSAxMSwgMjAyNiAiLCI5LDk0MSwwNzIuNzgiLCwNCjExLEVzdGFibGlzaG1lbnQgb2YgVGFndWRpbiBTbGF1Z2h0ZXJob3VzZSwsLEFTQSBOby4gMjAyNS0wMDAwOTAsIkFwcmlsIDIxLCAyMDI1ICIsIjQ2LDE3MiwwMDAuMDAiLCIyLDYzNSw3MjYuNzQiLCI0Myw1MzYsMjczLjI2Ig0KMTEsRXN0YWJsaXNobWVudCBvZiBUYWd1ZGluIFNsYXVnaHRlcmhvdXNlLCwsQVNBIE5vLiAyMDI2LTAwMDA2NSwiTWF5IDExLCAyMDI2ICIsIjE5LDc3MCw1NzcuMDgiLCwNCjEyLFJlaGFiaWxpdGF0aW9uIGFuZCBSb2FkIE9wZW5pbmcgb2YgU2FuIFZpY2VudGUtVmlnYSBGYXJtLXRvLU1hcmtldCBSb2FkLCwsQVNBIE5vLiAyMDI0LTAwMDA5NCwiRGVjZW1iZXIgMywgMjAyNCAiLCI3OSw1NzYsODMwLjAwIiwsDQoxMixSZWhhYmlsaXRhdGlvbiBhbmQgUm9hZCBPcGVuaW5nIG9mIFNhbiBWaWNlbnRlLVZpZ2EgRmFybS10by1NYXJrZXQgUm9hZCwsLEFTQSBOby4gMjAyNC0wMDAyMDcsIkRlY2VtYmVyIDI2LCAyMDI0ICIsIjEwOSwwMDAsMDAwLjAwIiwsDQoxMyxSZWhhYmlsaXRhdGlvbiBvZiBSYW1vdC1QdWd1aWwgRmFybSB0byBNYXJrZXQgUm9hZCwsLEFTQSBOby4gMjAyNi0wMDAwNDcsIk1hcmNoIDYsIDIwMjYgIiwiNzYsNTUxLDI5NS45NiIsLA0KMTMsUmVoYWJpbGl0YXRpb24gb2YgUmFtb3QtUHVndWlsIEZhcm0gdG8gTWFya2V0IFJvYWQsLCxBU0EgTm8uIDIwMjYtMDAwMDY1LCJNYXkgMTEsIDIwMjYgIiwiMTU1LDQ3OSw4NzMuMDciLCwNCjE0LENvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFN0b3JhZ2UgRmFjaWxpdHkgd2l0aCBTb2xhciBEcnllciwsLEFTQSBOby4gMjAyNi0wMDAwNjUsIk1heSAxMSwgMjAyNiAiLCIxMywzNjgsNzk5Ljk5IiwsDQoxNSxDb25zdHJ1Y3Rpb24gb2YgQmF0YWMgQ2l0eSBTbGF1Z2h0ZXJob3VzZSwsLEFTQSBOby4gMjAyNi0wMDAwNjUsIk1heSAxMSwgMjAyNiAiLCIxMTYsNjIyLDgwMC4wMCIsLA==",
+  obligGOP: "Tm8uLE5hbWUgb2YgU3ViIFByb2plY3QsRGF0ZSBvZiBPYmxpZ2F0aW9uLE9SUyBOdW1iZXIsR09QLUFTQSxEYXRlLEdPUCBBbW91bnQsUmVsZWFzZWQsUmVtYWluaW5nDQoxLENvbnN0cnVjdGlvbiBvZiBTYW4gSm9zZSBNdWx0aS1QdXJwb3NlIFdhcmVob3VzZSB3aXRoIFNvbGFyIERyeWVyLDIwMjQsLEFTQSBOby4gMjAyNC0wMDAyMjksIlNlcHRlbWJlciAxMSwgMjAyNCAiLCIxLDE0MCw3OTEuOTkiLCIxLDE0MCw3OTEuOTkiLDAuMDANCjIsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIEJ1Z2FsbG9uLFBhbmdhc2luYW4iLDIwMjQsMDYtMDExMDU1NjQtMjAyNC0xMi0wMDMsQVNBIE5vLiAyMDI0LTAwMDIyOSwiRGVjZW1iZXIgMywgMjAyNCAiLCIzLDM2Miw1NTIuNDYiLCIzLDM2Miw1NTIuNDYiLDAuMDANCjIsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIEJ1Z2FsbG9uLFBhbmdhc2luYW4iLDIwMjQsMDYtMDExMDU1NjQtMjAyNC0xMi0wMDksQVNBIE5vLiAyMDI0LTAwMDIyOSwiRGVjZW1iZXIgMjYsIDIwMjQgIiwiODQwLDYzOC4xMiIsIjg0MCw2MzguMTIiLDAuMDANCjMsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIFN0YS4gQmFyYmFyYSwgUGFuZ2FzaW5hbiIsMjAyNCwwNi0wMTEwNTU2NC0yMDI0LTEyLTAwNixBU0EgTm8uIDIwMjQtMDAwMjI5LCJEZWNlbWJlciAzLCAyMDI0ICIsIjIsODgzLDM5MS42NCIsIjIsODgzLDM5MS42NCIsMC4wMA0KMywiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gU3RhLiBCYXJiYXJhLCBQYW5nYXNpbmFuIiwyMDI0LDA2LTAxMTA1NTY0LTIwMjQtMTItMDEwLEFTQSBOby4gMjAyNC0wMDAyMjksIkRlY2VtYmVyIDI2LCAyMDI0ICIsIjkwMCw0NjEuODgiLCI5MDAsNDYxLjg4IiwwLjAwDQozLCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBTdGEuIEJhcmJhcmEsIFBhbmdhc2luYW4iLDIwMjUsMDYtMDIxMDExNTEtMjAyNS0wNC0wMDYsQVNBIE5vLiAyMDI1LTAwMDA5MSwiQXByaWwgMjEsIDIwMjUgIiwiMzM1LDI3Ny4zOSIsIjMzNSwyNzcuMzkiLDAuMDANCjQsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIFNhbiBRdWludGluLCBQYW5nYXNpbmFuIiwyMDI0LDA2LTAxMTA1NTY0LTIwMjQtMTItMDA0LEFTQSBOby4gMjAyNC0wMDAyMjksIkRlY2VtYmVyIDMsIDIwMjQgIiwiMiw5NjQsNjAzLjQwIiwiMiw5NjQsNjAzLjQwIiwwLjAwDQo0LCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBTYW4gUXVpbnRpbiwgUGFuZ2FzaW5hbiIsMjAyNSwwNi0wMjEwMTE1MS0yMDI1LTA0LTAwNyxBU0EgTm8uIDIwMjUtMDAwMDkxLCJBcHJpbCAyMSwgMjAyNSAiLCIxLDI3MCw1NDQuMzEiLCIxLDA2Nyw2NTUuMzQiLCIyMDIsODg4Ljk3Ig0KNSxFc3RhYmxpc2htZW50IG9mIFJvc2FsZXMgU2xhdWdodGVyaG91c2UsLCxBU0EgTm8uIDIwMjQtMDAwMjI5LCJEZWNlbWJlciAzLCAyMDI0ICIsIjQsMTAwLDUxNi42MCIsIjMsMTc3LDYyMi41OCIsIjkyMiw4OTQuMDIiDQo1LEVzdGFibGlzaG1lbnQgb2YgUm9zYWxlcyBTbGF1Z2h0ZXJob3VzZSwsLEFTQSBOby4gMjAyNS0wMDAwOTEsIkFwcmlsIDIxLCAyMDI1ICIsIjMsNzYzLDQ2Ni4yNSIsLCIzLDc2Myw0NjYuMjUiDQo2LENvbnN0cnVjdGlvbiBvZiBBbGNhbGEgQ29sZCBTdG9yYWdlIGZvciBPbmlvbiwsLEFTQSBOby4gMjAyNC0wMDAyMjksIkRlY2VtYmVyIDMsIDIwMjQgIiwiNyw3NDQsMTYwLjAwIiwiMSw2MjUsMzEzLjQ1IiwiNiwxMTgsODQ2LjU1Ig0KNixDb25zdHJ1Y3Rpb24gb2YgQWxjYWxhIENvbGQgU3RvcmFnZSBmb3IgT25pb24sLCxBU0EgTm8uIDIwMjUtMDAwMDkxLCJBcHJpbCAyMSwgMjAyNSAiLCI1LDUwNiwyMjIuMjIiLCwNCjYsQ29uc3RydWN0aW9uIG9mIEFsY2FsYSBDb2xkIFN0b3JhZ2UgZm9yIE9uaW9uLCwsQVNBIE5vLiAyMDI2LTAwMDA2NiwiTWF5IDExLCAyMDI2ICIsIjUsNzIyLDc2NC44OCIsLA0KNyxDb25zdHJ1Y3Rpb24gb2YgQmF5YW1iYW5nIE9uaW9uIENvbGQgU3RvcmFnZSBGYWNpbGl0eSwsLEFTQSBOby4gMjAyNS0wMDAwOTEsIk1heSA2LCAyMDI1ICIsIjE0LDc2MCw5MDAuMDAiLCIyLDU1MiwyMzguMDUiLCIxMiwyMDgsNjYxLjk1Ig0KNyxDb25zdHJ1Y3Rpb24gb2YgQmF5YW1iYW5nIE9uaW9uIENvbGQgU3RvcmFnZSBGYWNpbGl0eSwsLEFTQSBOby4gMjAyNi0wMDAwNjYsIk1heSAxMSwgMjAyNiAiLCI5LDc0Myw2ODcuOTAiLCwiOSw3NDMsNjg3LjkwIg0KOCxDb25zdHJ1Y3Rpb24gb2YgVWJib2cgQnJpZGdlIHdpdGggQXBwcm9hY2hlcywsLEFTQSBOby4gMjAyNS0wMDAwOTEsIk1heSA2LCAyMDI1ICIsIjcsNjk4LDYwMC4wMCIsIjIsODE5LDE0My45MyIsIjQsODc5LDQ1Ni4wOCINCjgsQ29uc3RydWN0aW9uIG9mIFViYm9nIEJyaWRnZSB3aXRoIEFwcHJvYWNoZXMsLCxBU0EgTm8uIDIwMjYtMDAwMDY2LCJNYXkgMTEsIDIwMjYgIiwiMiw0ODAsNDk5LjYzIiwsIjIsNDgwLDQ5OS42MyINCjksIkNvbnN0cnVjdGlvbiBvZiBQYW5nYXNpbmFuIEJhbmd1cyBCcmVlZGluZyBhbmQgSGF0Y2hlcnkgaW4gQm9saW5hbywgUGFuZ2FzaW5hbiIsLDA2LTAxMTA1NTY0LTIwMjQtMTItMDAyLEFTQSBOby4gMjAyNC0wMDAyMjksIkRlY2VtYmVyIDMsIDIwMjQgIiwiOSw0NDgsNzEyLjY2IiwiMyw1MzYsMjQ5LjkzIiwiNSw5MTIsNDYyLjczIg0KOSwiQ29uc3RydWN0aW9uIG9mIFBhbmdhc2luYW4gQmFuZ3VzIEJyZWVkaW5nIGFuZCBIYXRjaGVyeSBpbiBCb2xpbmFvLCBQYW5nYXNpbmFuIiwsMDYtMDIxMDExNTEtMjAyNS0wNC0wMDIsQVNBIE5vLiAyMDI1LTAwMDA5MSwiQXByaWwgMjEsIDIwMjUgIiwiMiwwMjcsMjk0LjkzIiwsDQo5LCJDb25zdHJ1Y3Rpb24gb2YgUGFuZ2FzaW5hbiBCYW5ndXMgQnJlZWRpbmcgYW5kIEhhdGNoZXJ5IGluIEJvbGluYW8sIFBhbmdhc2luYW4iLCwwNi0wMjEwMTE1MS0yMDI2LTA1LTAxNyxBU0EgTm8uIDIwMjYtMDAwMDY2LCJNYXkgMTEsIDIwMjYgIiwiMTIsMDk4LDk5MS45NyIsLA0KMTAsUm9hZCBPcGVuaW5nIGFuZCBDb25jcmV0aW5nIG9mIFNhbiBHYWJyaWVsIElJIC0gUGFudG9sIEZhcm0tdG8tTWFya2V0IFJvYWQsLCxBU0EgTm8uIDIwMjUtMDAwMDkxLCJNYXkgNiwgMjAyNSAiLCIyMiwzNDIsNjAwLjAwIiwsDQoxMCxSb2FkIE9wZW5pbmcgYW5kIENvbmNyZXRpbmcgb2YgU2FuIEdhYnJpZWwgSUkgLSBQYW50b2wgRmFybS10by1NYXJrZXQgUm9hZCwsLEFTQSBOby4gMjAyNi0wMDAwNjYsIk1heSAxMSwgMjAyNiAiLCIzLDMyNSwxODQuMTAiLCwNCjExLEVzdGFibGlzaG1lbnQgb2YgVGFndWRpbiBTbGF1Z2h0ZXJob3VzZSwsLEFTQSBOby4gMjAyNS0wMDAwOTEsIkFwcmlsIDIxLCAyMDI1ICIsIjUsNzcxLDUwMC4wMCIsIjMyOSw0NjUuODQiLCI1LDQ0MiwwMzQuMTYiDQoxMSxFc3RhYmxpc2htZW50IG9mIFRhZ3VkaW4gU2xhdWdodGVyaG91c2UsLCxBU0EgTm8uIDIwMjYtMDAwMDY2LCJNYXkgMTEsIDIwMjYgIiwiMiw0NzEsMzIyLjE0IiwsDQoxMixSZWhhYmlsaXRhdGlvbiBhbmQgUm9hZCBPcGVuaW5nIG9mIFNhbiBWaWNlbnRlLVZpZ2EgRmFybS10by1NYXJrZXQgUm9hZCwsLEFTQSBOby4gMjAyNC0wMDAyMjksIkRlY2VtYmVyIDMsIDIwMjQgIiwiMjMsNTcyLDEwMy43NSIsLA0KMTMsUmVoYWJpbGl0YXRpb24gb2YgUmFtb3QtUHVndWlsIEZhcm0gdG8gTWFya2V0IFJvYWQsLCxBU0EgTm8uIDIwMjYtMDAwMDQ4LCJNYXJjaCA2LCAyMDI2ICIsIjksNTY4LDkxMi4wMCIsLA0KMTMsUmVoYWJpbGl0YXRpb24gb2YgUmFtb3QtUHVndWlsIEZhcm0gdG8gTWFya2V0IFJvYWQsLCxBU0EgTm8uIDIwMjYtMDAwMDY2LCJNYXkgMTEsIDIwMjYgIiwiMTksNDM0LDk4NC4xMyIsLA0KMTQsQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgU3RvcmFnZSBGYWNpbGl0eSB3aXRoIFNvbGFyIERyeWVyLCwsQVNBIE5vLiAyMDI2LTAwMDA2NiwiTWF5IDExLCAyMDI2ICIsIjEsNjcxLDEwMC4wMCIsLA0KMTUsQ29uc3RydWN0aW9uIG9mIEJhdGFjIENpdHkgU2xhdWdodGVyaG91c2UsLCxBU0EgTm8uIDIwMjYtMDAwMDY2LCJNYXkgMTEsIDIwMjYgIiwiMTQsODc5LDI0NC40MyIsLA==",
+  disbLP:   "Tm8uLE5hbWUgb2YgU3ViIFByb2plY3QsQmlsbGluZyxMUCBBbW91bnQsTFAtQVNBLERhdGUNCjEsQ29uc3RydWN0aW9uIG9mIFNhbiBKb3NlIE11bHRpLVB1cnBvc2UgV2FyZWhvdXNlIHdpdGggU29sYXIgRHJ5ZXIsMXN0IEJpbGxpbmcsIjEsMDI2LDg5MS40NyIsQVNBIE5vLiAyMDI0LTAwMDIwNywiRGVjZW1iZXIgMjAsIDIwMjQgIg0KMSxDb25zdHJ1Y3Rpb24gb2YgU2FuIEpvc2UgTXVsdGktUHVycG9zZSBXYXJlaG91c2Ugd2l0aCBTb2xhciBEcnllciwybmQgQmlsbGluZywiMSw5NDMsNjEwLjA0IixBU0EgTm8uIDIwMjQtMDAwMjA3LCJBcHJpbCAyLCAyMDI1ICINCjEsQ29uc3RydWN0aW9uIG9mIFNhbiBKb3NlIE11bHRpLVB1cnBvc2UgV2FyZWhvdXNlIHdpdGggU29sYXIgRHJ5ZXIsM3JkIEJpbGxpbmcsIjIsMjU0LDkyMy4yNyIsQVNBIE5vLiAyMDI0LTAwMDA5NCwiSnVseSA4LCAyMDI1ICINCjEsQ29uc3RydWN0aW9uIG9mIFNhbiBKb3NlIE11bHRpLVB1cnBvc2UgV2FyZWhvdXNlIHdpdGggU29sYXIgRHJ5ZXIsNHRoIEJpbGxpbmcgQmlsbGluZywiMiwxMTMsMzcwLjQ0IixBU0EgTm8uIDIwMjQtMDAwMDk0LCJTZXB0ZW1iZXIgMjQsIDIwMjUgIg0KMSxDb25zdHJ1Y3Rpb24gb2YgU2FuIEpvc2UgTXVsdGktUHVycG9zZSBXYXJlaG91c2Ugd2l0aCBTb2xhciBEcnllcixGaW5hbCBCaWxsaW5nLCIxLDc4Nyw1NDAuNjkiLEFTQSBOby4gMjAyNC0wMDAyMDcsDQoyLCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBCdWdhbGxvbixQYW5nYXNpbmFuIiwxc3QgQmlsbGluZywiMyw5OTAsMzU5LjM3IixBU0EgTm8uIDIwMjQtMDAwMDk0LCJKdW5lIDIzLCAyMDI1ICINCjIsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIEJ1Z2FsbG9uLFBhbmdhc2luYW4iLDJuZCBCaWxsaW5nLCI3LDA4MCw2NzQuODQiLEFTQSBOby4gMjAyNC0wMDAwOTQsIk5vdmVtYmVyIDMsIDIwMjUgIg0KMiwiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gQnVnYWxsb24sUGFuZ2FzaW5hbiIsM3JkIEJpbGxpbmcsIjUsMTIyLDUyMC43MyIsQVNBIE5vLiAyMDI0LTAwMDA5NCwiRGVjZW1iZXIgMTksIDIwMjUgIg0KMiwiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gQnVnYWxsb24sUGFuZ2FzaW5hbiIsM3JkIEJpbGxpbmcsIjUsMzA5LDg3NS42MyIsQVNBIE5vLiAyMDI0LTAwMDIwNywiRGVjZW1iZXIgMTksIDIwMjUgIg0KMiwiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gQnVnYWxsb24sUGFuZ2FzaW5hbiIsNHRoIEJpbGxpbmcsIjcsNTgzLDg2MS45NiIsQVNBIE5vLiAyMDI0LTAwMDIwNywiTWF5IDExLCAyMDI2ICINCjIsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIEJ1Z2FsbG9uLFBhbmdhc2luYW4iLEZpbmFsIEJpbGxpbmcsIjQsNTM4LDIzMi4xNSIsQVNBIE5vLiAyMDI0LTAwMDIwNywNCjMsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIFN0YS4gQmFyYmFyYSwgUGFuZ2FzaW5hbiIsMXN0IEJpbGxpbmcsIjMsMjUxLDYwMS41NiIsQVNBIE5vLiAyMDI0LTAwMDA5NCwiSnVseSAxLCAyMDI1ICINCjMsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIFN0YS4gQmFyYmFyYSwgUGFuZ2FzaW5hbiIsMm5kIEJpbGxpbmcsIjYsMjUzLDk3My40NCIsQVNBIE5vLiAyMDI0LTAwMDA5NCwiTm92ZW1iZXIgNiwgMjAyNSAiDQozLCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBTdGEuIEJhcmJhcmEsIFBhbmdhc2luYW4iLDJuZCBCaWxsaW5nLCI4OTksNDAwLjc3IixBU0EgTm8uIDIwMjQtMDAwMjA3LCJOb3ZlbWJlciA2LCAyMDI1ICINCjMsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIFN0YS4gQmFyYmFyYSwgUGFuZ2FzaW5hbiIsM3JkIEJpbGxpbmcsIjUsMjY0LDg0Ny43MSIsQVNBIE5vLiAyMDI0LTAwMDIwNywiRGVjZW1iZXIgMjIsIDIwMjUgIg0KMywiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gU3RhLiBCYXJiYXJhLCBQYW5nYXNpbmFuIiw0dGggQmlsbGluZywiNywyMDMsNjk1LjA2IixBU0EgTm8uIDIwMjQtMDAwMDk0LCJNYXkgMTEsIDIwMjYgIg0KMywiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gU3RhLiBCYXJiYXJhLCBQYW5nYXNpbmFuIiw0dGggQmlsbGluZywiNiw5MDEsNTU3LjM5IixBU0EgTm8uIDIwMjQtMDAwMjA3LCJNYXkgMTEsIDIwMjYgIg0KMywiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gU3RhLiBCYXJiYXJhLCBQYW5nYXNpbmFuIixGaW5hbCBCaWxsaW5nLCI0OTUsNzUyLjIzIixBU0EgTm8uIDIwMjQtMDAwMjA3LA0KMywiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gU3RhLiBCYXJiYXJhLCBQYW5nYXNpbmFuIixGaW5hbCBCaWxsaW5nLCIyLDY4MiwyMTkuMTIiLEFTQSBOby4gMjAyNS0wMDAwOTAsDQo0LCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBTYW4gUXVpbnRpbiwgUGFuZ2FzaW5hbiIsMXN0IEJpbGxpbmcsIjQsMzIwLDEyMy45MyIsQVNBIE5vLiAyMDI0LTAwMDA5NCwiSnVseSA0LCAyMDI1ICINCjQsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIFNhbiBRdWludGluLCBQYW5nYXNpbmFuIiwybmQgQmlsbGluZywiMiw5NjIsMTAyLjI1IixBU0EgTm8uIDIwMjQtMDAwMDk0LCJOb3ZlbWJlciA0LCAyMDI1ICINCjQsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIFNhbiBRdWludGluLCBQYW5nYXNpbmFuIiwzcmQgQmlsbGluZywiMSwzOTIsOTY4LjgyIixBU0EgTm8uIDIwMjQtMDAwMDk0LCJEZWNlbWJlciAyMiwgMjAyNSAiDQo0LCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBTYW4gUXVpbnRpbiwgUGFuZ2FzaW5hbiIsM3JkIEJpbGxpbmcsIjEzLDk5OCw0NDAuNzAiLEFTQSBOby4gMjAyNC0wMDAyMDcsIkRlY2VtYmVyIDIyLCAyMDI1ICINCjQsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIFNhbiBRdWludGluLCBQYW5nYXNpbmFuIiw0dGggQmlsbGluZywiMSwwNDMsMTkxLjQ4IixBU0EgTm8uIDIwMjQtMDAwMjA3LCJNYXkgMTEsIDIwMjYgIg0KNCwiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gU2FuIFF1aW50aW4sIFBhbmdhc2luYW4iLDR0aCBCaWxsaW5nLCI4LDU0MSwyNDIuNzMiLEFTQSBOby4gMjAyNS0wMDAwOTAsIk1heSAxMSwgMjAyNiAiDQo1LEVzdGFibGlzaG1lbnQgb2YgUm9zYWxlcyBTbGF1Z2h0ZXJob3VzZSwxc3QgQmlsbGluZywiNiw3NjQsNTY3LjYxIixBU0EgTm8uIDIwMjQtMDAwMDk0LCJBdWd1c3QgMjksIDIwMjUgIg0KNSxFc3RhYmxpc2htZW50IG9mIFJvc2FsZXMgU2xhdWdodGVyaG91c2UsMm5kIEJpbGxpbmcsIjYsNjg3LDE3MC4xNiIsQVNBIE5vLiAyMDI0LTAwMDA5NCwiRGVjZW1iZXIgMTgsIDIwMjUgIg0KNSxFc3RhYmxpc2htZW50IG9mIFJvc2FsZXMgU2xhdWdodGVyaG91c2UsM3JkIEJpbGxpbmcsIjQsOTY5LDIzNy4yMyIsQVNBIE5vLiAyMDI0LTAwMDA5NCwNCjUsRXN0YWJsaXNobWVudCBvZiBSb3NhbGVzIFNsYXVnaHRlcmhvdXNlLCwiNywwMDAsMDA1LjY3IixBU0EgTm8uIDIwMjQtMDAwMjA3LA0KNixDb25zdHJ1Y3Rpb24gb2YgQWxjYWxhIENvbGQgU3RvcmFnZSBmb3IgT25pb24sMXN0IEJpbGxpbmcsIjEzLDAwMiw1MDcuNjAiLEFTQSBOby4gMjAyNC0wMDAwOTQsIk1heSAxMywgMjAyNiAiDQo3LENvbnN0cnVjdGlvbiBvZiBCYXlhbWJhbmcgT25pb24gQ29sZCBTdG9yYWdlIEZhY2lsaXR5LDFzdCBCaWxsaW5nLCIyMCw0MTcsOTA0LjQxIixBU0EgTm8uIDIwMjUtMDAwMDkwLCJNYXkgMTEsIDIwMjYgIg0KOCxDb25zdHJ1Y3Rpb24gb2YgVWJib2cgQnJpZGdlIHdpdGggQXBwcm9hY2hlcywxc3QgQmlsbGluZywiMTEsMTMzLDc0NC41MiIsQVNBIE5vLiAyMDI1LTAwMDA5MCwiTm92ZW1iZXIgMjYsIDIwMjUgIg0KOCxDb25zdHJ1Y3Rpb24gb2YgVWJib2cgQnJpZGdlIHdpdGggQXBwcm9hY2hlcywybmQgQmlsbGluZywiMTEsNDE5LDQwNi44NCIsQVNBIE5vLiAyMDI1LTAwMDA5MCwiTWF5IDExLCAyMDI2ICINCjksIkNvbnN0cnVjdGlvbiBvZiBQYW5nYXNpbmFuIEJhbmd1cyBCcmVlZGluZyBhbmQgSGF0Y2hlcnkgaW4gQm9saW5hbywgUGFuZ2FzaW5hbiIsQWR2YW5jZSBwYXltZW50LCIyOCwyODksOTk5LjQ2IixBU0EgTm8uIDIwMjQtMDAwMDk0LA0KMTEsRXN0YWJsaXNobWVudCBvZiBUYWd1ZGluIFNsYXVnaHRlcmhvdXNlLDFzdCBCaWxsaW5nLCIyLDYzNSw3MjYuNzQiLEFTQSBOby4gMjAyNS0wMDAwOTAsIk1heSAxOCwgMjAyNiAi",
+  disbGOP:  "Tm8uLE5hbWUgb2YgU3ViIFByb2plY3QsQmlsbGluZyxMUCBBbW91bnQsR09QLUFTQSxEYXRlDQoxLENvbnN0cnVjdGlvbiBvZiBTYW4gSm9zZSBNdWx0aS1QdXJwb3NlIFdhcmVob3VzZSB3aXRoIFNvbGFyIERyeWVyLDJuZCBCaWxsaW5nLCIxLDE0MCw3OTEuOTkiLEFTQSBOby4gMjAyNC0wMDAyMjksIkFwcmlsIDIsIDIwMjUgIg0KMiwiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gQnVnYWxsb24sUGFuZ2FzaW5hbiIsMXN0IEJpbGxpbmcsIjQ5OCw3OTQuOTIiLEFTQSBOby4gMjAyNC0wMDAyMjksIk9jdG9iZXIgMjgsIDIwMjUgIg0KMiwiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gQnVnYWxsb24sUGFuZ2FzaW5hbiIsMm5kIEJpbGxpbmcsIjg4NSwwODQuMzUiLEFTQSBOby4gMjAyNC0wMDAyMjksIk5vdmVtYmVyIDMsIDIwMjUgIg0KMiwiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gQnVnYWxsb24sUGFuZ2FzaW5hbiIsM3JkIEJpbGxpbmcsIjEsMzA0LDA0OS41NSIsQVNBIE5vLiAyMDI0LTAwMDIyOSwiRGVjZW1iZXIgMTksIDIwMjUgIg0KMiwiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gQnVnYWxsb24sUGFuZ2FzaW5hbiIsNHRoIEJpbGxpbmcsIjY3NCw2MjMuNjQiLEFTQSBOby4gMjAyNC0wMDAyMjksIk1heSAxMSwgMjAyNiAiDQoyLCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBCdWdhbGxvbixQYW5nYXNpbmFuIiw0dGggQmlsbGluZywiMjczLDM1OS4xMCIsQVNBIE5vLiAyMDI0LTAwMDIyOSwiTWF5IDExLCAyMDI2ICINCjIsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIEJ1Z2FsbG9uLFBhbmdhc2luYW4iLEZpbmFsIEJpbGxpbmcsIjU2NywyNzkuMDIiLEFTQSBOby4gMjAyNC0wMDAyMjksDQozLCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBTdGEuIEJhcmJhcmEsIFBhbmdhc2luYW4iLDFzdCBCaWxsaW5nLCI0MDYsNDUwLjIwIixBU0EgTm8uIDIwMjQtMDAwMjI5LCJKdWx5IDEsIDIwMjUgIg0KMywiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gU3RhLiBCYXJiYXJhLCBQYW5nYXNpbmFuIiwybmQgQmlsbGluZywiODk0LDE3MS43OCIsQVNBIE5vLiAyMDI0LTAwMDIyOSwiTm92ZW1iZXIgNiwgMjAyNSAiDQozLCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBTdGEuIEJhcmJhcmEsIFBhbmdhc2luYW4iLDNyZCBCaWxsaW5nLCI2NTgsMTA1Ljk2IixBU0EgTm8uIDIwMjQtMDAwMjI5LCJEZWNlbWJlciAyMiwgMjAyNSAiDQozLCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBTdGEuIEJhcmJhcmEsIFBhbmdhc2luYW4iLDR0aCBCaWxsaW5nLCI5MjQsNjYzLjcwIixBU0EgTm8uIDIwMjQtMDAwMjI5LCJNYXkgMTEsIDIwMjYgIg0KMywiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gU3RhLiBCYXJiYXJhLCBQYW5nYXNpbmFuIiw0dGggQmlsbGluZywiODM4LDQ5Mi44NiIsQVNBIE5vLiAyMDI0LTAwMDIyOSwiTWF5IDExLCAyMDI2ICINCjMsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIFN0YS4gQmFyYmFyYSwgUGFuZ2FzaW5hbiIsRmluYWwgQmlsbGluZywiNjEsOTY5LjAyIixBU0EgTm8uIDIwMjQtMDAwMjI5LA0KMywiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gU3RhLiBCYXJiYXJhLCBQYW5nYXNpbmFuIixGaW5hbCBCaWxsaW5nLCIzMzUsMjc3LjM5IixBU0EgTm8uIDIwMjUtMDAwMDkxLA0KNCwiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gU2FuIFF1aW50aW4sIFBhbmdhc2luYW4iLDFzdCBCaWxsaW5nLCI1NDAsMDE1LjQ5IixBU0EgTm8uIDIwMjQtMDAwMjI5LCJKdWx5IDQsIDIwMjUgIg0KNCwiQ29uc3RydWN0aW9uIG9mIFByb3ZpbmNpYWwgV2FyZWhvdXNlIHdpdGggTXVsdGktUHVycG9zZSBEcnlpbmcgUGF2ZW1lbnQgaW4gU2FuIFF1aW50aW4sIFBhbmdhc2luYW4iLDJuZCBCaWxsaW5nLCIzNzAsMjYyLjc4IixBU0EgTm8uIDIwMjQtMDAwMjI5LCJOb3ZlbWJlciA0LCAyMDI1ICINCjQsIkNvbnN0cnVjdGlvbiBvZiBQcm92aW5jaWFsIFdhcmVob3VzZSB3aXRoIE11bHRpLVB1cnBvc2UgRHJ5aW5nIFBhdmVtZW50IGluIFNhbiBRdWludGluLCBQYW5nYXNpbmFuIiwzcmQgQmlsbGluZywiMSw5MjMsOTI2LjE5IixBU0EgTm8uIDIwMjQtMDAwMjI5LCJEZWNlbWJlciAyMiwgMjAyNSAiDQo0LCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBTYW4gUXVpbnRpbiwgUGFuZ2FzaW5hbiIsNHRoIEJpbGxpbmcsIjEzMCwzOTguOTQiLEFTQSBOby4gMjAyNC0wMDAyMjksIk1heSAxMSwgMjAyNiAiDQo0LCJDb25zdHJ1Y3Rpb24gb2YgUHJvdmluY2lhbCBXYXJlaG91c2Ugd2l0aCBNdWx0aS1QdXJwb3NlIERyeWluZyBQYXZlbWVudCBpbiBTYW4gUXVpbnRpbiwgUGFuZ2FzaW5hbiIsNHRoIEJpbGxpbmcsIjEsMDY3LDY1NS4zNCIsQVNBIE5vLiAyMDI1LTAwMDA5MSwiTWF5IDExLCAyMDI2ICINCjUsRXN0YWJsaXNobWVudCBvZiBSb3NhbGVzIFNsYXVnaHRlcmhvdXNlLDFzdCBCaWxsaW5nLCI4NDUsNTcwLjk1IixBU0EgTm8uIDIwMjQtMDAwMjI5LCJBdWd1c3QgMjksIDIwMjUgIg0KNSxFc3RhYmxpc2htZW50IG9mIFJvc2FsZXMgU2xhdWdodGVyaG91c2UsMm5kIEJpbGxpbmcsIjgzNSw4OTYuMjciLEFTQSBOby4gMjAyNC0wMDAyMjksIkRlY2VtYmVyIDE4LCAyMDI1ICINCjUsRXN0YWJsaXNobWVudCBvZiBSb3NhbGVzIFNsYXVnaHRlcmhvdXNlLDNyZCBCaWxsaW5nLCIxLDQ5NiwxNTUuMzYiLEFTQSBOby4gMjAyNC0wMDAyMjksDQo2LENvbnN0cnVjdGlvbiBvZiBBbGNhbGEgQ29sZCBTdG9yYWdlIGZvciBPbmlvbiwxc3QgQmlsbGluZywiMSw2MjUsMzEzLjQ1IixBU0EgTm8uIDIwMjQtMDAwMjI5LCJNYXkgMTMsIDIwMjYgIg0KNyxDb25zdHJ1Y3Rpb24gb2YgQmF5YW1iYW5nIE9uaW9uIENvbGQgU3RvcmFnZSBGYWNpbGl0eSwxc3QgQmlsbGluZywiMiw1NTIsMjM4LjA1IixBU0EgTm8uIDIwMjUtMDAwMDkxLCJNYXkgMTEsIDIwMjYgIg0KOCxDb25zdHJ1Y3Rpb24gb2YgVWJib2cgQnJpZGdlIHdpdGggQXBwcm9hY2hlcywxc3QgQmlsbGluZywiMSwzOTEsNzE4LjA3IixBU0EgTm8uIDIwMjUtMDAwMDkxLCJOb3ZlbWJlciAyNiwgMjAyNSAiDQo4LENvbnN0cnVjdGlvbiBvZiBVYmJvZyBCcmlkZ2Ugd2l0aCBBcHByb2FjaGVzLDJuZCBCaWxsaW5nLCIxLDQyNyw0MjUuODYiLEFTQSBOby4gMjAyNS0wMDAwOTEsIk1heSAxMSwgMjAyNiAiDQo5LCJDb25zdHJ1Y3Rpb24gb2YgUGFuZ2FzaW5hbiBCYW5ndXMgQnJlZWRpbmcgYW5kIEhhdGNoZXJ5IGluIEJvbGluYW8sIFBhbmdhc2luYW4iLEFkdmFuY2UgcGF5bWVudCwiMyw1MzYsMjQ5LjkzIixBU0EgTm8uIDIwMjQtMDAwMjI5LA0KMTEsRXN0YWJsaXNobWVudCBvZiBUYWd1ZGluIFNsYXVnaHRlcmhvdXNlLDFzdCBCaWxsaW5nLCIzMjksNDY1Ljg0IixBU0EgTm8uIDIwMjUtMDAwMDkxLCJNYXkgMTgsIDIwMjYgIg==",
+};
+
+let SP = [];          // consolidated per-subproject rows
+let TX = [];          // flattened transaction rows (oblig + disb, LP + GOP)
+let charts = {};
+let spSortState = {key:'no', dir:1};
+let txSortState = {key:'date_sort', dir:-1};
+
+/* =========================================================
+   PARSE HELPERS
+   ========================================================= */
+function numVal(s){
+  if(s===undefined || s===null) return 0;
+  s = String(s).trim().replace(/,/g,'');
+  if(s==='' || s==='-') return 0;
+  const v = parseFloat(s.replace('%',''));
+  return isNaN(v) ? 0 : v;
+}
+function pctVal(s){
+  if(s===undefined || s===null) return null;
+  s = String(s).trim();
+  if(s==='' || s==='-') return null;
+  if(s.indexOf('%')>=0){
+    const v = parseFloat(s.replace(/[%,]/g,''));
+    return isNaN(v)?null:v;
+  }
+  let v = parseFloat(s.replace(/,/g,''));
+  if(isNaN(v)) return null;
+  if(v<=1) v = v*100;
+  return v;
+}
+function cleanStr(s){ return (s===undefined||s===null) ? '' : String(s).replace(/\r/g,'').trim(); }
+function parseDateLoose(s){
+  s = cleanStr(s);
+  if(!s) return null;
+  const t = Date.parse(s.replace(/\s+/g,' ').trim());
+  return isNaN(t) ? null : t;
+}
+function b64ToCsvText(b64){
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder('utf-8').decode(bytes);
+}
+function parseCSV(text){
+  const parsed = Papa.parse(text, {skipEmptyLines:true});
+  const rows = parsed.data;
+  if(!rows.length) return [];
+  return rows.slice(1).filter(r => cleanStr(r[0])!=='' );
+}
+
+/* =========================================================
+   ROW PARSERS — one per sheet shape
+   ========================================================= */
+function parseProfileRows(rows){
+  // No.,Name,Muni/Prov,Type,Status,PhysAccomp,FinStatus,Variance,DateCompleted,Contract,LP,GOP,Total
+  return rows.map(r => ({
+    no: cleanStr(r[0]),
+    name: cleanStr(r[1]),
+    location: cleanStr(r[2]),
+    type: cleanStr(r[3]),
+    status: cleanStr(r[4]) || 'Unspecified',
+    phys_accomp: pctVal(r[5]),
+    fin_status: pctVal(r[6]),
+    variance: numVal(r[7]),
+    date_completed: cleanStr(r[8]),
+    contract: numVal(r[9]),
+    lp: numVal(r[10]),
+    gop: numVal(r[11]),
+    total_counterpart: numVal(r[12]),
+  })).filter(p => p.no !== '');
+}
+function parseObligRows(rows, fund){
+  // No.,Name,DateOfObligation,ORSNumber,ASA,Date,Amount,Released,Remaining
+  return rows.map(r => {
+    const amount = numVal(r[6]);
+    if(amount===0 && cleanStr(r[4])==='') return null;
+    return {
+      no: cleanStr(r[0]),
+      name: cleanStr(r[1]),
+      fund: fund,
+      kind: 'Obligation',
+      year_or_date_of_oblig: cleanStr(r[2]),
+      ors_no: cleanStr(r[3]),
+      asa: cleanStr(r[4]),
+      date: cleanStr(r[5]),
+      date_sort: parseDateLoose(r[5]),
+      amount: amount,
+      released: numVal(r[7]),
+      remaining: numVal(r[8]),
+      billing: '',
     };
+  }).filter(x => x && x.no !== '');
+}
+function parseDisbRows(rows, fund){
+  // No.,Name,Billing,Amount,ASA,Date
+  return rows.map(r => {
+    const amount = numVal(r[3]);
+    if(amount===0 && cleanStr(r[4])==='') return null;
+    return {
+      no: cleanStr(r[0]),
+      name: cleanStr(r[1]),
+      fund: fund,
+      kind: 'Disbursement',
+      year_or_date_of_oblig: '',
+      ors_no: '',
+      asa: cleanStr(r[4]),
+      date: cleanStr(r[5]),
+      date_sort: parseDateLoose(r[5]),
+      amount: amount,
+      released: 0,
+      remaining: 0,
+      billing: cleanStr(r[2]),
+    };
+  }).filter(x => x && x.no !== '');
+}
 
-    function fetchCSV(url) {
-      return new Promise((resolve, reject) => {
-        Papa.parse(url, {
-          download: true,
-          header: true,
-          dynamicTyping: true,
-          complete: (results) => resolve(results.data),
-          error: (err) => reject(err)
-        });
-      });
-    }
+/* =========================================================
+   CORRELATE
+   ========================================================= */
+function sumBy(list, no, field){
+  return list.filter(x => x.no === no).reduce((a,x) => a + x[field], 0);
+}
+function buildConsolidated(profile, obligLP, obligGOP, disbLP, disbGOP){
+  const rows = profile.map(p => {
+    const oLP = sumBy(obligLP, p.no, 'amount');
+    const oGOP = sumBy(obligGOP, p.no, 'amount');
+    const dLP = sumBy(disbLP, p.no, 'amount');
+    const dGOP = sumBy(disbGOP, p.no, 'amount');
+    const obligated_total = oLP + oGOP;
+    const disbursed_total = dLP + dGOP;
+    return Object.assign({}, p, {
+      oblig_lp: oLP, oblig_gop: oGOP, oblig_total: obligated_total,
+      disb_lp: dLP, disb_gop: dGOP, disb_total: disbursed_total,
+      unobligated_lp: p.lp - oLP, unobligated_gop: p.gop - oGOP,
+      unobligated_total: (p.lp + p.gop) - obligated_total,
+      undisbursed_lp: oLP - dLP, undisbursed_gop: oGOP - dGOP,
+      undisbursed_total: obligated_total - disbursed_total,
+      disb_rate_lp: oLP>0 ? (dLP/oLP*100) : null,
+      disb_rate_gop: oGOP>0 ? (dGOP/oGOP*100) : null,
+      disb_rate_total: obligated_total>0 ? (disbursed_total/obligated_total*100) : null,
+      fin_status_computed: p.contract>0 ? (disbursed_total/p.contract*100) : 0,
+    });
+  });
+  return rows;
+}
 
-    async function loadDashboardData() {
-      try {
-        const [spProfile, obligLP, obligGOP, disbLP, disbGOP] = await Promise.all([
-          fetchCSV(CSV_URLS.spProfile),
-          fetchCSV(CSV_URLS.obligLP),
-          fetchCSV(CSV_URLS.obligGOP),
-          fetchCSV(CSV_URLS.disbLP),
-          fetchCSV(CSV_URLS.disbGOP)
-        ]);
+/* =========================================================
+   LOAD
+   ========================================================= */
+async function fetchOne(key, forceLive){
+  const url = CSV_URLS[key] + (forceLive ? ('&_ts='+Date.now()) : '');
+  try{
+    const resp = await fetch(url, {cache:'no-store'});
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    const text = await resp.text();
+    if(!text || text.length < 30) throw new Error('empty response');
+    return {text, live:true};
+  }catch(err){
+    console.warn('Live fetch failed for', key, err);
+    return {text: b64ToCsvText(FALLBACK_B64[key]), live:false};
+  }
+}
 
-        // KPI Updates
-        document.getElementById("kpi-profiles").innerText = spProfile.length;
-        
-        // Example totals aggregation (adjust field names based on actual header names in sheets)
-        console.log("SP Profiles:", spProfile);
-        console.log("Obligations LP:", obligLP);
-        
-        // Render or Update Charts here
-      } catch (error) {
-        console.error("Error loading CSV files:", error);
+async function loadAll(forceLive){
+  const statusEl = document.getElementById('syncStatus');
+  const noteEl = document.getElementById('refreshNote');
+  noteEl.textContent = 'Syncing…';
+  const keys = ['profile','obligLP','obligGOP','disbLP','disbGOP'];
+  const results = await Promise.all(keys.map(k => fetchOne(k, forceLive)));
+  const byKey = {}; keys.forEach((k,i) => byKey[k] = results[i]);
+  const liveCount = results.filter(r=>r.live).length;
+
+  const profile  = parseProfileRows(parseCSV(byKey.profile.text));
+  const obligLP  = parseObligRows(parseCSV(byKey.obligLP.text), 'LP');
+  const obligGOP = parseObligRows(parseCSV(byKey.obligGOP.text), 'GOP');
+  const disbLP   = parseDisbRows(parseCSV(byKey.disbLP.text), 'LP');
+  const disbGOP  = parseDisbRows(parseCSV(byKey.disbGOP.text), 'GOP');
+
+  SP = buildConsolidated(profile, obligLP, obligGOP, disbLP, disbGOP);
+  TX = [].concat(obligLP, obligGOP, disbLP, disbGOP);
+
+  if(liveCount === keys.length){
+    statusEl.textContent = 'Live — 5/5 sheets'; statusEl.className='v live';
+    noteEl.textContent = 'Synced ' + new Date().toLocaleTimeString();
+  } else if(liveCount === 0){
+    statusEl.textContent = 'Cached snapshot'; statusEl.className='v cached';
+    noteEl.textContent = 'Live fetch unavailable — showing bundled snapshot';
+  } else {
+    statusEl.textContent = 'Partial — ' + liveCount + '/5 live'; statusEl.className='v partial';
+    noteEl.textContent = 'Some sheets fell back to the bundled snapshot';
+  }
+  document.getElementById('stampGenerated').textContent = new Date().toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'});
+  document.getElementById('footStamp').textContent = 'Rendered ' + new Date().toLocaleString('en-PH');
+  document.getElementById('stampCount').textContent = SP.length;
+
+  render();
+}
+
+/* =========================================================
+   FORMAT HELPERS
+   ========================================================= */
+const PHP = n => '\u20B1' + Math.round(n).toLocaleString('en-PH');
+const PHPm = n => '\u20B1' + (n/1000000).toLocaleString('en-PH',{maximumFractionDigits:1}) + 'M';
+const pctFmt = n => (n===null||n===undefined) ? '\u2014' : n.toFixed(1)+'%';
+function statusClass(s){
+  const t = s.toLowerCase();
+  if(t.indexOf('complet')>=0) return 'completed';
+  if(t.indexOf('nol1')>=0) return 'nol1';
+  return 'ongoing';
+}
+function truncName(s, n){ return s.length>n ? s.slice(0,n-1)+'\u2026' : s; }
+
+/* =========================================================
+   KPI RENDER
+   ========================================================= */
+function renderKPIs(){
+  const totalContract = SP.reduce((a,p)=>a+p.contract,0);
+  const totalLP = SP.reduce((a,p)=>a+p.lp,0);
+  const totalGOP = SP.reduce((a,p)=>a+p.gop,0);
+  const oblLP = SP.reduce((a,p)=>a+p.oblig_lp,0);
+  const oblGOP = SP.reduce((a,p)=>a+p.oblig_gop,0);
+  const oblTotal = oblLP+oblGOP;
+  const disbLP = SP.reduce((a,p)=>a+p.disb_lp,0);
+  const disbGOP = SP.reduce((a,p)=>a+p.disb_gop,0);
+  const disbTotal = disbLP+disbGOP;
+  const unoblTotal = (totalLP+totalGOP) - oblTotal;
+  const undisbTotal = oblTotal - disbTotal;
+  const disbRateLP = oblLP>0 ? disbLP/oblLP*100 : 0;
+  const disbRateGOP = oblGOP>0 ? disbGOP/oblGOP*100 : 0;
+  const lag = disbRateLP - disbRateGOP;
+  const completed = SP.filter(p=>statusClass(p.status)==='completed').length;
+  const ongoing = SP.filter(p=>statusClass(p.status)==='ongoing').length;
+  const nol1 = SP.filter(p=>statusClass(p.status)==='nol1').length;
+  const asaSet = new Set(TX.map(t=>t.asa).filter(Boolean));
+  const weightedPhys = totalContract>0 ? SP.reduce((a,p)=>a+(p.phys_accomp||0)*p.contract,0)/totalContract : 0;
+  const weightedFin = totalContract>0 ? SP.reduce((a,p)=>a+(p.fin_status_computed||0)*p.contract,0)/totalContract : 0;
+
+  const kpis = [
+    {lbl:'Subprojects Tracked', val:SP.length, sub:completed+' completed \u00b7 '+ongoing+' on-going \u00b7 '+nol1+' with NOL1', cls:''},
+    {lbl:'Total Contract Value', val:PHPm(totalContract), sub:PHP(totalContract), cls:''},
+    {lbl:'LP / GOP Counterpart', val:PHPm(totalLP)+' / '+PHPm(totalGOP), sub:(totalLP+totalGOP>0?(totalLP/(totalLP+totalGOP)*100).toFixed(1):'0')+'% LP share', cls:''},
+    {lbl:'Total Obligated (ASA\u2019d)', val:PHPm(oblTotal), sub:(totalLP+totalGOP>0?(oblTotal/(totalLP+totalGOP)*100).toFixed(1):'0')+'% of counterpart', cls:'good'},
+    {lbl:'Total Disbursed', val:PHPm(disbTotal), sub:(oblTotal>0?(disbTotal/oblTotal*100).toFixed(1):'0')+'% of obligated', cls:'good'},
+    {lbl:'Unobligated Balance', val:PHPm(unoblTotal), sub:'Counterpart not yet ASA\u2019d', cls: unoblTotal>0?'warn':''},
+    {lbl:'Undisbursed Balance', val:PHPm(undisbTotal), sub:'Obligated but not released', cls: undisbTotal>0?'warn':''},
+    {lbl:'LP Disbursement Rate', val:pctFmt(disbRateLP), sub:PHPm(disbLP)+' of '+PHPm(oblLP)+' obligated', cls:'purple'},
+    {lbl:'GOP Disbursement Rate', val:pctFmt(disbRateGOP), sub:PHPm(disbGOP)+' of '+PHPm(oblGOP)+' obligated', cls:'purple'},
+    {lbl:'LP\u2013GOP Disbursement Lag', val:(lag>=0?'+':'')+lag.toFixed(1)+' pts', sub: lag>0 ? 'GOP releases trailing LP' : (lag<0 ? 'LP releases trailing GOP' : 'In sync'), cls: Math.abs(lag)>15?'alert':(Math.abs(lag)>5?'warn':'good')},
+    {lbl:'Portfolio Physical Progress', val:pctFmt(weightedPhys), sub:'Contract-value weighted', cls:''},
+    {lbl:'Portfolio Financial Progress', val:pctFmt(weightedFin), sub:'Disbursed \u00f7 contract, weighted', cls:''},
+  ];
+  const grid = document.getElementById('kpiGrid');
+  grid.innerHTML = kpis.map(k => `
+    <div class="kpi ${k.cls}">
+      <div class="lbl">${k.lbl}</div>
+      <div class="val">${k.val}</div>
+      <div class="sub">${k.sub}</div>
+    </div>`).join('');
+}
+
+/* =========================================================
+   CHARTS
+   ========================================================= */
+function destroyCharts(){ Object.values(charts).forEach(c=>c && c.destroy()); charts = {}; }
+
+function renderCharts(){
+  destroyCharts();
+  const blue = '#1E5F8C', blueDeep='#123C59', purple='#6B4F9E', green='#2F8F5B', amber='#C9861B', red='#C0433A';
+
+  const totalLP = SP.reduce((a,p)=>a+p.lp,0);
+  const totalGOP = SP.reduce((a,p)=>a+p.gop,0);
+  const oblLP = SP.reduce((a,p)=>a+p.oblig_lp,0);
+  const oblGOP = SP.reduce((a,p)=>a+p.oblig_gop,0);
+  const disbLP = SP.reduce((a,p)=>a+p.disb_lp,0);
+  const disbGOP = SP.reduce((a,p)=>a+p.disb_gop,0);
+
+  // 1. Fund flow: LP vs GOP, Counterpart / Obligated / Disbursed
+  charts.fundFlow = new Chart(document.getElementById('chartFundFlow'), {
+    type:'bar',
+    data:{
+      labels:['Counterpart','Obligated','Disbursed'],
+      datasets:[
+        {label:'LP', data:[totalLP,oblLP,disbLP], backgroundColor:blue},
+        {label:'GOP', data:[totalGOP,oblGOP,disbGOP], backgroundColor:purple},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'top', labels:{font:{family:'IBM Plex Mono',size:11}}}},
+      scales:{
+        y:{ticks:{callback:v=>PHPm(v), font:{family:'IBM Plex Mono',size:10}}, grid:{color:'rgba(30,95,140,0.08)'}},
+        x:{ticks:{font:{family:'Inter',size:12}}, grid:{display:false}}
       }
     }
+  });
 
-    // Initial Load
-    loadDashboardData();
-  </script>
+  // 2. Disbursement rate LP vs GOP per subproject (horizontal)
+  const spSorted = [...SP].sort((a,b)=> (b.disb_rate_total||0)-(a.disb_rate_total||0));
+  charts.disbRateBySource = new Chart(document.getElementById('chartDisbRateBySource'), {
+    type:'bar',
+    data:{
+      labels: spSorted.map(p=>'#'+p.no+' '+truncName(p.name,26)),
+      datasets:[
+        {label:'LP disb. rate', data: spSorted.map(p=>p.disb_rate_lp), backgroundColor:blue},
+        {label:'GOP disb. rate', data: spSorted.map(p=>p.disb_rate_gop), backgroundColor:purple},
+      ]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'top', labels:{font:{family:'IBM Plex Mono',size:11}}}},
+      scales:{
+        x:{min:0, max:100, ticks:{callback:v=>v+'%', font:{family:'IBM Plex Mono',size:10}}, grid:{color:'rgba(30,95,140,0.08)'}},
+        y:{ticks:{font:{family:'Inter',size:10.5}}, grid:{display:false}}
+      }
+    }
+  });
+
+  // 3. Physical vs financial accomplishment
+  const spByPhys = [...SP].sort((a,b)=>(b.phys_accomp||0)-(a.phys_accomp||0));
+  charts.physFin = new Chart(document.getElementById('chartPhysFin'), {
+    type:'bar',
+    data:{
+      labels: spByPhys.map(p=>'#'+p.no+' '+truncName(p.name,24)),
+      datasets:[
+        {label:'Physical %', data: spByPhys.map(p=>p.phys_accomp), backgroundColor:green},
+        {label:'Financial %', data: spByPhys.map(p=>p.fin_status_computed), backgroundColor:amber},
+      ]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'top', labels:{font:{family:'IBM Plex Mono',size:11}}}},
+      scales:{
+        x:{min:0, max:100, ticks:{callback:v=>v+'%', font:{family:'IBM Plex Mono',size:10}}, grid:{color:'rgba(30,95,140,0.08)'}},
+        y:{ticks:{font:{family:'Inter',size:10.5}}, grid:{display:false}}
+      }
+    }
+  });
+
+  // 4. LP/GOP split donut
+  charts.fundSplit = new Chart(document.getElementById('chartFundSplit'), {
+    type:'doughnut',
+    data:{ labels:['LP','GOP'], datasets:[{data:[totalLP,totalGOP], backgroundColor:[blue,purple], borderWidth:0}] },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'62%',
+      plugins:{legend:{position:'bottom', labels:{font:{family:'IBM Plex Mono',size:11}}},
+        tooltip:{callbacks:{label:ctx=>ctx.label+': '+PHPm(ctx.raw)+' ('+(ctx.raw/(totalLP+totalGOP)*100).toFixed(1)+'%)'}}}
+    }
+  });
+
+  // 5. Status breakdown donut
+  const statusCounts = {};
+  SP.forEach(p=>{ const c=statusClass(p.status); statusCounts[c]=(statusCounts[c]||0)+1; });
+  const statusLabels = {completed:'Completed', ongoing:'On-going', nol1:'With NOL1'};
+  const scKeys = Object.keys(statusCounts);
+  charts.status = new Chart(document.getElementById('chartStatus'), {
+    type:'doughnut',
+    data:{
+      labels: scKeys.map(k=>statusLabels[k]||k),
+      datasets:[{data:scKeys.map(k=>statusCounts[k]), backgroundColor:scKeys.map(k=> k==='completed'?green:(k==='nol1'?amber:blue)), borderWidth:0}]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%',
+      plugins:{legend:{position:'bottom', labels:{font:{family:'IBM Plex Mono',size:11}}}} }
+  });
+}
+
+/* =========================================================
+   SUBPROJECT TABLE
+   ========================================================= */
+const SP_COLS = [
+  {key:'no', lbl:'No.', left:true},
+  {key:'name', lbl:'Subproject', left:true},
+  {key:'status', lbl:'Status', left:true},
+  {key:'contract', lbl:'Contract', fmt:PHP},
+  {key:'lp', lbl:'LP Counterpart', fmt:PHP},
+  {key:'gop', lbl:'GOP Counterpart', fmt:PHP},
+  {key:'oblig_lp', lbl:'Obligated LP', fmt:PHP},
+  {key:'oblig_gop', lbl:'Obligated GOP', fmt:PHP},
+  {key:'disb_lp', lbl:'Disbursed LP', fmt:PHP},
+  {key:'disb_gop', lbl:'Disbursed GOP', fmt:PHP},
+  {key:'unobligated_total', lbl:'Unobligated', fmt:PHP},
+  {key:'undisbursed_total', lbl:'Undisbursed', fmt:PHP},
+  {key:'phys_accomp', lbl:'Physical %', fmt:pctFmt},
+  {key:'fin_status_computed', lbl:'Financial %', fmt:pctFmt},
+];
+function populateStatusFilter(){
+  const sel = document.getElementById('spStatusFilter');
+  const cur = sel.value;
+  const statuses = [...new Set(SP.map(p=>p.status))].sort();
+  sel.innerHTML = '<option value="">All statuses</option>' + statuses.map(s=>`<option value="${s}">${s}</option>`).join('');
+  sel.value = cur;
+}
+function renderSPTableHead(){
+  const head = document.getElementById('spTableHead');
+  head.innerHTML = SP_COLS.map(c => {
+    const arrow = spSortState.key===c.key ? (spSortState.dir===1?'\u25B2':'\u25BC') : '';
+    return `<th class="${c.left?'left':''}" onclick="sortSP('${c.key}')">${c.lbl}<span class="arrow">${arrow}</span></th>`;
+  }).join('');
+}
+function sortSP(key){
+  if(spSortState.key===key) spSortState.dir *= -1; else { spSortState.key=key; spSortState.dir=1; }
+  renderSPTableHead(); renderSPTableBody();
+}
+function filteredSP(){
+  const q = document.getElementById('spSearch').value.trim().toLowerCase();
+  const statusF = document.getElementById('spStatusFilter').value;
+  return SP.filter(p => {
+    if(statusF && p.status !== statusF) return false;
+    if(!q) return true;
+    return (p.name+' '+p.location+' '+p.type).toLowerCase().indexOf(q) >= 0;
+  });
+}
+function renderSPTableBody(){
+  let rows = filteredSP();
+  const {key, dir} = spSortState;
+  rows = [...rows].sort((a,b)=>{
+    let av=a[key], bv=b[key];
+    if(key==='no'){ av=parseInt(av)||0; bv=parseInt(bv)||0; }
+    if(typeof av === 'string') return av.localeCompare(bv)*dir;
+    av = av===null||av===undefined ? -Infinity : av;
+    bv = bv===null||bv===undefined ? -Infinity : bv;
+    return (av-bv)*dir;
+  });
+  const body = document.getElementById('spTableBody');
+  body.innerHTML = rows.map(p => `
+    <tr>
+      <td class="left">${p.no}</td>
+      <td class="left">${p.name}<br><span style="font-size:11px;color:var(--ink-soft)">${p.location} \u00b7 ${p.type}</span></td>
+      <td class="left"><span class="badge ${statusClass(p.status)}">${p.status}</span></td>
+      <td>${PHP(p.contract)}</td>
+      <td class="fund-lp">${PHP(p.lp)}</td>
+      <td class="fund-gop">${PHP(p.gop)}</td>
+      <td class="fund-lp">${PHP(p.oblig_lp)}</td>
+      <td class="fund-gop">${PHP(p.oblig_gop)}</td>
+      <td class="fund-lp">${PHP(p.disb_lp)}</td>
+      <td class="fund-gop">${PHP(p.disb_gop)}</td>
+      <td class="${p.unobligated_total<0?'neg':''}">${PHP(p.unobligated_total)}</td>
+      <td class="${p.undisbursed_total<0?'neg':''}">${PHP(p.undisbursed_total)}</td>
+      <td>${pctFmt(p.phys_accomp)}</td>
+      <td>${pctFmt(p.fin_status_computed)}</td>
+    </tr>`).join('');
+}
+
+/* =========================================================
+   TRANSACTION TABLE
+   ========================================================= */
+const TX_COLS = [
+  {key:'no', lbl:'No.', left:true},
+  {key:'name', lbl:'Subproject', left:true},
+  {key:'kind', lbl:'Type', left:true},
+  {key:'fund', lbl:'Fund', left:true},
+  {key:'asa', lbl:'ASA No.', left:true},
+  {key:'ors_no', lbl:'ORS No.', left:true},
+  {key:'billing', lbl:'Billing', left:true},
+  {key:'date', lbl:'Date', left:true},
+  {key:'amount', lbl:'Amount', fmt:PHP},
+  {key:'released', lbl:'Released', fmt:PHP},
+  {key:'remaining', lbl:'Remaining', fmt:PHP},
+];
+function renderTXTableHead(){
+  const head = document.getElementById('txTableHead');
+  head.innerHTML = TX_COLS.map(c => {
+    const arrow = txSortState.key===c.key ? (txSortState.dir===1?'\u25B2':'\u25BC') : '';
+    return `<th class="${c.left?'left':''}" onclick="sortTX('${c.key}')">${c.lbl}<span class="arrow">${arrow}</span></th>`;
+  }).join('');
+}
+function sortTX(key){
+  if(txSortState.key===key) txSortState.dir *= -1; else { txSortState.key=key; txSortState.dir=1; }
+  renderTXTableHead(); renderTXTableBody();
+}
+function filteredTX(){
+  const q = document.getElementById('txSearch').value.trim().toLowerCase();
+  const typeF = document.getElementById('txTypeFilter').value;
+  const fundF = document.getElementById('txFundFilter').value;
+  return TX.filter(t => {
+    if(typeF && t.kind !== typeF) return false;
+    if(fundF && t.fund !== fundF) return false;
+    if(!q) return true;
+    return (t.name+' '+t.asa+' '+t.ors_no).toLowerCase().indexOf(q) >= 0;
+  });
+}
+function renderTXTableBody(){
+  let rows = filteredTX();
+  const {key, dir} = txSortState;
+  rows = [...rows].sort((a,b)=>{
+    let av=a[key], bv=b[key];
+    if(key==='no'){ av=parseInt(av)||0; bv=parseInt(bv)||0; }
+    if(key==='date_sort' || key==='date'){ av=a.date_sort||0; bv=b.date_sort||0; return (av-bv)*dir; }
+    if(typeof av === 'string') return av.localeCompare(bv)*dir;
+    av = av===null||av===undefined ? -Infinity : av;
+    bv = bv===null||bv===undefined ? -Infinity : bv;
+    return (av-bv)*dir;
+  });
+  const body = document.getElementById('txTableBody');
+  body.innerHTML = rows.map(t => `
+    <tr>
+      <td class="left">${t.no}</td>
+      <td class="left">${truncName(t.name,34)}</td>
+      <td class="left">${t.kind}</td>
+      <td class="left ${t.fund==='LP'?'fund-lp':'fund-gop'}">${t.fund}</td>
+      <td class="left">${t.asa}</td>
+      <td class="left">${t.ors_no||'\u2014'}</td>
+      <td class="left">${t.billing||'\u2014'}</td>
+      <td class="left">${t.date||'\u2014'}</td>
+      <td>${PHP(t.amount)}</td>
+      <td>${t.kind==='Obligation'?PHP(t.released):'\u2014'}</td>
+      <td>${t.kind==='Obligation'?PHP(t.remaining):'\u2014'}</td>
+    </tr>`).join('');
+}
+
+/* =========================================================
+   EXPORT
+   ========================================================= */
+function exportCSV(which){
+  let cols, rows, filename;
+  if(which==='sp'){
+    cols = SP_COLS; rows = filteredSP(); filename = 'ibuild_sp_correlation.csv';
+  } else {
+    cols = TX_COLS; rows = filteredTX(); filename = 'ibuild_asa_transactions.csv';
+  }
+  const header = cols.map(c=>c.lbl).join(',');
+  const lines = rows.map(r => cols.map(c => {
+    let v = r[c.key];
+    if(v===null||v===undefined) v='';
+    v = String(v).replace(/"/g,'""');
+    return /[,"\n]/.test(v) ? `"${v}"` : v;
+  }).join(','));
+  const csv = [header].concat(lines).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* =========================================================
+   RENDER / WIRE UP
+   ========================================================= */
+function render(){
+  renderKPIs();
+  renderCharts();
+  populateStatusFilter();
+  renderSPTableHead(); renderSPTableBody();
+  renderTXTableHead(); renderTXTableBody();
+}
+document.getElementById('spSearch').addEventListener('input', renderSPTableBody);
+document.getElementById('spStatusFilter').addEventListener('change', renderSPTableBody);
+document.getElementById('txSearch').addEventListener('input', renderTXTableBody);
+document.getElementById('txTypeFilter').addEventListener('change', renderTXTableBody);
+document.getElementById('txFundFilter').addEventListener('change', renderTXTableBody);
+
+loadAll(false);
+</script>
 </body>
 </html>
