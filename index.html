@@ -314,7 +314,8 @@ function ensureChartsLoaded() {
     </div>
   </div>
 
-  <div class="chart-grid thirds">
+  <!-- ============ Single chart row for Physical vs Financial ============ -->
+  <div class="chart-grid wide">
     <div class="panel">
       <h3>Physical vs. financial accomplishment</h3>
       <p class="howto">Physical % (work certified on-site) vs. financial % (contract value actually disbursed). Physical normally runs ahead of financial — contractors get paid after work is certified and billed.</p>
@@ -322,21 +323,6 @@ function ensureChartsLoaded() {
         <div class="chart-error" id="error-physfin"></div>
         <div class="chart-loading show" id="loading-physfin">⏳ Loading chart...</div>
         <canvas id="chartPhysFin"></canvas>
-      </div>
-    </div>
-    <div class="panel">
-      <h3>LP / GOP contract split</h3>
-      <p class="howto">PRDP's standard co-financing ratio is 90% LP / 10% GOP counterpart. This checks the actual portfolio split.</p>
-      <div class="chart-holder short">
-        <div class="chart-error" id="error-fundsplit"></div>
-        <div class="chart-loading show" id="loading-fundsplit">⏳ Loading chart...</div>
-        <canvas id="chartFundSplit"></canvas>
-      </div>
-      <h3 style="margin-top:18px;">Status breakdown</h3>
-      <div class="chart-holder short">
-        <div class="chart-error" id="error-status"></div>
-        <div class="chart-loading show" id="loading-status">⏳ Loading chart...</div>
-        <canvas id="chartStatus"></canvas>
       </div>
     </div>
   </div>
@@ -688,7 +674,7 @@ function renderKPIs(){
 }
 
 /* =========================================================
-   CHARTS - UPDATED with Un-obligated & Un-disbursed
+   CHARTS
    ========================================================= */
 function destroyCharts(){ Object.values(charts).forEach(c=>c && c.destroy()); charts = {}; }
 
@@ -727,7 +713,6 @@ function renderCharts(){
   const blue = '#1E5F8C', blueDeep='#123C59', purple='#6B4F9E', green='#2F8F5B', amber='#C9861B', red='#C0433A';
   const lightBlue = 'rgba(30,95,140,0.3)';
   const lightPurple = 'rgba(107,79,158,0.3)';
-  const gray = '#95A5A6';
 
   const totalLP = SP.reduce((a,p)=>a+p.lp,0);
   const totalGOP = SP.reduce((a,p)=>a+p.gop,0);
@@ -736,7 +721,6 @@ function renderCharts(){
   const disbLP = SP.reduce((a,p)=>a+p.disb_lp,0);
   const disbGOP = SP.reduce((a,p)=>a+p.disb_gop,0);
   
-  // Calculate un-obligated and un-disbursed amounts
   const unoblLP = totalLP - oblLP;
   const unoblGOP = totalGOP - oblGOP;
   const undisbLP = oblLP - disbLP;
@@ -781,22 +765,17 @@ function renderCharts(){
               let value = ctx.raw || 0;
               let pct = '';
               if (ctx.dataIndex === 0) {
-                // Counterpart - percentage of total counterpart
                 const total = totalLP + totalGOP;
                 pct = total > 0 ? ` (${(value/total*100).toFixed(1)}%)` : '';
               } else if (ctx.dataIndex === 1) {
-                // Obligated - percentage of counterpart
                 const counterpart = ctx.dataset.label === 'LP' ? totalLP : totalGOP;
                 pct = counterpart > 0 ? ` (${(value/counterpart*100).toFixed(1)}% of counterpart)` : '';
               } else if (ctx.dataIndex === 2) {
-                // Disbursed - percentage of obligated
                 const obligated = ctx.dataset.label === 'LP' ? oblLP : oblGOP;
                 pct = obligated > 0 ? ` (${(value/obligated*100).toFixed(1)}% of obligated)` : '';
               } else if (ctx.dataIndex === 3) {
-                // Un-obligated
                 pct = ` (${value > 0 ? 'Not yet ASA\'d' : 'Fully obligated'})`;
               } else if (ctx.dataIndex === 4) {
-                // Un-disbursed
                 pct = ` (${value > 0 ? 'Obligated but not released' : 'Fully disbursed'})`;
               }
               return label + ': ' + PHP(value) + pct;
@@ -861,36 +840,10 @@ function renderCharts(){
       }
     }
   });
-
-  // 4. LP/GOP split donut
-  charts.fundSplit = mountChart('chartFundSplit', {
-    type:'doughnut',
-    data:{ labels:['LP','GOP'], datasets:[{data:[totalLP,totalGOP], backgroundColor:[blue,purple], borderWidth:0}] },
-    options:{
-      responsive:true, maintainAspectRatio:false, cutout:'62%',
-      plugins:{legend:{position:'bottom', labels:{font:{family:'IBM Plex Mono',size:11}}},
-        tooltip:{callbacks:{label:ctx=>ctx.label+': '+PHPm(ctx.raw)+' ('+(ctx.raw/(totalLP+totalGOP)*100).toFixed(1)+'%)'}}}
-    }
-  });
-
-  // 5. Status breakdown donut
-  const statusCounts = {};
-  SP.forEach(p=>{ const c=statusClass(p.status); statusCounts[c]=(statusCounts[c]||0)+1; });
-  const statusLabels = {completed:'Completed', ongoing:'On-going', nol1:'With NOL1'};
-  const scKeys = Object.keys(statusCounts);
-  charts.status = mountChart('chartStatus', {
-    type:'doughnut',
-    data:{
-      labels: scKeys.map(k=>statusLabels[k]||k),
-      datasets:[{data:scKeys.map(k=>statusCounts[k]), backgroundColor:scKeys.map(k=> k==='completed'?green:(k==='nol1'?amber:blue)), borderWidth:0}]
-    },
-    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%',
-      plugins:{legend:{position:'bottom', labels:{font:{family:'IBM Plex Mono',size:11}}}} }
-  });
 }
 
 /* =========================================================
-   SUBPROJECT TABLE
+   SUBPROJECT TABLE with totals in footer
    ========================================================= */
 const SP_COLS = [
   {key:'no', lbl:'No.', left:true},
@@ -908,6 +861,7 @@ const SP_COLS = [
   {key:'phys_accomp', lbl:'Physical %', fmt:pctFmt},
   {key:'fin_status_computed', lbl:'Financial %', fmt:pctFmt},
 ];
+
 function populateStatusFilter(){
   const sel = document.getElementById('spStatusFilter');
   const cur = sel.value;
@@ -915,6 +869,7 @@ function populateStatusFilter(){
   sel.innerHTML = '<option value="">All statuses</option>' + statuses.map(s=>`<option value="${s}">${s}</option>`).join('');
   sel.value = cur;
 }
+
 function renderSPTableHead(){
   const head = document.getElementById('spTableHead');
   head.innerHTML = SP_COLS.map(c => {
@@ -922,10 +877,12 @@ function renderSPTableHead(){
     return `<th class="${c.left?'left':''}" onclick="sortSP('${c.key}')">${c.lbl}<span class="arrow">${arrow}</span></th>`;
   }).join('');
 }
+
 function sortSP(key){
   if(spSortState.key===key) spSortState.dir *= -1; else { spSortState.key=key; spSortState.dir=1; }
   renderSPTableHead(); renderSPTableBody();
 }
+
 function filteredSP(){
   const q = document.getElementById('spSearch').value.trim().toLowerCase();
   const statusF = document.getElementById('spStatusFilter').value;
@@ -935,6 +892,7 @@ function filteredSP(){
     return (p.name+' '+p.location+' '+p.type).toLowerCase().indexOf(q) >= 0;
   });
 }
+
 function renderSPTableBody(){
   let rows = filteredSP();
   const {key, dir} = spSortState;
@@ -966,10 +924,11 @@ function renderSPTableBody(){
     </tr>`).join('');
   renderSPTableFoot(rows);
 }
+
 function renderSPTableFoot(rows){
   const foot = document.getElementById('spTableFoot');
   foot.innerHTML = SP_COLS.map((c,i) => {
-    if(i===0) return `<td class="left">Total (${rows.length} shown)</td>`;
+    if(i===0) return `<td class="left">TOTAL (${rows.length} shown)</td>`;
     if(c.fmt === PHP){
       const sum = rows.reduce((a,p)=>a+(p[c.key]||0),0);
       return `<td class="${sum<0?'neg':''}">${PHP(sum)}</td>`;
@@ -984,7 +943,7 @@ function renderSPTableFoot(rows){
 }
 
 /* =========================================================
-   TRANSACTION TABLE
+   TRANSACTION TABLE with totals in footer
    ========================================================= */
 const TX_COLS = [
   {key:'no', lbl:'No.', left:true},
@@ -999,6 +958,7 @@ const TX_COLS = [
   {key:'released', lbl:'Released', fmt:PHP},
   {key:'remaining', lbl:'Remaining', fmt:PHP},
 ];
+
 function renderTXTableHead(){
   const head = document.getElementById('txTableHead');
   head.innerHTML = TX_COLS.map(c => {
@@ -1006,10 +966,12 @@ function renderTXTableHead(){
     return `<th class="${c.left?'left':''}" onclick="sortTX('${c.key}')">${c.lbl}<span class="arrow">${arrow}</span></th>`;
   }).join('');
 }
+
 function sortTX(key){
   if(txSortState.key===key) txSortState.dir *= -1; else { txSortState.key=key; txSortState.dir=1; }
   renderTXTableHead(); renderTXTableBody();
 }
+
 function filteredTX(){
   const q = document.getElementById('txSearch').value.trim().toLowerCase();
   const typeF = document.getElementById('txTypeFilter').value;
@@ -1021,6 +983,7 @@ function filteredTX(){
     return (t.name+' '+t.asa+' '+t.ors_no).toLowerCase().indexOf(q) >= 0;
   });
 }
+
 function renderTXTableBody(){
   let rows = filteredTX();
   const {key, dir} = txSortState;
@@ -1050,10 +1013,11 @@ function renderTXTableBody(){
     </tr>`).join('');
   renderTXTableFoot(rows);
 }
+
 function renderTXTableFoot(rows){
   const foot = document.getElementById('txTableFoot');
   foot.innerHTML = TX_COLS.map((c,i) => {
-    if(i===0) return `<td class="left">Total (${rows.length} shown)</td>`;
+    if(i===0) return `<td class="left">TOTAL (${rows.length} shown)</td>`;
     if(c.fmt === PHP){
       const oblRows = c.key==='released' || c.key==='remaining' ? rows.filter(t=>t.kind==='Obligation') : rows;
       const sum = oblRows.reduce((a,t)=>a+(t[c.key]||0),0);
@@ -1106,6 +1070,7 @@ function render(){
     try{ renderTXTableHead(); renderTXTableBody(); }catch(e){ console.error('Transaction table render failed:', e); }
   });
 }
+
 document.getElementById('spSearch').addEventListener('input', renderSPTableBody);
 document.getElementById('spStatusFilter').addEventListener('change', renderSPTableBody);
 document.getElementById('txSearch').addEventListener('input', renderTXTableBody);
