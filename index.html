@@ -485,29 +485,50 @@ async function loadAll(forceLive){
   const statusEl = document.getElementById('syncStatus');
   const noteEl = document.getElementById('refreshNote');
   noteEl.textContent = 'Syncing…';
-  const keys = ['profile','obligLP','obligGOP','disbLP','disbGOP'];
-  const results = await Promise.all(keys.map(k => fetchOne(k, forceLive)));
-  const byKey = {}; keys.forEach((k,i) => byKey[k] = results[i]);
-  const liveCount = results.filter(r=>r.live).length;
+  try{
+    const keys = ['profile','obligLP','obligGOP','disbLP','disbGOP'];
+    const results = await Promise.all(keys.map(k => fetchOne(k, forceLive)));
+    const byKey = {}; keys.forEach((k,i) => byKey[k] = results[i]);
+    const liveCount = results.filter(r=>r.live).length;
 
-  const profile  = parseProfileRows(parseCSV(byKey.profile.text));
-  const obligLP  = parseObligRows(parseCSV(byKey.obligLP.text), 'LP');
-  const obligGOP = parseObligRows(parseCSV(byKey.obligGOP.text), 'GOP');
-  const disbLP   = parseDisbRows(parseCSV(byKey.disbLP.text), 'LP');
-  const disbGOP  = parseDisbRows(parseCSV(byKey.disbGOP.text), 'GOP');
+    const profile  = parseProfileRows(parseCSV(byKey.profile.text));
+    const obligLP  = parseObligRows(parseCSV(byKey.obligLP.text), 'LP');
+    const obligGOP = parseObligRows(parseCSV(byKey.obligGOP.text), 'GOP');
+    const disbLP   = parseDisbRows(parseCSV(byKey.disbLP.text), 'LP');
+    const disbGOP  = parseDisbRows(parseCSV(byKey.disbGOP.text), 'GOP');
 
-  SP = buildConsolidated(profile, obligLP, obligGOP, disbLP, disbGOP);
-  TX = [].concat(obligLP, obligGOP, disbLP, disbGOP);
+    SP = buildConsolidated(profile, obligLP, obligGOP, disbLP, disbGOP);
+    TX = [].concat(obligLP, obligGOP, disbLP, disbGOP);
 
-  if(liveCount === keys.length){
-    statusEl.textContent = 'Live — 5/5 sheets'; statusEl.className='v live';
-    noteEl.textContent = 'Synced ' + new Date().toLocaleTimeString();
-  } else if(liveCount === 0){
-    statusEl.textContent = 'Cached snapshot'; statusEl.className='v cached';
-    noteEl.textContent = 'Live fetch unavailable — showing bundled snapshot';
-  } else {
-    statusEl.textContent = 'Partial — ' + liveCount + '/5 live'; statusEl.className='v partial';
-    noteEl.textContent = 'Some sheets fell back to the bundled snapshot';
+    if(liveCount === keys.length){
+      statusEl.textContent = 'Live — 5/5 sheets'; statusEl.className='v live';
+      noteEl.textContent = 'Synced ' + new Date().toLocaleTimeString();
+    } else if(liveCount === 0){
+      statusEl.textContent = 'Cached snapshot'; statusEl.className='v cached';
+      noteEl.textContent = 'Live fetch unavailable — showing bundled snapshot';
+    } else {
+      statusEl.textContent = 'Partial — ' + liveCount + '/5 live'; statusEl.className='v partial';
+      noteEl.textContent = 'Some sheets fell back to the bundled snapshot';
+    }
+  }catch(err){
+    console.error('loadAll failed — attempting fallback-only load:', err);
+    try{
+      const keys = ['profile','obligLP','obligGOP','disbLP','disbGOP'];
+      const profile  = parseProfileRows(parseCSV(b64ToCsvText(FALLBACK_B64.profile)));
+      const obligLP  = parseObligRows(parseCSV(b64ToCsvText(FALLBACK_B64.obligLP)), 'LP');
+      const obligGOP = parseObligRows(parseCSV(b64ToCsvText(FALLBACK_B64.obligGOP)), 'GOP');
+      const disbLP   = parseDisbRows(parseCSV(b64ToCsvText(FALLBACK_B64.disbLP)), 'LP');
+      const disbGOP  = parseDisbRows(parseCSV(b64ToCsvText(FALLBACK_B64.disbGOP)), 'GOP');
+      SP = buildConsolidated(profile, obligLP, obligGOP, disbLP, disbGOP);
+      TX = [].concat(obligLP, obligGOP, disbLP, disbGOP);
+      statusEl.textContent = 'Cached snapshot'; statusEl.className='v cached';
+      noteEl.textContent = 'Recovered from an error — showing bundled snapshot';
+    }catch(err2){
+      console.error('Fallback-only load also failed:', err2);
+      statusEl.textContent = 'Load error'; statusEl.className='v cached';
+      noteEl.textContent = 'Could not load data — see browser console for details';
+      SP = SP || []; TX = TX || [];
+    }
   }
   document.getElementById('stampGenerated').textContent = new Date().toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'});
   document.getElementById('footStamp').textContent = 'Rendered ' + new Date().toLocaleString('en-PH');
@@ -595,6 +616,7 @@ function renderCharts(){
   const disbGOP = SP.reduce((a,p)=>a+p.disb_gop,0);
 
   // 1. Fund flow: LP vs GOP, Counterpart / Obligated / Disbursed
+  try{
   charts.fundFlow = new Chart(document.getElementById('chartFundFlow'), {
     type:'bar',
     data:{
@@ -613,9 +635,11 @@ function renderCharts(){
       }
     }
   });
+  }catch(e){ console.error('chartFundFlow failed:', e); }
 
   // 2. Disbursement rate LP vs GOP per subproject (horizontal)
   const spSorted = [...SP].sort((a,b)=> (b.disb_rate_total||0)-(a.disb_rate_total||0));
+  try{
   charts.disbRateBySource = new Chart(document.getElementById('chartDisbRateBySource'), {
     type:'bar',
     data:{
@@ -634,9 +658,11 @@ function renderCharts(){
       }
     }
   });
+  }catch(e){ console.error('chartDisbRateBySource failed:', e); }
 
   // 3. Physical vs financial accomplishment
   const spByPhys = [...SP].sort((a,b)=>(b.phys_accomp||0)-(a.phys_accomp||0));
+  try{
   charts.physFin = new Chart(document.getElementById('chartPhysFin'), {
     type:'bar',
     data:{
@@ -655,8 +681,10 @@ function renderCharts(){
       }
     }
   });
+  }catch(e){ console.error('chartPhysFin failed:', e); }
 
   // 4. LP/GOP split donut
+  try{
   charts.fundSplit = new Chart(document.getElementById('chartFundSplit'), {
     type:'doughnut',
     data:{ labels:['LP','GOP'], datasets:[{data:[totalLP,totalGOP], backgroundColor:[blue,purple], borderWidth:0}] },
@@ -666,12 +694,14 @@ function renderCharts(){
         tooltip:{callbacks:{label:ctx=>ctx.label+': '+PHPm(ctx.raw)+' ('+(ctx.raw/(totalLP+totalGOP)*100).toFixed(1)+'%)'}}}
     }
   });
+  }catch(e){ console.error('chartFundSplit failed:', e); }
 
   // 5. Status breakdown donut
   const statusCounts = {};
   SP.forEach(p=>{ const c=statusClass(p.status); statusCounts[c]=(statusCounts[c]||0)+1; });
   const statusLabels = {completed:'Completed', ongoing:'On-going', nol1:'With NOL1'};
   const scKeys = Object.keys(statusCounts);
+  try{
   charts.status = new Chart(document.getElementById('chartStatus'), {
     type:'doughnut',
     data:{
@@ -681,6 +711,7 @@ function renderCharts(){
     options:{ responsive:true, maintainAspectRatio:false, cutout:'62%',
       plugins:{legend:{position:'bottom', labels:{font:{family:'IBM Plex Mono',size:11}}}} }
   });
+  }catch(e){ console.error('chartStatus failed:', e); }
 }
 
 /* =========================================================
@@ -886,11 +917,11 @@ function exportCSV(which){
    RENDER / WIRE UP
    ========================================================= */
 function render(){
-  renderKPIs();
-  renderCharts();
-  populateStatusFilter();
-  renderSPTableHead(); renderSPTableBody();
-  renderTXTableHead(); renderTXTableBody();
+  try{ renderKPIs(); }catch(e){ console.error('KPI render failed:', e); }
+  try{ renderCharts(); }catch(e){ console.error('Chart render failed:', e); }
+  try{ populateStatusFilter(); }catch(e){ console.error('Status filter populate failed:', e); }
+  try{ renderSPTableHead(); renderSPTableBody(); }catch(e){ console.error('Subproject table render failed:', e); }
+  try{ renderTXTableHead(); renderTXTableBody(); }catch(e){ console.error('Transaction table render failed:', e); }
 }
 document.getElementById('spSearch').addEventListener('input', renderSPTableBody);
 document.getElementById('spStatusFilter').addEventListener('change', renderSPTableBody);
