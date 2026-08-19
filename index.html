@@ -7,7 +7,82 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- PRIMARY CDN for Chart.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+
+<!-- FALLBACK CDN LOADING with retry logic -->
+<script>
+(function loadChartJS() {
+    // Check if Chart.js loaded successfully
+    if (typeof Chart !== 'undefined') {
+        console.log('Chart.js loaded successfully from primary CDN');
+        return;
+    }
+    
+    console.warn('Primary Chart.js CDN failed, trying fallback...');
+    
+    // Try jsdelivr as first fallback
+    try {
+        var script1 = document.createElement('script');
+        script1.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js';
+        script1.onload = function() {
+            console.log('Chart.js loaded from jsdelivr fallback');
+        };
+        script1.onerror = function() {
+            console.warn('jsdelivr fallback failed, trying unpkg...');
+            // Try unpkg as second fallback
+            var script2 = document.createElement('script');
+            script2.src = 'https://unpkg.com/chart.js@4.4.4/dist/chart.umd.min.js';
+            script2.onload = function() {
+                console.log('Chart.js loaded from unpkg fallback');
+            };
+            script2.onerror = function() {
+                console.error('All Chart.js CDN sources failed. Charts will not render.');
+                // Show a user-friendly message
+                document.addEventListener('DOMContentLoaded', function() {
+                    var errorDivs = document.querySelectorAll('.chart-error');
+                    errorDivs.forEach(function(el) {
+                        el.textContent = '⚠️ Chart library failed to load. Please check your internet connection or try reloading the page.';
+                        el.style.display = 'block';
+                    });
+                });
+            };
+            document.head.appendChild(script2);
+        };
+        document.head.appendChild(script1);
+    } catch (e) {
+        console.error('Error loading Chart.js fallbacks:', e);
+    }
+})();
+</script>
+
+<!-- Wait for Chart.js to load before rendering charts -->
+<script>
+// This will be triggered when Chart.js is available
+function ensureChartsLoaded() {
+    return new Promise(function(resolve, reject) {
+        if (typeof Chart !== 'undefined') {
+            resolve();
+            return;
+        }
+        
+        // Check every 100ms for up to 5 seconds
+        var attempts = 0;
+        var interval = setInterval(function() {
+            attempts++;
+            if (typeof Chart !== 'undefined') {
+                clearInterval(interval);
+                resolve();
+            } else if (attempts >= 50) {
+                clearInterval(interval);
+                reject(new Error('Chart.js failed to load after 5 seconds'));
+            }
+        }, 100);
+    });
+}
+</script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
   :root{
@@ -127,6 +202,15 @@
     color:var(--red); background:var(--red-tint); border:1px solid var(--red);
     padding:8px 10px; display:none;
   }
+  
+  /* Loading state for charts */
+  .chart-loading{
+    position:absolute; top:8px; left:8px; right:8px; z-index:2;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.5;
+    color:var(--blue); background:var(--blue-tint); border:1px solid var(--blue);
+    padding:8px 10px; display:none;
+  }
+  .chart-loading.show{display:block;}
 
   /* ---------- Legend chips ---------- */
   .legend-row{ display:flex; gap:16px; flex-wrap:wrap; margin:0 0 10px; font-size:12px; color:var(--ink-soft); }
@@ -228,12 +312,20 @@
     <div class="panel">
       <h3>Obligation vs. disbursement by fund source</h3>
       <p class="howto">Portfolio totals for LP and GOP: how much of each fund source has been obligated (ASA'd) vs. actually disbursed to contractors. The gap between paired bars is the undisbursed balance.</p>
-      <div class="chart-holder"><canvas id="chartFundFlow"></canvas></div>
+      <div class="chart-holder">
+        <div class="chart-error" id="error-fundflow"></div>
+        <div class="chart-loading show" id="loading-fundflow">⏳ Loading chart...</div>
+        <canvas id="chartFundFlow"></canvas>
+      </div>
     </div>
     <div class="panel">
       <h3>Disbursement rate: LP vs. GOP, per subproject</h3>
       <p class="howto">Disbursed &divide; Obligated, per fund source, per subproject. Where the GOP bar trails the LP bar, GOP releases are lagging behind LP — a common pattern since GOP counterpart processing runs on a separate track.</p>
-      <div class="chart-holder tall"><canvas id="chartDisbRateBySource"></canvas></div>
+      <div class="chart-holder tall">
+        <div class="chart-error" id="error-disbrate"></div>
+        <div class="chart-loading show" id="loading-disbrate">⏳ Loading chart...</div>
+        <canvas id="chartDisbRateBySource"></canvas>
+      </div>
     </div>
   </div>
 
@@ -241,14 +333,26 @@
     <div class="panel">
       <h3>Physical vs. financial accomplishment</h3>
       <p class="howto">Physical % (work certified on-site) vs. financial % (contract value actually disbursed). Physical normally runs ahead of financial — contractors get paid after work is certified and billed.</p>
-      <div class="chart-holder tall"><canvas id="chartPhysFin"></canvas></div>
+      <div class="chart-holder tall">
+        <div class="chart-error" id="error-physfin"></div>
+        <div class="chart-loading show" id="loading-physfin">⏳ Loading chart...</div>
+        <canvas id="chartPhysFin"></canvas>
+      </div>
     </div>
     <div class="panel">
       <h3>LP / GOP contract split</h3>
       <p class="howto">PRDP's standard co-financing ratio is 90% LP / 10% GOP counterpart. This checks the actual portfolio split.</p>
-      <div class="chart-holder short"><canvas id="chartFundSplit"></canvas></div>
+      <div class="chart-holder short">
+        <div class="chart-error" id="error-fundsplit"></div>
+        <div class="chart-loading show" id="loading-fundsplit">⏳ Loading chart...</div>
+        <canvas id="chartFundSplit"></canvas>
+      </div>
       <h3 style="margin-top:18px;">Status breakdown</h3>
-      <div class="chart-holder short"><canvas id="chartStatus"></canvas></div>
+      <div class="chart-holder short">
+        <div class="chart-error" id="error-status"></div>
+        <div class="chart-loading show" id="loading-status">⏳ Loading chart...</div>
+        <canvas id="chartStatus"></canvas>
+      </div>
     </div>
   </div>
 
@@ -617,13 +721,17 @@ function mountChart(canvasId, config){
   const canvas = document.getElementById(canvasId);
   const holder = canvas ? canvas.parentElement : null;
   let errEl = holder ? holder.querySelector('.chart-error') : null;
+  let loadEl = holder ? holder.querySelector('.chart-loading') : null;
+  
   if(holder && !errEl){
     errEl = document.createElement('div');
     errEl.className = 'chart-error';
     holder.appendChild(errEl);
   }
   if(errEl) errEl.style.display = 'none';
+  if(loadEl) loadEl.classList.remove('show');
   if(canvas) canvas.style.display = '';
+  
   try{
     if(typeof Chart === 'undefined') throw new Error('Chart.js did not load (blocked script or offline CDN)');
     if(!canvas) throw new Error('Canvas #'+canvasId+' not found in page');
@@ -942,11 +1050,21 @@ function exportCSV(which){
    RENDER / WIRE UP
    ========================================================= */
 function render(){
-  try{ renderKPIs(); }catch(e){ console.error('KPI render failed:', e); }
-  try{ renderCharts(); }catch(e){ console.error('Chart render failed:', e); }
-  try{ populateStatusFilter(); }catch(e){ console.error('Status filter populate failed:', e); }
-  try{ renderSPTableHead(); renderSPTableBody(); }catch(e){ console.error('Subproject table render failed:', e); }
-  try{ renderTXTableHead(); renderTXTableBody(); }catch(e){ console.error('Transaction table render failed:', e); }
+  // Wait for Chart.js to be available before rendering charts
+  ensureChartsLoaded().then(function() {
+    try{ renderKPIs(); }catch(e){ console.error('KPI render failed:', e); }
+    try{ renderCharts(); }catch(e){ console.error('Chart render failed:', e); }
+    try{ populateStatusFilter(); }catch(e){ console.error('Status filter populate failed:', e); }
+    try{ renderSPTableHead(); renderSPTableBody(); }catch(e){ console.error('Subproject table render failed:', e); }
+    try{ renderTXTableHead(); renderTXTableBody(); }catch(e){ console.error('Transaction table render failed:', e); }
+  }).catch(function(err) {
+    console.error('Chart.js failed to load, rendering without charts:', err);
+    // Render everything except charts
+    try{ renderKPIs(); }catch(e){ console.error('KPI render failed:', e); }
+    try{ populateStatusFilter(); }catch(e){ console.error('Status filter populate failed:', e); }
+    try{ renderSPTableHead(); renderSPTableBody(); }catch(e){ console.error('Subproject table render failed:', e); }
+    try{ renderTXTableHead(); renderTXTableBody(); }catch(e){ console.error('Transaction table render failed:', e); }
+  });
 }
 document.getElementById('spSearch').addEventListener('input', renderSPTableBody);
 document.getElementById('spStatusFilter').addEventListener('change', renderSPTableBody);
@@ -954,7 +1072,10 @@ document.getElementById('txSearch').addEventListener('input', renderTXTableBody)
 document.getElementById('txTypeFilter').addEventListener('change', renderTXTableBody);
 document.getElementById('txFundFilter').addEventListener('change', renderTXTableBody);
 
-loadAll(false);
+// Initial load
+document.addEventListener('DOMContentLoaded', function() {
+  loadAll(false);
+});
 </script>
 </body>
 </html>
