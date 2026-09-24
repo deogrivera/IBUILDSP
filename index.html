@@ -115,6 +115,18 @@
   }
   .databar button:hover{background:var(--forest);}
 
+  .tbl-summary{
+    display:grid;grid-template-columns:repeat(7,1fr);gap:1px;
+    background:var(--line);border:1px solid var(--line);margin-bottom:16px;
+  }
+  .tbl-summary .sitem{
+    background:var(--panel);padding:10px 12px;display:flex;flex-direction:column;gap:3px;
+  }
+  .tbl-summary .slabel{font-size:0.68rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;}
+  .tbl-summary .sval{font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.92rem;font-weight:600;color:var(--forest-deep);}
+  .tbl-summary .sitem.neg .sval{color:#6E7BA8;}
+  @media (max-width:900px){ .tbl-summary{grid-template-columns:repeat(2,1fr);} }
+
   .filters{
     display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;
   }
@@ -179,6 +191,7 @@
 
   <section>
     <h2>Subproject register</h2>
+    <div class="tbl-summary" id="tblSummary"></div>
     <div class="filters">
       <input type="text" id="fSearch" placeholder="Search name or location…">
       <select id="fCategory"><option value="">All categories</option></select>
@@ -269,23 +282,29 @@ function num(v){
   return isNaN(n) ? null : n;
 }
 
-function findCol(headers, matcher){
-  return headers.findIndex(matcher);
+function findCol(headers, matcher, fallbackIndex){
+  const idx = headers.findIndex(matcher);
+  return idx>=0 ? idx : (fallbackIndex!=null ? fallbackIndex : -1);
 }
 
+// Column layout as given in the sheet: A No. | B Subproject Name | C Location | D Category
+// | E Status | F Physical Accomp. (%) | G Total Cost (PHP) | H Total Disbursed (PHP)
+// | I Disb. Rate (%) | J Payment Backlog (%) | K Payment Backlog (Amount)
+// Header-text matching is tried first (resilient to reordered columns); if a header
+// can't be matched, it falls back to the fixed position below so J/K are always captured.
 function csvToData(rawRows){
   const headers = rawRows[0].map(h=>h.trim().toLowerCase());
-  const colNo      = findCol(headers, h=>h==="no."||h==="no"||h==="#");
-  const colName    = findCol(headers, h=>h.includes("subproject") || h.includes("name"));
-  const colLoc     = findCol(headers, h=>h.includes("location"));
-  const colCat     = findCol(headers, h=>h.includes("categ"));
-  const colStatus  = findCol(headers, h=>h==="status");
-  const colPhys    = findCol(headers, h=>h.includes("physical"));
-  const colCost    = findCol(headers, h=>h.includes("total cost"));
-  const colDisb    = findCol(headers, h=>h.includes("total disbursed"));
-  const colRate    = findCol(headers, h=>h.includes("disb") && h.includes("rate"));
-  const colBackPct = findCol(headers, h=>h.includes("backlog") && h.includes("%"));
-  const colBackAmt = findCol(headers, h=>h.includes("backlog") && (h.includes("amount") || !h.includes("%")) && h!==headers[colBackPct]);
+  const colNo      = findCol(headers, h=>h==="no."||h==="no"||h==="#", 0);
+  const colName    = findCol(headers, h=>h.includes("subproject") || h.includes("name"), 1);
+  const colLoc     = findCol(headers, h=>h.includes("location"), 2);
+  const colCat     = findCol(headers, h=>h.includes("categ"), 3);
+  const colStatus  = findCol(headers, h=>h==="status", 4);
+  const colPhys    = findCol(headers, h=>h.includes("physical"), 5);
+  const colCost    = findCol(headers, h=>h.includes("total cost"), 6);
+  const colDisb    = findCol(headers, h=>h.includes("total disbursed"), 7);
+  const colRate    = findCol(headers, h=>h.includes("disb") && h.includes("rate"), 8);
+  const colBackPct = findCol(headers, h=>h.includes("backlog") && h.includes("%"), 9);   // Column J
+  const colBackAmt = findCol(headers, h=>h.includes("backlog") && h.includes("amount"), 10); // Column K
 
   return rawRows.slice(1).map((r,i)=>({
     no: colNo>=0 ? (num(r[colNo]) ?? i+1) : i+1,
@@ -416,6 +435,34 @@ function populateFilterOptions(data){
   statusSel.innerHTML = `<option value="">All statuses</option>` + statuses.map(s=>`<option value="${s}">${s}</option>`).join("");
 }
 
+function computeColumnSummary(data){
+  const n = data.length;
+  const sum = (fn) => data.reduce((s,d)=>s+fn(d),0);
+  const physVals = data.filter(d=>d.phys!=null);
+  return {
+    count: n,
+    avgPhys: physVals.length ? sum(d=>d.phys==null?0:d.phys)/physVals.length : 0,
+    sumCost: sum(d=>d.cost),
+    sumDisb: sum(d=>d.disb),
+    avgRate: n ? sum(d=>d.rate)/n : 0,
+    avgBacklogPct: n ? sum(d=>d.backlogPct)/n : 0,
+    sumBacklogAmt: sum(d=>d.backlogAmt)
+  };
+}
+
+function renderTableSummary(data){
+  const s = computeColumnSummary(data);
+  document.getElementById("tblSummary").innerHTML = `
+    <div class="sitem"><span class="slabel">Rows</span><span class="sval">${s.count}</span></div>
+    <div class="sitem"><span class="slabel">Avg. Physical %</span><span class="sval">${s.avgPhys.toFixed(2)}%</span></div>
+    <div class="sitem"><span class="slabel">Σ Total Cost</span><span class="sval">${pesoFull(s.sumCost)}</span></div>
+    <div class="sitem"><span class="slabel">Σ Total Disbursed</span><span class="sval">${pesoFull(s.sumDisb)}</span></div>
+    <div class="sitem"><span class="slabel">Avg. Disb. Rate</span><span class="sval">${s.avgRate.toFixed(2)}%</span></div>
+    <div class="sitem"><span class="slabel">Avg. Backlog %</span><span class="sval">${s.avgBacklogPct.toFixed(2)}%</span></div>
+    <div class="sitem ${s.sumBacklogAmt<0?'neg':''}"><span class="slabel">Σ Backlog Amount</span><span class="sval">${pesoFull(s.sumBacklogAmt)}</span></div>
+  `;
+}
+
 function applyFilters(){
   const q = document.getElementById("fSearch").value.trim().toLowerCase();
   const cat = document.getElementById("fCategory").value;
@@ -431,6 +478,7 @@ function applyFilters(){
     return true;
   });
   renderTable(filtered);
+  renderTableSummary(filtered);
   document.getElementById("fCount").textContent = `${filtered.length} of ${currentData.length} subprojects`;
 }
 
