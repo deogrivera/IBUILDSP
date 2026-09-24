@@ -102,6 +102,38 @@
 
   footer{margin-top:36px;font-size:0.78rem;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:14px;}
 
+  .databar{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    background:#EFEBDD;border:1px solid var(--line);padding:8px 14px;
+    font-size:0.8rem;color:var(--ink-soft);margin-bottom:26px;flex-wrap:wrap;
+  }
+  .databar.live{border-left:4px solid var(--forest);}
+  .databar.fallback{border-left:4px solid var(--rust);}
+  .databar button{
+    background:var(--forest-deep);color:#F1EEE3;border:none;padding:6px 14px;
+    font-size:0.78rem;cursor:pointer;
+  }
+  .databar button:hover{background:var(--forest);}
+
+  .filters{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;
+  }
+  .filters input[type=text]{
+    padding:7px 10px;border:1px solid var(--line);font-size:0.84rem;min-width:220px;
+    font-family:inherit;background:#fff;color:var(--ink);
+  }
+  .filters select{
+    padding:7px 10px;border:1px solid var(--line);font-size:0.84rem;
+    font-family:inherit;background:#fff;color:var(--ink);
+  }
+  .filters .count{font-size:0.78rem;color:var(--ink-soft);margin-left:auto;}
+  .filters button.clear{
+    background:none;border:1px solid var(--line);padding:7px 12px;font-size:0.78rem;
+    cursor:pointer;color:var(--ink-soft);
+  }
+  .filters button.clear:hover{border-color:var(--rust);color:var(--rust);}
+  tr.hidden-row{display:none;}
+
   @media (max-width:900px){
     .kpis{grid-template-columns:repeat(2,1fr);}
     .grid2{grid-template-columns:1fr;}
@@ -114,10 +146,12 @@
   <header>
     <div>
       <h1>I-BUILD Subprojects — Financial &amp; Physical Status</h1>
-      <p>PRDP RPCO I · Region I coverage · 15 subprojects tracked</p>
+      <p>PRDP RPCO I · Region I coverage · <span id="spCount">15</span> subprojects tracked</p>
     </div>
-    <div class="meta">Snapshot as provided<br>Source: Financial Status of I-BUILD Subprojects sheet</div>
+    <div class="meta">Source: Google Sheet — "Summary"</div>
   </header>
+
+  <div class="databar" id="dataBar">Loading data…</div>
 
   <div class="kpis" id="kpis"></div>
 
@@ -145,6 +179,18 @@
 
   <section>
     <h2>Subproject register</h2>
+    <div class="filters">
+      <input type="text" id="fSearch" placeholder="Search name or location…">
+      <select id="fCategory"><option value="">All categories</option></select>
+      <select id="fStatus"><option value="">All statuses</option></select>
+      <select id="fBacklog">
+        <option value="">All backlog levels</option>
+        <option value="high">Backlog &gt; 20%</option>
+        <option value="neg">Negative backlog</option>
+      </select>
+      <button class="clear" id="fClear">Clear filters</button>
+      <span class="count" id="fCount"></span>
+    </div>
     <table id="regTable">
       <thead>
         <tr>
@@ -157,14 +203,18 @@
     </table>
   </section>
 
-  <footer>
-    Dashboard renders directly from the data supplied — no external data connection. Negative backlog values indicate disbursement recorded ahead of the physical accomplishment on file and are worth a data-quality check with the subproject's finance officer.
+  <footer id="footerNote">
+    Negative backlog values indicate disbursement recorded ahead of the physical accomplishment on file and are worth a data-quality check with the subproject's finance officer.
   </footer>
 
 </div>
 
 <script>
-const data = [
+const SHEET_ID = "1KshU51bCXvq7gF4qbCOYs3OuWuhSJFsvdcqT5wfJnjU";
+const SHEET_NAME = "Summary";
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+const FALLBACK_DATA = [
   {no:1,name:"San Jose Multi-Purpose Warehouse with Solar Dryer",loc:"Vintar, Ilocos Norte",cat:"VCRI",status:"Completed",phys:100.00,cost:10267127.90,disb:10267127.90,rate:100.00,backlogPct:0.00,backlogAmt:0.00},
   {no:2,name:"Multi-Purpose Drying Pavement in Bugallon",loc:"Pangasinan",cat:"VCRI",status:"Completed",phys:100.00,cost:37828715.27,disb:32723204.09,rate:86.50,backlogPct:13.50,backlogAmt:5105511.18},
   {no:3,name:"Multi-Purpose Drying Pavement in Sta. Barbara",loc:"Pangasinan",cat:"VCRI",status:"Completed",phys:100.00,cost:37072178.19,disb:33496960.43,rate:90.36,backlogPct:9.64,backlogAmt:3575217.76},
@@ -185,107 +235,258 @@ const data = [
 const peso = n => "₱" + n.toLocaleString("en-PH",{maximumFractionDigits:0});
 const pesoFull = n => "₱" + n.toLocaleString("en-PH",{minimumFractionDigits:2,maximumFractionDigits:2});
 
-// KPI calc
-const totalCost = data.reduce((s,d)=>s+d.cost,0);
-const totalDisb = data.reduce((s,d)=>s+d.disb,0);
-const overallRate = (totalDisb/totalCost*100);
-const totalBacklog = data.reduce((s,d)=>s+d.backlogAmt,0);
-const completed = data.filter(d=>d.status==="Completed").length;
-const ongoing = data.filter(d=>d.status==="On-going").length;
-const withNol = data.filter(d=>d.status==="with NOL1").length;
-const avgPhys = data.filter(d=>d.phys!=null).reduce((s,d,_,a)=>s+d.phys/a.length,0);
+let currentData = FALLBACK_DATA;
+let filtered = FALLBACK_DATA;
 
-const kpis = [
-  {label:"Subprojects tracked",value:data.length,sub:`${completed} completed · ${ongoing} on-going · ${withNol} with NOL1`},
-  {label:"Total programmed cost",value:peso(totalCost),sub:"Across all 15 subprojects"},
-  {label:"Total disbursed",value:peso(totalDisb),sub:`${overallRate.toFixed(1)}% of programmed cost`},
-  {label:"Undisbursed / backlog",value:peso(totalBacklog),sub:"Sum of payment backlog, all subprojects",warn:true},
-  {label:"Avg. physical accomplishment",value:avgPhys.toFixed(1)+"%",sub:"Subprojects with reported progress"}
-];
-const kpiEl = document.getElementById("kpis");
-kpis.forEach(k=>{
-  const div = document.createElement("div");
-  div.className = "kpi"+(k.warn?" warn":"");
-  div.innerHTML = `<div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div>`;
-  kpiEl.appendChild(div);
-});
+// ---------- CSV parsing (no external library) ----------
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for (let i=0;i<text.length;i++){
+    const c = text[i];
+    if (inQuotes){
+      if (c === '"'){
+        if (text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field=""; }
+      else if (c === '\n'){ row.push(field); rows.push(row); row=[]; field=""; }
+      else if (c === '\r'){ /* skip */ }
+      else field += c;
+    }
+  }
+  if (field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim() !== ""));
+}
 
-// Table
-const tbody = document.querySelector("#regTable tbody");
-data.forEach(d=>{
-  const tr = document.createElement("tr");
-  const statusClass = d.status==="Completed"?"completed":(d.status==="On-going"?"ongoing":"nol");
-  const catClass = d.cat==="VCRI"?"VCRI":d.cat==="FMR"?"FMR":d.cat==="Bridge"?"Bridge":"FMRB";
-  const backlogClass = d.backlogAmt<0?"backlog-neg":(d.backlogPct>20?"backlog-hi":"");
-  tr.innerHTML = `
-    <td>${d.no}</td>
-    <td>${d.name}</td>
-    <td>${d.loc}</td>
-    <td><span class="cat ${catClass}"></span>${d.cat}</td>
-    <td><span class="tag ${statusClass}">${d.status}</span></td>
-    <td class="num">${d.phys==null?"—":d.phys.toFixed(2)+"%"}</td>
-    <td class="num">${pesoFull(d.cost)}</td>
-    <td class="num">${pesoFull(d.disb)}</td>
-    <td class="num">${d.rate.toFixed(2)}%</td>
-    <td class="num ${backlogClass}">${pesoFull(d.backlogAmt)}</td>
+function num(v){
+  if (v==null) return null;
+  const cleaned = String(v).replace(/[₱,%\s]/g,"").trim();
+  if (cleaned === "" || cleaned === "-") return null;
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? null : n;
+}
+
+function findCol(headers, matcher){
+  return headers.findIndex(matcher);
+}
+
+function csvToData(rawRows){
+  const headers = rawRows[0].map(h=>h.trim().toLowerCase());
+  const colNo      = findCol(headers, h=>h==="no."||h==="no"||h==="#");
+  const colName    = findCol(headers, h=>h.includes("subproject") || h.includes("name"));
+  const colLoc     = findCol(headers, h=>h.includes("location"));
+  const colCat     = findCol(headers, h=>h.includes("categ"));
+  const colStatus  = findCol(headers, h=>h==="status");
+  const colPhys    = findCol(headers, h=>h.includes("physical"));
+  const colCost    = findCol(headers, h=>h.includes("total cost"));
+  const colDisb    = findCol(headers, h=>h.includes("total disbursed"));
+  const colRate    = findCol(headers, h=>h.includes("disb") && h.includes("rate"));
+  const colBackPct = findCol(headers, h=>h.includes("backlog") && h.includes("%"));
+  const colBackAmt = findCol(headers, h=>h.includes("backlog") && (h.includes("amount") || !h.includes("%")) && h!==headers[colBackPct]);
+
+  return rawRows.slice(1).map((r,i)=>({
+    no: colNo>=0 ? (num(r[colNo]) ?? i+1) : i+1,
+    name: (colName>=0 ? r[colName] : "").trim(),
+    loc: (colLoc>=0 ? r[colLoc] : "").trim(),
+    cat: (colCat>=0 ? r[colCat] : "").trim(),
+    status: (colStatus>=0 ? r[colStatus] : "").trim(),
+    phys: colPhys>=0 ? num(r[colPhys]) : null,
+    cost: colCost>=0 ? (num(r[colCost]) ?? 0) : 0,
+    disb: colDisb>=0 ? (num(r[colDisb]) ?? 0) : 0,
+    rate: colRate>=0 ? (num(r[colRate]) ?? 0) : 0,
+    backlogPct: colBackPct>=0 ? (num(r[colBackPct]) ?? 0) : 0,
+    backlogAmt: colBackAmt>=0 ? (num(r[colBackAmt]) ?? 0) : 0
+  })).filter(d => d.name !== "");
+}
+
+// ---------- Rendering ----------
+function renderAll(dataset, meta){
+  currentData = dataset;
+  document.getElementById("spCount").textContent = dataset.length;
+
+  const bar = document.getElementById("dataBar");
+  if (meta.live){
+    bar.className = "databar live";
+    bar.innerHTML = `Showing live data from the Google Sheet ("${SHEET_NAME}") · fetched ${new Date().toLocaleString("en-PH")} <button id="fRefresh">Refresh</button>`;
+  } else {
+    bar.className = "databar fallback";
+    bar.innerHTML = `Could not load the live Google Sheet (${meta.error||"unknown error"}) — showing the last known snapshot instead. Make sure the sheet is shared as "Anyone with the link – Viewer". <button id="fRefresh">Retry</button>`;
+  }
+  document.getElementById("fRefresh").addEventListener("click", loadData);
+
+  renderKPIs(dataset);
+  renderCharts(dataset);
+  populateFilterOptions(dataset);
+  applyFilters();
+}
+
+function renderKPIs(data){
+  const totalCost = data.reduce((s,d)=>s+d.cost,0);
+  const totalDisb = data.reduce((s,d)=>s+d.disb,0);
+  const overallRate = totalCost ? (totalDisb/totalCost*100) : 0;
+  const totalBacklog = data.reduce((s,d)=>s+d.backlogAmt,0);
+  const completed = data.filter(d=>d.status==="Completed").length;
+  const ongoing = data.filter(d=>d.status==="On-going").length;
+  const withNol = data.filter(d=>d.status!=="Completed" && d.status!=="On-going").length;
+  const physVals = data.filter(d=>d.phys!=null);
+  const avgPhys = physVals.length ? physVals.reduce((s,d)=>s+d.phys,0)/physVals.length : 0;
+
+  const kpis = [
+    {label:"Subprojects tracked",value:data.length,sub:`${completed} completed · ${ongoing} on-going · ${withNol} with NOL1`},
+    {label:"Total programmed cost",value:peso(totalCost),sub:`Across ${data.length} subprojects`},
+    {label:"Total disbursed",value:peso(totalDisb),sub:`${overallRate.toFixed(1)}% of programmed cost`},
+    {label:"Undisbursed / backlog",value:peso(totalBacklog),sub:"Sum of payment backlog, all subprojects",warn:true},
+    {label:"Avg. physical accomplishment",value:avgPhys.toFixed(1)+"%",sub:"Subprojects with reported progress"}
+  ];
+  const kpiEl = document.getElementById("kpis");
+  kpiEl.innerHTML = "";
+  kpis.forEach(k=>{
+    const div = document.createElement("div");
+    div.className = "kpi"+(k.warn?" warn":"");
+    div.innerHTML = `<div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div>`;
+    kpiEl.appendChild(div);
+  });
+}
+
+function renderCharts(data){
+  // Disbursement bars
+  const sorted = [...data].sort((a,b)=>b.rate-a.rate);
+  const disbEl = document.getElementById("disbChart");
+  disbEl.innerHTML = "";
+  sorted.forEach(d=>{
+    const color = d.rate>=80?"#1E4635":d.rate>=30?"#B9862F":"#A1402B";
+    const row = document.createElement("div");
+    row.className = "barrow";
+    row.innerHTML = `
+      <div class="lbl">SP${d.no}</div>
+      <div class="track"><div class="fill" style="width:${Math.min(d.rate,100)}%;background:${color};"></div></div>
+      <div class="val">${d.rate.toFixed(1)}%</div>`;
+    disbEl.appendChild(row);
+  });
+
+  // Status donut
+  const statusGroups = {};
+  data.forEach(d=>{ statusGroups[d.status] = (statusGroups[d.status]||0)+1; });
+  const palette = ["#1E4635","#B9862F","#8C8070","#5A7A8C","#A1402B"];
+  const statusData = Object.keys(statusGroups).map((k,i)=>({label:k,count:statusGroups[k],color:palette[i%palette.length]}));
+  const total = data.length;
+  const r=60, cx=90, cy=90, circ=2*Math.PI*r;
+  let offset=0, arcs="";
+  statusData.forEach(d=>{
+    const len = (d.count/total)*circ;
+    arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${d.color}" stroke-width="26" stroke-dasharray="${len} ${circ-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"></circle>`;
+    offset += len;
+  });
+  document.getElementById("statusChart").innerHTML = `
+    <svg viewBox="0 0 180 180" style="display:block;margin:0 auto;max-width:220px;">
+      ${arcs}
+      <text x="90" y="84" text-anchor="middle" font-size="26" font-family="IBM Plex Mono, monospace" fill="#23281F" font-weight="600">${total}</text>
+      <text x="90" y="102" text-anchor="middle" font-size="11" fill="#5B6152">subprojects</text>
+    </svg>
+    <div class="legend">${statusData.map(d=>`<span><span class="dot" style="background:${d.color}"></span>${d.label} (${d.count})</span>`).join("")}</div>
   `;
-  tbody.appendChild(tr);
+
+  // Physical vs financial
+  const pfEl = document.getElementById("physFinChart");
+  pfEl.innerHTML = "";
+  data.forEach(d=>{
+    const physVal = d.phys==null?0:d.phys;
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `
+      <div class="lbl">SP${d.no}</div>
+      <div class="bars">
+        <div class="track"><div class="fill" style="width:${Math.min(physVal,100)}%;background:#5A7A8C;"></div></div>
+        <div class="track"><div class="fill" style="width:${Math.min(d.rate,100)}%;background:#B9862F;"></div></div>
+      </div>`;
+    pfEl.appendChild(row);
+  });
+}
+
+// ---------- Filtering ----------
+function populateFilterOptions(data){
+  const catSel = document.getElementById("fCategory");
+  const statusSel = document.getElementById("fStatus");
+  const cats = [...new Set(data.map(d=>d.cat).filter(Boolean))].sort();
+  const statuses = [...new Set(data.map(d=>d.status).filter(Boolean))].sort();
+  catSel.innerHTML = `<option value="">All categories</option>` + cats.map(c=>`<option value="${c}">${c}</option>`).join("");
+  statusSel.innerHTML = `<option value="">All statuses</option>` + statuses.map(s=>`<option value="${s}">${s}</option>`).join("");
+}
+
+function applyFilters(){
+  const q = document.getElementById("fSearch").value.trim().toLowerCase();
+  const cat = document.getElementById("fCategory").value;
+  const status = document.getElementById("fStatus").value;
+  const backlog = document.getElementById("fBacklog").value;
+
+  filtered = currentData.filter(d=>{
+    if (q && !(d.name.toLowerCase().includes(q) || d.loc.toLowerCase().includes(q))) return false;
+    if (cat && d.cat !== cat) return false;
+    if (status && d.status !== status) return false;
+    if (backlog === "high" && !(d.backlogPct > 20)) return false;
+    if (backlog === "neg" && !(d.backlogAmt < 0)) return false;
+    return true;
+  });
+  renderTable(filtered);
+  document.getElementById("fCount").textContent = `${filtered.length} of ${currentData.length} subprojects`;
+}
+
+function renderTable(data){
+  const tbody = document.querySelector("#regTable tbody");
+  tbody.innerHTML = "";
+  data.forEach(d=>{
+    const tr = document.createElement("tr");
+    const statusClass = d.status==="Completed"?"completed":(d.status==="On-going"?"ongoing":"nol");
+    const catClass = d.cat==="VCRI"?"VCRI":d.cat==="FMR"?"FMR":d.cat==="Bridge"?"Bridge":"FMRB";
+    const backlogClass = d.backlogAmt<0?"backlog-neg":(d.backlogPct>20?"backlog-hi":"");
+    tr.innerHTML = `
+      <td>${d.no}</td>
+      <td>${d.name}</td>
+      <td>${d.loc}</td>
+      <td><span class="cat ${catClass}"></span>${d.cat}</td>
+      <td><span class="tag ${statusClass}">${d.status}</span></td>
+      <td class="num">${d.phys==null?"—":d.phys.toFixed(2)+"%"}</td>
+      <td class="num">${pesoFull(d.cost)}</td>
+      <td class="num">${pesoFull(d.disb)}</td>
+      <td class="num">${d.rate.toFixed(2)}%</td>
+      <td class="num ${backlogClass}">${pesoFull(d.backlogAmt)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+["fSearch","fCategory","fStatus","fBacklog"].forEach(id=>{
+  document.getElementById(id).addEventListener("input", applyFilters);
+  document.getElementById(id).addEventListener("change", applyFilters);
+});
+document.getElementById("fClear").addEventListener("click", ()=>{
+  document.getElementById("fSearch").value = "";
+  document.getElementById("fCategory").value = "";
+  document.getElementById("fStatus").value = "";
+  document.getElementById("fBacklog").value = "";
+  applyFilters();
 });
 
-// Chart 1: Disbursement rate by subproject (sorted desc) — simple horizontal bars
-const sorted = [...data].sort((a,b)=>b.rate-a.rate);
-const disbEl = document.getElementById("disbChart");
-sorted.forEach(d=>{
-  const color = d.rate>=80?"#1E4635":d.rate>=30?"#B9862F":"#A1402B";
-  const row = document.createElement("div");
-  row.className = "barrow";
-  row.innerHTML = `
-    <div class="lbl">SP${d.no}</div>
-    <div class="track"><div class="fill" style="width:${d.rate}%;background:${color};"></div></div>
-    <div class="val">${d.rate.toFixed(1)}%</div>`;
-  disbEl.appendChild(row);
-});
+// ---------- Load data ----------
+function loadData(){
+  document.getElementById("dataBar").innerHTML = "Loading data…";
+  fetch(CSV_URL)
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+    .then(text=>{
+      const rows = parseCSV(text);
+      const parsed = csvToData(rows);
+      if (!parsed.length) throw new Error("no rows parsed");
+      renderAll(parsed, {live:true});
+    })
+    .catch(err=>{
+      renderAll(FALLBACK_DATA, {live:false, error: err.message});
+    });
+}
 
-// Chart 2: status distribution — donut via SVG
-const statusData = [
-  {label:"Completed",count:completed,color:"#1E4635"},
-  {label:"On-going",count:ongoing,color:"#B9862F"},
-  {label:"with NOL1",count:withNol,color:"#8C8070"}
-];
-const total = statusData.reduce((s,d)=>s+d.count,0);
-const r=60, cx=90, cy=90, circ=2*Math.PI*r;
-let offset=0;
-let arcs = "";
-statusData.forEach(d=>{
-  const frac = d.count/total;
-  const len = frac*circ;
-  arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${d.color}" stroke-width="26" stroke-dasharray="${len} ${circ-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"></circle>`;
-  offset += len;
-});
-const statusEl = document.getElementById("statusChart");
-statusEl.innerHTML = `
-  <svg viewBox="0 0 180 180" style="display:block;margin:0 auto;max-width:220px;">
-    ${arcs}
-    <text x="90" y="84" text-anchor="middle" font-size="26" font-family="IBM Plex Mono, monospace" fill="#23281F" font-weight="600">${total}</text>
-    <text x="90" y="102" text-anchor="middle" font-size="11" fill="#5B6152">subprojects</text>
-  </svg>
-  <div class="legend">${statusData.map(d=>`<span><span class="dot" style="background:${d.color}"></span>${d.label} (${d.count})</span>`).join("")}</div>
-`;
-
-// Chart 3: physical vs financial accomplishment — paired bars
-const pfEl = document.getElementById("physFinChart");
-data.forEach(d=>{
-  const physVal = d.phys==null?0:d.phys;
-  const row = document.createElement("div");
-  row.className = "row";
-  row.innerHTML = `
-    <div class="lbl">SP${d.no}</div>
-    <div class="bars">
-      <div class="track"><div class="fill" style="width:${physVal}%;background:#5A7A8C;"></div></div>
-      <div class="track"><div class="fill" style="width:${d.rate}%;background:#B9862F;"></div></div>
-    </div>`;
-  pfEl.appendChild(row);
-});
+loadData();
 </script>
 </body>
 </html>
