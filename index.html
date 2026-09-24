@@ -146,9 +146,43 @@
   .filters button.clear:hover{border-color:var(--rust);color:var(--rust);}
   tr.hidden-row{display:none;}
 
+  .tabs{display:flex;gap:6px;margin-bottom:26px;border-bottom:1px solid var(--line);}
+  .tab-btn{
+    background:none;border:none;padding:10px 18px;font-size:0.88rem;cursor:pointer;
+    color:var(--ink-soft);font-family:inherit;border-bottom:3px solid transparent;margin-bottom:-1px;
+  }
+  .tab-btn.active{color:var(--forest-deep);font-weight:600;border-bottom-color:var(--forest);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .billing-form{
+    display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end;
+    background:var(--panel);border:1px solid var(--line);padding:16px;margin-top:16px;
+  }
+  .billing-form label{display:block;font-size:0.72rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px;}
+  .billing-form input,.billing-form select{
+    width:100%;padding:8px 10px;border:1px solid var(--line);font-size:0.86rem;font-family:inherit;background:#fff;color:var(--ink);
+  }
+  .billing-form button{
+    background:var(--forest);color:#fff;border:none;padding:9px 18px;font-size:0.85rem;cursor:pointer;height:38px;
+  }
+  .billing-form button:hover{background:var(--forest-deep);}
+  .billing-form button:disabled{background:#B7B2A2;cursor:not-allowed;}
+  .form-msg{font-size:0.8rem;margin-top:10px;}
+  .form-msg.ok{color:var(--forest);}
+  .form-msg.err{color:var(--rust);}
+  .tag.paid{background:var(--forest);}
+  .tag.unpaid{background:var(--rust);}
+  .billing-select{
+    padding:9px 12px;border:1px solid var(--line);font-size:0.92rem;font-family:inherit;
+    background:#fff;color:var(--ink);min-width:340px;margin-bottom:16px;
+  }
+  .empty-state{color:var(--ink-soft);font-size:0.85rem;padding:14px 0;}
+
   @media (max-width:900px){
     .kpis{grid-template-columns:repeat(2,1fr);}
     .grid2{grid-template-columns:1fr;}
+    .billing-form{grid-template-columns:1fr;}
   }
 </style>
 </head>
@@ -160,8 +194,15 @@
       <h1>I-BUILD Subprojects — Financial &amp; Physical Status</h1>
       <p>PRDP RPCO I · Region I coverage · <span id="spCount">15</span> subprojects tracked</p>
     </div>
-    <div class="meta">Source: Google Sheet — "Summary"</div>
+    <div class="meta">Source: Google Sheet — "Summary" &amp; "Disbursement"</div>
   </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tabBtnOverview">Overview</button>
+    <button class="tab-btn" id="tabBtnBilling">Add Billing</button>
+  </div>
+
+  <div class="tab-panel active" id="tabOverview">
 
   <div class="databar" id="dataBar">Loading data…</div>
 
@@ -220,12 +261,58 @@
     Negative backlog values indicate disbursement recorded ahead of the physical accomplishment on file and are worth a data-quality check with the subproject's finance officer.
   </footer>
 
+  </div><!-- /tabOverview -->
+
+  <div class="tab-panel" id="tabBilling">
+    <section>
+      <h2>Add a billing entry</h2>
+      <select class="billing-select" id="billSubproject">
+        <option value="">Select a subproject…</option>
+      </select>
+
+      <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">Billing history</h3>
+      <table id="billHistoryTable">
+        <thead>
+          <tr><th>Date</th><th>Billing</th><th class="num">Amount</th><th>Status</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="empty-state" id="billHistoryEmpty" style="display:none;">Select a subproject to see its billing history.</div>
+
+      <h3 style="margin:20px 0 4px;font-size:0.9rem;color:var(--forest-deep);">New billing</h3>
+      <div class="billing-form">
+        <div>
+          <label>Billing</label>
+          <input type="text" id="billLabel" placeholder="e.g., 3rd Billing">
+        </div>
+        <div>
+          <label>Amount to be billed</label>
+          <input type="number" id="billAmount" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div>
+          <label>Status</label>
+          <select id="billStatus">
+            <option value="Unpaid">Unpaid</option>
+            <option value="Paid">Paid</option>
+          </select>
+        </div>
+        <button id="billSubmit">Save billing</button>
+      </div>
+      <div class="form-msg" id="billMsg"></div>
+    </section>
+  </div><!-- /tabBilling -->
+
 </div>
 
 <script>
 const SHEET_ID = "1KshU51bCXvq7gF4qbCOYs3OuWuhSJFsvdcqT5wfJnjU";
 const SHEET_NAME = "Summary";
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+const DISB_SHEET_NAME = "Disbursement";
+const DISB_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(DISB_SHEET_NAME)}`;
+// Paste the deployed Apps Script Web App URL here (see apps-script-disbursement.gs) to enable saving new billings.
+const APPS_SCRIPT_URL = "";
 
 const FALLBACK_DATA = [
   {no:1,name:"San Jose Multi-Purpose Warehouse with Solar Dryer",loc:"Vintar, Ilocos Norte",cat:"VCRI",status:"Completed",phys:100.00,cost:10267127.90,disb:10267127.90,rate:100.00,backlogPct:0.00,backlogAmt:0.00},
@@ -340,6 +427,7 @@ function renderAll(dataset, meta){
   renderCharts(dataset);
   populateFilterOptions(dataset);
   applyFilters();
+  populateBillingSubprojects(dataset);
 }
 
 function renderKPIs(data){
@@ -516,6 +604,143 @@ document.getElementById("fClear").addEventListener("click", ()=>{
   document.getElementById("fStatus").value = "";
   document.getElementById("fBacklog").value = "";
   applyFilters();
+});
+
+// ---------- Tabs ----------
+document.getElementById("tabBtnOverview").addEventListener("click", ()=>switchTab("Overview"));
+document.getElementById("tabBtnBilling").addEventListener("click", ()=>switchTab("Billing"));
+function switchTab(name){
+  ["Overview","Billing"].forEach(n=>{
+    document.getElementById("tab"+n).classList.toggle("active", n===name);
+    document.getElementById("tabBtn"+n).classList.toggle("active", n===name);
+  });
+}
+
+// ---------- Billing tab ----------
+function populateBillingSubprojects(dataset){
+  const sel = document.getElementById("billSubproject");
+  const current = sel.value;
+  const names = dataset.map(d=>d.name).filter(Boolean);
+  sel.innerHTML = `<option value="">Select a subproject…</option>` + names.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join("");
+  if (names.includes(current)) sel.value = current;
+}
+
+function billNum(v){
+  if (v==null) return null;
+  const cleaned = String(v).replace(/[₱,\s]/g,"").trim();
+  if (cleaned === "") return null;
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? null : n;
+}
+
+function billCsvToRows(rawRows){
+  if (!rawRows.length) return [];
+  const headers = rawRows[0].map(h=>h.trim().toLowerCase());
+  const colDate = findCol(headers, h=>h.includes("date")||h.includes("timestamp"), 0);
+  const colSub  = findCol(headers, h=>h.includes("subproject")||h.includes("name"), 1);
+  const colBill = findCol(headers, h=>h.includes("billing"), 2);
+  const colAmt  = findCol(headers, h=>h.includes("amount"), 3);
+  const colStat = findCol(headers, h=>h.includes("status")||h.includes("paid"), 4);
+  return rawRows.slice(1).map(r=>({
+    date: (colDate>=0 ? r[colDate] : "").trim(),
+    subproject: (colSub>=0 ? r[colSub] : "").trim(),
+    billing: (colBill>=0 ? r[colBill] : "").trim(),
+    amount: colAmt>=0 ? (billNum(r[colAmt]) ?? 0) : 0,
+    status: (colStat>=0 ? r[colStat] : "").trim()
+  })).filter(r=>r.subproject !== "");
+}
+
+function renderBillingHistory(rows){
+  const tbody = document.querySelector("#billHistoryTable tbody");
+  const empty = document.getElementById("billHistoryEmpty");
+  tbody.innerHTML = "";
+  if (!rows.length){
+    empty.style.display = "block";
+    empty.textContent = "No billing history found for this subproject yet.";
+    return;
+  }
+  empty.style.display = "none";
+  rows.forEach(r=>{
+    const tr = document.createElement("tr");
+    const statusClass = /paid/i.test(r.status) && !/unpaid/i.test(r.status) ? "paid" : "unpaid";
+    tr.innerHTML = `
+      <td>${r.date || "—"}</td>
+      <td>${r.billing || "—"}</td>
+      <td class="num">${pesoFull(r.amount)}</td>
+      <td><span class="tag ${statusClass}">${r.status || "Unpaid"}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function loadBillingHistory(subprojectName){
+  const empty = document.getElementById("billHistoryEmpty");
+  if (!subprojectName){
+    document.querySelector("#billHistoryTable tbody").innerHTML = "";
+    empty.style.display = "block";
+    empty.textContent = "Select a subproject to see its billing history.";
+    return;
+  }
+  empty.style.display = "block";
+  empty.textContent = "Loading billing history…";
+  fetch(DISB_CSV_URL)
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+    .then(text=>{
+      const rows = billCsvToRows(parseCSV(text));
+      const matched = rows.filter(r=>r.subproject.trim().toLowerCase() === subprojectName.trim().toLowerCase());
+      renderBillingHistory(matched);
+    })
+    .catch(err=>{
+      empty.style.display = "block";
+      empty.textContent = `Could not load billing history (${err.message}). Make sure the "${DISB_SHEET_NAME}" sheet exists and is shared as "Anyone with the link – Viewer".`;
+      document.querySelector("#billHistoryTable tbody").innerHTML = "";
+    });
+}
+
+document.getElementById("billSubproject").addEventListener("change", (e)=>{
+  loadBillingHistory(e.target.value);
+});
+
+document.getElementById("billSubmit").addEventListener("click", ()=>{
+  const msg = document.getElementById("billMsg");
+  const subproject = document.getElementById("billSubproject").value;
+  const billing = document.getElementById("billLabel").value.trim();
+  const amount = document.getElementById("billAmount").value;
+  const status = document.getElementById("billStatus").value;
+
+  if (!subproject){ msg.className="form-msg err"; msg.textContent="Select a subproject first."; return; }
+  if (!billing){ msg.className="form-msg err"; msg.textContent="Enter which billing this is."; return; }
+  if (!amount || Number(amount) <= 0){ msg.className="form-msg err"; msg.textContent="Enter a valid billing amount."; return; }
+  if (!APPS_SCRIPT_URL){
+    msg.className="form-msg err";
+    msg.textContent = "Saving isn't wired up yet — deploy apps-script-disbursement.gs and paste its Web App URL into APPS_SCRIPT_URL in this file.";
+    return;
+  }
+
+  const btn = document.getElementById("billSubmit");
+  btn.disabled = true;
+  msg.className = "form-msg"; msg.textContent = "Saving…";
+
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    headers: {"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify({ subproject, billing, amount: Number(amount), status })
+  })
+    .then(r=>r.json())
+    .then(res=>{
+      if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
+      msg.className = "form-msg ok";
+      msg.textContent = "Billing saved.";
+      document.getElementById("billLabel").value = "";
+      document.getElementById("billAmount").value = "";
+      document.getElementById("billStatus").value = "Unpaid";
+      loadBillingHistory(subproject);
+    })
+    .catch(err=>{
+      msg.className = "form-msg err";
+      msg.textContent = "Could not save: " + err.message;
+    })
+    .finally(()=>{ btn.disabled = false; });
 });
 
 // ---------- Load data ----------
