@@ -125,6 +125,7 @@
   .tbl-summary .slabel{font-size:0.68rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;}
   .tbl-summary .sval{font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.92rem;font-weight:600;color:var(--forest-deep);}
   .tbl-summary .sitem.neg .sval{color:#6E7BA8;}
+  .tbl-summary.sp-summary{grid-template-columns:repeat(6,1fr);margin-top:0;margin-bottom:20px;}
   @media (max-width:900px){ .tbl-summary{grid-template-columns:repeat(2,1fr);} }
 
   .filters{
@@ -269,6 +270,8 @@
       <select class="billing-select" id="billSubproject">
         <option value="">Select a subproject…</option>
       </select>
+
+      <div class="tbl-summary" id="billSpSummary" style="display:none;"></div>
 
       <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">Billing history</h3>
       <table id="billHistoryTable">
@@ -698,8 +701,34 @@ function loadBillingHistory(subprojectName){
 }
 
 document.getElementById("billSubproject").addEventListener("change", (e)=>{
+  renderBillSpSummary(e.target.value);
   loadBillingHistory(e.target.value);
 });
+
+function renderBillSpSummary(subprojectName){
+  const el = document.getElementById("billSpSummary");
+  if (!subprojectName){
+    el.style.display = "none";
+    el.innerHTML = "";
+    return;
+  }
+  const rec = currentData.find(d => d.name.trim().toLowerCase() === subprojectName.trim().toLowerCase());
+  if (!rec){
+    el.style.display = "none";
+    el.innerHTML = "";
+    return;
+  }
+  el.className = "tbl-summary sp-summary";
+  el.style.display = "grid";
+  el.innerHTML = `
+    <div class="sitem"><span class="slabel">Total Cost</span><span class="sval">${pesoFull(rec.cost)}</span></div>
+    <div class="sitem"><span class="slabel">Total Disbursed</span><span class="sval">${pesoFull(rec.disb)}</span></div>
+    <div class="sitem"><span class="slabel">Physical %</span><span class="sval">${rec.phys==null?"—":rec.phys.toFixed(2)+"%"}</span></div>
+    <div class="sitem"><span class="slabel">Disb. Rate %</span><span class="sval">${rec.rate.toFixed(2)}%</span></div>
+    <div class="sitem"><span class="slabel">Backlog %</span><span class="sval">${rec.backlogPct.toFixed(2)}%</span></div>
+    <div class="sitem ${rec.backlogAmt<0?'neg':''}"><span class="slabel">Backlog Amount</span><span class="sval">${pesoFull(rec.backlogAmt)}</span></div>
+  `;
+}
 
 document.getElementById("billSubmit").addEventListener("click", ()=>{
   const msg = document.getElementById("billMsg");
