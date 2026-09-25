@@ -348,7 +348,7 @@ const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=
 const DISB_SHEET_NAME = "Disbursement";
 const DISB_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(DISB_SHEET_NAME)}`;
 // Paste the deployed Apps Script Web App URL here (see apps-script-disbursement.gs) to enable saving new billings.
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRyvwx3zj5FFK4AynZBckrsStWhRI41hT2lFUZCcuIspKI3Bg_5xl_d-ASC4ta4S6c/exec";
+const APPS_SCRIPT_URL = "";
 
 const FALLBACK_DATA = [
   {no:1,name:"San Jose Multi-Purpose Warehouse with Solar Dryer",loc:"Vintar, Ilocos Norte",cat:"VCRI",status:"Completed",phys:100.00,cost:10267127.90,disb:10267127.90,rate:100.00,backlogPct:0.00,backlogAmt:0.00},
@@ -706,6 +706,8 @@ function renderBillingHistory(rows){
   rows.forEach(r=>{
     const tr = document.createElement("tr");
     tr.dataset.id = r.id || "";
+    tr.dataset.origAmount = r.amount;
+    tr.dataset.origPaid = r.paid ? "1" : "0";
     const noId = !r.id;
     tr.innerHTML = `
       <td>${r.date || "—"}</td>
@@ -721,6 +723,26 @@ function renderBillingHistory(rows){
     `;
     tbody.appendChild(tr);
   });
+}
+
+// Recomputes a subproject's Total Disbursed / Disb. Rate / Backlog % / Backlog Amount
+// in the browser (based on the Physical % and Total Cost already loaded from the
+// Summary sheet) and refreshes every place that shows them. This is a live in-session
+// preview only — it does not write back to the Summary sheet itself.
+function recalcSubprojectDisb(subprojectName, deltaAmount){
+  if (!deltaAmount) return;
+  const rec = currentData.find(d=>d.name.trim().toLowerCase()===subprojectName.trim().toLowerCase());
+  if (!rec) return;
+  rec.disb = Math.max(0, rec.disb + deltaAmount);
+  rec.rate = rec.cost ? (rec.disb/rec.cost*100) : 0;
+  const physVal = rec.phys==null ? 0 : rec.phys;
+  rec.backlogPct = physVal - rec.rate;
+  rec.backlogAmt = rec.cost*(physVal/100) - rec.disb;
+
+  renderBillSpSummary(subprojectName);
+  renderKPIs(currentData);
+  renderCharts(currentData);
+  applyFilters();
 }
 
 document.querySelector("#billHistoryTable tbody").addEventListener("input", (e)=>{
@@ -748,6 +770,13 @@ document.querySelector("#billHistoryTable tbody").addEventListener("click", (e)=
   const paid = tr.querySelector(".edit-paid").checked;
   if (!amount || amount <= 0){ msg.className="row-msg err"; msg.textContent="Enter a valid amount."; return; }
 
+  const wasPaid = tr.dataset.origPaid === "1";
+  const wasAmount = Number(tr.dataset.origAmount) || 0;
+  let delta = 0;
+  if (wasPaid && paid) delta = amount - wasAmount;
+  else if (wasPaid && !paid) delta = -wasAmount;
+  else if (!wasPaid && paid) delta = amount;
+
   const btn = e.target;
   btn.disabled = true;
   msg.className = "row-msg"; msg.textContent = "Saving…";
@@ -763,6 +792,10 @@ document.querySelector("#billHistoryTable tbody").addEventListener("click", (e)=
       msg.className = "row-msg ok";
       msg.textContent = "Saved.";
       tr.classList.remove("row-dirty");
+      tr.dataset.origAmount = amount;
+      tr.dataset.origPaid = paid ? "1" : "0";
+      const subproject = document.getElementById("billSubproject").value;
+      recalcSubprojectDisb(subproject, delta);
     })
     .catch(err=>{
       msg.className = "row-msg err";
@@ -859,6 +892,7 @@ document.getElementById("billSubmit").addEventListener("click", ()=>{
       document.getElementById("billAmount").value = "";
       document.getElementById("billStatus").value = "Unpaid";
       loadBillingHistory(subproject);
+      if (status === "Paid") recalcSubprojectDisb(subproject, Number(amount));
     })
     .catch(err=>{
       msg.className = "form-msg err";
