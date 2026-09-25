@@ -174,11 +174,44 @@
   .form-msg.err{color:var(--rust);}
   .tag.paid{background:var(--forest);}
   .tag.unpaid{background:var(--rust);}
+  .row-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+  .mini-btn{
+    background:none;border:1px solid var(--line);padding:3px 9px;font-size:0.72rem;
+    cursor:pointer;color:var(--ink-soft);font-family:inherit;
+  }
+  .mini-btn:hover{border-color:var(--forest);color:var(--forest-deep);}
+  .mini-btn.primary{background:var(--forest);color:#fff;border-color:var(--forest);}
+  .mini-btn.primary:hover{background:var(--forest-deep);}
+  .mini-btn.toggle-paid{border-color:var(--forest);color:var(--forest);}
+  .mini-btn.toggle-unpaid{border-color:var(--rust);color:var(--rust);}
+  .mini-btn:disabled{opacity:0.5;cursor:not-allowed;}
+  .edit-amount-input{
+    width:110px;padding:4px 6px;border:1px solid var(--line);font-size:0.8rem;
+    font-family:"IBM Plex Mono",Consolas,monospace;
+  }
+  .row-msg{font-size:0.72rem;margin-top:3px;}
+  .row-msg.ok{color:var(--forest);}
+  .row-msg.err{color:var(--rust);}
   .billing-select{
     padding:9px 12px;border:1px solid var(--line);font-size:0.92rem;font-family:inherit;
     background:#fff;color:var(--ink);min-width:340px;margin-bottom:16px;
   }
   .empty-state{color:var(--ink-soft);font-size:0.85rem;padding:14px 0;}
+
+  .edit-amount{
+    width:110px;padding:5px 7px;border:1px solid var(--line);
+    font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.82rem;background:#fff;color:var(--ink);
+  }
+  .paid-toggle{display:flex;align-items:center;gap:6px;font-size:0.78rem;cursor:pointer;}
+  .row-save{
+    background:var(--forest);color:#fff;border:none;padding:5px 12px;font-size:0.76rem;cursor:pointer;
+  }
+  .row-save:hover{background:var(--forest-deep);}
+  .row-save:disabled{background:#B7B2A2;cursor:not-allowed;}
+  .row-msg{font-size:0.72rem;margin-left:8px;}
+  .row-msg.ok{color:var(--forest);}
+  .row-msg.err{color:var(--rust);}
+  #billHistoryTable tr.row-dirty td{background:#FBF6E8;}
 
   @media (max-width:900px){
     .kpis{grid-template-columns:repeat(2,1fr);}
@@ -276,7 +309,7 @@
       <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">Billing history</h3>
       <table id="billHistoryTable">
         <thead>
-          <tr><th>Date</th><th>Billing</th><th class="num">Amount</th><th>Status</th></tr>
+          <tr><th>Date</th><th>Billing</th><th class="num">Amount</th><th>Paid</th><th>Action</th></tr>
         </thead>
         <tbody></tbody>
       </table>
@@ -315,7 +348,7 @@ const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=
 const DISB_SHEET_NAME = "Disbursement";
 const DISB_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(DISB_SHEET_NAME)}`;
 // Paste the deployed Apps Script Web App URL here (see apps-script-disbursement.gs) to enable saving new billings.
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwhnV5nwmnLmrDZSf-ESIDtki-srLAvkXhBBoEp_LIakK-Ai-wuHsA175vtmF9QM4s8/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRyvwx3zj5FFK4AynZBckrsStWhRI41hT2lFUZCcuIspKI3Bg_5xl_d-ASC4ta4S6c/exec";
 
 const FALLBACK_DATA = [
   {no:1,name:"San Jose Multi-Purpose Warehouse with Solar Dryer",loc:"Vintar, Ilocos Norte",cat:"VCRI",status:"Completed",phys:100.00,cost:10267127.90,disb:10267127.90,rate:100.00,backlogPct:0.00,backlogAmt:0.00},
@@ -644,18 +677,20 @@ function billCsvToRows(rawRows){
   const colAmt  = findCol(headers, h=>h.includes("amount"), 2);
   const colPaid = findCol(headers, h=>h.includes("paid"), 3);
   const colDate = findCol(headers, h=>h.includes("date")||h.includes("timestamp"), 4);
+  const colId   = findCol(headers, h=>h==="id", 5);
   return rawRows.slice(1).map(r=>({
+    id: (colId>=0 ? r[colId] : "").trim(),
     date: (colDate>=0 ? r[colDate] : "").trim(),
     subproject: (colSub>=0 ? r[colSub] : "").trim(),
     billing: (colBill>=0 ? r[colBill] : "").trim(),
     amount: colAmt>=0 ? (billNum(r[colAmt]) ?? 0) : 0,
-    status: colPaid>=0 ? paidToStatus(r[colPaid]) : "Unpaid"
+    paid: colPaid>=0 ? paidToBool(r[colPaid]) : false
   })).filter(r=>r.subproject !== "");
 }
 
-function paidToStatus(v){
+function paidToBool(v){
   const s = (v||"").toString().trim().toLowerCase();
-  return (s==="true"||s==="1"||s==="yes"||s==="✓"||s==="checked") ? "Paid" : "Unpaid";
+  return (s==="true"||s==="1"||s==="yes"||s==="✓"||s==="checked");
 }
 
 function renderBillingHistory(rows){
@@ -670,16 +705,71 @@ function renderBillingHistory(rows){
   empty.style.display = "none";
   rows.forEach(r=>{
     const tr = document.createElement("tr");
-    const statusClass = /paid/i.test(r.status) && !/unpaid/i.test(r.status) ? "paid" : "unpaid";
+    tr.dataset.id = r.id || "";
+    const noId = !r.id;
     tr.innerHTML = `
       <td>${r.date || "—"}</td>
       <td>${r.billing || "—"}</td>
-      <td class="num">${pesoFull(r.amount)}</td>
-      <td><span class="tag ${statusClass}">${r.status || "Unpaid"}</span></td>
+      <td class="num"><input type="number" class="edit-amount" value="${r.amount}" step="0.01" min="0" ${noId?"disabled":""}></td>
+      <td>
+        <label class="paid-toggle">
+          <input type="checkbox" class="edit-paid" ${r.paid ? "checked" : ""} ${noId?"disabled":""}>
+          <span class="paid-label">${r.paid ? "Paid" : "Unpaid"}</span>
+        </label>
+      </td>
+      <td><button class="row-save" ${noId?"disabled title='This entry predates row IDs and can\\'t be edited here — update it directly in the sheet.'":""}>Save</button><span class="row-msg"></span></td>
     `;
     tbody.appendChild(tr);
   });
 }
+
+document.querySelector("#billHistoryTable tbody").addEventListener("input", (e)=>{
+  if (e.target.classList.contains("edit-amount")) e.target.closest("tr").classList.add("row-dirty");
+});
+document.querySelector("#billHistoryTable tbody").addEventListener("change", (e)=>{
+  if (e.target.classList.contains("edit-paid")){
+    e.target.closest("tr").classList.add("row-dirty");
+    e.target.closest("label").querySelector(".paid-label").textContent = e.target.checked ? "Paid" : "Unpaid";
+  }
+});
+
+document.querySelector("#billHistoryTable tbody").addEventListener("click", (e)=>{
+  if (!e.target.classList.contains("row-save")) return;
+  const tr = e.target.closest("tr");
+  const id = tr.dataset.id;
+  const msg = tr.querySelector(".row-msg");
+  if (!id){ msg.className="row-msg err"; msg.textContent="No ID — edit in the sheet instead."; return; }
+  if (!APPS_SCRIPT_URL){
+    msg.className="row-msg err";
+    msg.textContent = "Set APPS_SCRIPT_URL first.";
+    return;
+  }
+  const amount = Number(tr.querySelector(".edit-amount").value);
+  const paid = tr.querySelector(".edit-paid").checked;
+  if (!amount || amount <= 0){ msg.className="row-msg err"; msg.textContent="Enter a valid amount."; return; }
+
+  const btn = e.target;
+  btn.disabled = true;
+  msg.className = "row-msg"; msg.textContent = "Saving…";
+
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    headers: {"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify({ action:"update", id, amount, paid })
+  })
+    .then(r=>r.json())
+    .then(res=>{
+      if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
+      msg.className = "row-msg ok";
+      msg.textContent = "Saved.";
+      tr.classList.remove("row-dirty");
+    })
+    .catch(err=>{
+      msg.className = "row-msg err";
+      msg.textContent = "Error: " + err.message;
+    })
+    .finally(()=>{ btn.disabled = false; });
+});
 
 function loadBillingHistory(subprojectName){
   const empty = document.getElementById("billHistoryEmpty");
