@@ -66,8 +66,8 @@
   .panel{background:var(--panel);border:1px solid var(--line);padding:18px;}
   .panel h3{margin:0 0 14px;font-size:0.86rem;font-weight:600;color:var(--forest-deep);text-align:center;}
   .barchart{display:flex;flex-direction:column;gap:8px;}
-  .barrow{display:grid;grid-template-columns:44px 1fr 64px;align-items:center;gap:8px;font-size:0.78rem;}
-  .barrow .lbl{color:var(--ink-soft);}
+  .barrow{display:grid;grid-template-columns:200px 1fr 64px;align-items:center;gap:8px;font-size:0.78rem;}
+  .barrow .lbl{color:var(--ink-soft);white-space:normal;word-break:break-word;line-height:1.2;}
   .barrow .track{background:#EFEBDF;height:14px;position:relative;}
   .barrow .fill{height:100%;}
   .barrow .val{font-family:"IBM Plex Mono",Consolas,monospace;text-align:right;}
@@ -75,7 +75,7 @@
   .legend span.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;}
   .grouped{display:flex;flex-direction:column;gap:10px;}
   .grouped .row{display:grid;grid-template-columns:200px 1fr;gap:10px;align-items:center;font-size:0.76rem;}
-  .grouped .row .lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-soft);}
+  .grouped .row .lbl{white-space:normal;word-break:break-word;line-height:1.2;color:var(--ink-soft);}
   .grouped .bars{display:flex;flex-direction:column;gap:3px;}
   .grouped .track{background:#EFEBDF;height:9px;position:relative;}
   .grouped .fill{height:100%;}
@@ -246,6 +246,7 @@
     .grid2{grid-template-columns:1fr;}
     .billing-form{grid-template-columns:1fr;}
     .grouped .row{grid-template-columns:110px 1fr;}
+    .barrow{grid-template-columns:110px 1fr 56px;}
   }
 </style>
 </head>
@@ -564,7 +565,7 @@ function loadUnpaidBillingTotal(){
     .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
     .then(text=>{
       const rows = billCsvToRows(parseCSV(text));
-      const unpaid = rows.filter(r=>!r.paid);
+      const unpaid = rows.filter(r=>!r.paid && r.amount > 0);
       totalUnpaidBilling = unpaid.reduce((s,r)=>s+r.amount,0);
       unpaidBillingCount = unpaid.length;
       unpaidBillingError = null;
@@ -587,7 +588,7 @@ function renderCharts(data){
     const row = document.createElement("div");
     row.className = "barrow";
     row.innerHTML = `
-      <div class="lbl">SP${d.no}</div>
+      <div class="lbl">${d.name}</div>
       <div class="track"><div class="fill" style="width:${Math.min(d.rate,100)}%;background:${color};"></div></div>
       <div class="val">${d.rate.toFixed(1)}%</div>`;
     disbEl.appendChild(row);
