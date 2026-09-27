@@ -276,24 +276,16 @@
   <div class="kpis" id="kpis"></div>
 
   <section>
-    <h2>Disbursement performance by subproject</h2>
+    <h2>Physical vs. financial accomplishment</h2>
     <div class="grid2">
       <div class="panel">
-        <h3>Disbursement rate by subproject (%)</h3>
-        <div class="barchart" id="disbChart"></div>
+        <div class="grouped" id="physFinChart"></div>
+        <div class="legend"><span><span class="dot" style="background:#5A7A8C"></span>Physical accomplishment</span><span><span class="dot" style="background:#B9862F"></span>Disbursement rate</span></div>
       </div>
       <div class="panel">
         <h3>Status mix (count of subprojects)</h3>
         <div id="statusChart"></div>
       </div>
-    </div>
-  </section>
-
-  <section>
-    <h2>Physical vs. financial accomplishment</h2>
-    <div class="panel">
-      <div class="grouped" id="physFinChart"></div>
-      <div class="legend"><span><span class="dot" style="background:#5A7A8C"></span>Physical accomplishment</span><span><span class="dot" style="background:#B9862F"></span>Disbursement rate</span></div>
     </div>
   </section>
 
@@ -582,21 +574,6 @@ function loadUnpaidBillingTotal(){
 }
 
 function renderCharts(data){
-  // Disbursement bars
-  const sorted = [...data].sort((a,b)=>b.rate-a.rate);
-  const disbEl = document.getElementById("disbChart");
-  disbEl.innerHTML = "";
-  sorted.forEach(d=>{
-    const color = d.rate>=80?"#1E4635":d.rate>=30?"#B9862F":"#A1402B";
-    const row = document.createElement("div");
-    row.className = "barrow";
-    row.innerHTML = `
-      <div class="lbl">${d.name}</div>
-      <div class="track"><div class="fill" style="width:${Math.min(d.rate,100)}%;background:${color};"></div></div>
-      <div class="val">${d.rate.toFixed(1)}%</div>`;
-    disbEl.appendChild(row);
-  });
-
   // Status donut
   const statusGroups = {};
   data.forEach(d=>{ statusGroups[d.status] = (statusGroups[d.status]||0)+1; });
