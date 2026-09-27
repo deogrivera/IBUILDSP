@@ -76,9 +76,12 @@
   .grouped{display:flex;flex-direction:column;gap:10px;}
   .grouped .row{display:grid;grid-template-columns:200px 1fr;gap:10px;align-items:center;font-size:0.76rem;}
   .grouped .row .lbl{white-space:normal;word-break:break-word;line-height:1.2;color:var(--ink-soft);}
-  .grouped .bars{display:flex;flex-direction:column;gap:3px;}
+  .grouped .bars{display:flex;flex-direction:column;gap:4px;}
+  .grouped .bar-line{display:flex;align-items:center;gap:8px;}
+  .grouped .bar-line .track{flex:1;}
   .grouped .track{background:#EFEBDF;height:9px;position:relative;}
   .grouped .fill{height:100%;}
+  .grouped .bar-line .val{width:52px;flex-shrink:0;text-align:right;font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.7rem;color:var(--ink-soft);}
 
   table{width:100%;border-collapse:collapse;font-size:0.86rem;background:var(--panel);}
   caption{text-align:left;caption-side:top;margin-bottom:0;}
@@ -626,8 +629,8 @@ function renderCharts(data){
     row.innerHTML = `
       <div class="lbl" title="${d.name.replace(/"/g,'&quot;')}">${d.name}</div>
       <div class="bars">
-        <div class="track"><div class="fill" style="width:${Math.min(physVal,100)}%;background:#5A7A8C;"></div></div>
-        <div class="track"><div class="fill" style="width:${Math.min(d.rate,100)}%;background:#B9862F;"></div></div>
+        <div class="bar-line"><div class="track"><div class="fill" style="width:${Math.min(physVal,100)}%;background:#5A7A8C;"></div></div><div class="val">${d.phys==null?"—":physVal.toFixed(1)+"%"}</div></div>
+        <div class="bar-line"><div class="track"><div class="fill" style="width:${Math.min(d.rate,100)}%;background:#B9862F;"></div></div><div class="val">${d.rate.toFixed(1)}%</div></div>
       </div>`;
     pfEl.appendChild(row);
   });
