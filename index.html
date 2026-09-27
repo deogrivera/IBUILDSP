@@ -128,6 +128,33 @@
   .tbl-summary.sp-summary{grid-template-columns:repeat(6,1fr);margin-top:0;margin-bottom:20px;}
   @media (max-width:900px){ .tbl-summary{grid-template-columns:repeat(2,1fr);} }
 
+  .bill-charts{margin-bottom:22px;}
+  .bill-charts .grid2{gap:18px;margin-bottom:18px;}
+  .bill-charts .panel h3{margin:0 0 12px;font-size:0.86rem;font-weight:600;color:var(--forest-deep);text-align:left;}
+
+  .stacked-bar{display:flex;height:26px;background:#EFEBDF;overflow:hidden;border:1px solid var(--line);}
+  .stacked-bar .seg{height:100%;}
+  .stacked-bar .seg.disbursed{background:#1E4635;}
+  .stacked-bar .seg.backlog{background:#A1402B;}
+  .stacked-bar .seg.backlog.neg{background:#6E7BA8;}
+  .stacked-legend{display:flex;gap:16px;margin-top:10px;font-size:0.78rem;color:var(--ink-soft);flex-wrap:wrap;}
+  .stacked-legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;}
+
+  .pr-bars{display:flex;flex-direction:column;gap:14px;margin-top:2px;}
+  .pr-row{display:grid;grid-template-columns:80px 1fr 56px;align-items:center;gap:10px;font-size:0.82rem;}
+  .pr-row .lbl{color:var(--ink-soft);}
+  .pr-row .track{background:#EFEBDF;height:14px;position:relative;}
+  .pr-row .fill{height:100%;}
+  .pr-row .val{font-family:"IBM Plex Mono",Consolas,monospace;text-align:right;}
+
+  .timeline-wrap{display:flex;align-items:flex-end;gap:14px;min-height:160px;padding:10px 4px 0;overflow-x:auto;}
+  .timeline-bar-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:160px;min-width:50px;}
+  .timeline-bar{width:28px;border-radius:2px 2px 0 0;}
+  .timeline-bar.paid{background:#1E4635;}
+  .timeline-bar.unpaid{background:#A1402B;}
+  .timeline-val{font-size:0.66rem;color:var(--ink-soft);margin-bottom:3px;font-family:"IBM Plex Mono",Consolas,monospace;white-space:nowrap;}
+  .timeline-lbl{font-size:0.66rem;color:var(--ink-soft);margin-top:6px;text-align:center;max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
   .filters{
     display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;
   }
@@ -306,6 +333,23 @@
 
       <div class="tbl-summary" id="billSpSummary" style="display:none;"></div>
 
+      <div class="bill-charts" id="billCharts" style="display:none;">
+        <div class="grid2">
+          <div class="panel">
+            <h3>Cost breakdown: Disbursed vs. Backlog</h3>
+            <div id="billCostBreakdown"></div>
+          </div>
+          <div class="panel">
+            <h3>Physical % vs. Disbursement Rate %</h3>
+            <div id="billPhysVsRate"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Billing timeline</h3>
+          <div id="billTimeline"></div>
+        </div>
+      </div>
+
       <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">Billing history</h3>
       <table id="billHistoryTable">
         <thead>
@@ -348,7 +392,7 @@ const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=
 const DISB_SHEET_NAME = "Disbursement";
 const DISB_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(DISB_SHEET_NAME)}`;
 // Paste the deployed Apps Script Web App URL here (see apps-script-disbursement.gs) to enable saving new billings.
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRyvwx3zj5FFK4AynZBckrsStWhRI41hT2lFUZCcuIspKI3Bg_5xl_d-ASC4ta4S6c/exec";
+const APPS_SCRIPT_URL = "";
 
 const FALLBACK_DATA = [
   {no:1,name:"San Jose Multi-Purpose Warehouse with Solar Dryer",loc:"Vintar, Ilocos Norte",cat:"VCRI",status:"Completed",phys:100.00,cost:10267127.90,disb:10267127.90,rate:100.00,backlogPct:0.00,backlogAmt:0.00},
@@ -796,6 +840,7 @@ document.querySelector("#billHistoryTable tbody").addEventListener("click", (e)=
       tr.dataset.origPaid = paid ? "1" : "0";
       const subproject = document.getElementById("billSubproject").value;
       recalcSubprojectDisb(subproject, delta);
+      renderBillTimeline(collectBillingRowsFromTable());
     })
     .catch(err=>{
       msg.className = "row-msg err";
@@ -820,6 +865,7 @@ function loadBillingHistory(subprojectName){
       const rows = billCsvToRows(parseCSV(text));
       const matched = rows.filter(r=>r.subproject.trim().toLowerCase() === subprojectName.trim().toLowerCase());
       renderBillingHistory(matched);
+      renderBillTimeline(matched);
     })
     .catch(err=>{
       empty.style.display = "block";
@@ -835,15 +881,18 @@ document.getElementById("billSubproject").addEventListener("change", (e)=>{
 
 function renderBillSpSummary(subprojectName){
   const el = document.getElementById("billSpSummary");
+  const chartsEl = document.getElementById("billCharts");
   if (!subprojectName){
     el.style.display = "none";
     el.innerHTML = "";
+    chartsEl.style.display = "none";
     return;
   }
   const rec = currentData.find(d => d.name.trim().toLowerCase() === subprojectName.trim().toLowerCase());
   if (!rec){
     el.style.display = "none";
     el.innerHTML = "";
+    chartsEl.style.display = "none";
     return;
   }
   el.className = "tbl-summary sp-summary";
@@ -855,6 +904,69 @@ function renderBillSpSummary(subprojectName){
     <div class="sitem"><span class="slabel">Disb. Rate %</span><span class="sval">${rec.rate.toFixed(2)}%</span></div>
     <div class="sitem"><span class="slabel">Backlog %</span><span class="sval">${rec.backlogPct.toFixed(2)}%</span></div>
     <div class="sitem ${rec.backlogAmt<0?'neg':''}"><span class="slabel">Backlog Amount</span><span class="sval">${pesoFull(rec.backlogAmt)}</span></div>
+  `;
+  chartsEl.style.display = "block";
+  renderBillCostBreakdown(rec);
+  renderBillPhysVsRate(rec);
+}
+
+function renderBillCostBreakdown(rec){
+  const el = document.getElementById("billCostBreakdown");
+  if (!rec || !rec.cost){ el.innerHTML = "<div class='empty-state'>No cost data for this subproject.</div>"; return; }
+  const disbPct = Math.max(0, Math.min(100, (rec.disb/rec.cost)*100));
+  const remainingPct = Math.max(0, 100 - disbPct);
+  const backlogIsNeg = rec.backlogAmt < 0;
+  el.innerHTML = `
+    <div class="stacked-bar">
+      <div class="seg disbursed" style="width:${disbPct}%;"></div>
+      <div class="seg backlog ${backlogIsNeg?'neg':''}" style="width:${remainingPct}%;"></div>
+    </div>
+    <div class="stacked-legend">
+      <span><span class="dot" style="background:#1E4635;"></span>Disbursed: ${pesoFull(rec.disb)} (${disbPct.toFixed(1)}%)</span>
+      <span><span class="dot" style="background:${backlogIsNeg?'#6E7BA8':'#A1402B'};"></span>Backlog: ${pesoFull(rec.backlogAmt)}</span>
+    </div>
+  `;
+}
+
+function renderBillPhysVsRate(rec){
+  const el = document.getElementById("billPhysVsRate");
+  if (!rec){ el.innerHTML = ""; return; }
+  const phys = rec.phys==null ? 0 : rec.phys;
+  const rate = rec.rate;
+  el.innerHTML = `
+    <div class="pr-bars">
+      <div class="pr-row"><div class="lbl">Physical</div><div class="track"><div class="fill" style="width:${Math.min(phys,100)}%;background:#5A7A8C;"></div></div><div class="val">${rec.phys==null?"—":phys.toFixed(1)+"%"}</div></div>
+      <div class="pr-row"><div class="lbl">Disb. Rate</div><div class="track"><div class="fill" style="width:${Math.min(rate,100)}%;background:#B9862F;"></div></div><div class="val">${rate.toFixed(1)}%</div></div>
+    </div>
+  `;
+}
+
+function collectBillingRowsFromTable(){
+  return Array.from(document.querySelectorAll("#billHistoryTable tbody tr")).map(tr=>({
+    billing: tr.children[1] ? tr.children[1].textContent.trim() : "",
+    amount: Number(tr.querySelector(".edit-amount") ? tr.querySelector(".edit-amount").value : 0) || 0,
+    paid: tr.querySelector(".edit-paid") ? tr.querySelector(".edit-paid").checked : false
+  }));
+}
+
+function renderBillTimeline(rows){
+  const el = document.getElementById("billTimeline");
+  if (!rows.length){ el.innerHTML = "<div class='empty-state'>No billings yet to chart.</div>"; return; }
+  const maxAmt = Math.max(...rows.map(r=>r.amount), 1);
+  const bars = rows.map(r=>{
+    const h = Math.max(4, Math.round((r.amount/maxAmt)*120));
+    const cls = r.paid ? "paid" : "unpaid";
+    const label = (r.billing || "—").replace(/</g,"&lt;");
+    return `
+      <div class="timeline-bar-col" title="${label}: ${pesoFull(r.amount)} — ${r.paid?'Paid':'Unpaid'}">
+        <div class="timeline-val">${peso(r.amount)}</div>
+        <div class="timeline-bar ${cls}" style="height:${h}px;"></div>
+        <div class="timeline-lbl">${label}</div>
+      </div>`;
+  }).join("");
+  el.innerHTML = `
+    <div class="timeline-wrap">${bars}</div>
+    <div class="legend"><span><span class="dot" style="background:#1E4635"></span>Paid</span><span><span class="dot" style="background:#A1402B"></span>Unpaid</span></div>
   `;
 }
 
