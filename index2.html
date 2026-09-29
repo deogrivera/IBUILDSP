@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Drive Gallery</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #f6f8fc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 2rem 1.5rem;
+    color: #1e293b;
+  }
+  .container { max-width: 1400px; margin: 0 auto; }
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;
+  }
+  h1 {
+    font-weight: 600; font-size: 2rem; letter-spacing: -0.02em;
+    color: #0f172a; display: flex; align-items: center; gap: 0.5rem;
+  }
+  h1 span {
+    background: #e9eef6; font-size: 1rem; font-weight: 500;
+    padding: 0.2rem 0.9rem; border-radius: 40px; color: #1e4f8a;
+  }
+  .folder-badge {
+    display: flex; align-items: center; gap: 0.5rem; background: white;
+    padding: 0.5rem 1.2rem; border-radius: 40px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    font-size: 0.9rem; color: #334155; border: 1px solid #e2e8f0;
+  }
+  .folder-badge svg { width: 18px; height: 18px; fill: #3b82f6; }
+
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+  }
+  .card {
+    background: white; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    aspect-ratio: 1 / 1; display: flex; flex-direction: column;
+    cursor: pointer; border: 1px solid #edf2f7;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.02);
+    border-color: #cbd5e1;
+  }
+  .card-image {
+    width: 100%; flex: 1; background: #f1f5f9;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .card-image img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    transition: transform 0.25s ease;
+  }
+  .card:hover .card-image img { transform: scale(1.02); }
+  .image-fallback {
+    width: 100%; height: 100%; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; color: #64748b;
+    gap: 6px; font-size: 0.8rem;
+  }
+  .image-fallback svg { width: 32px; height: 32px; fill: #94a3b8; }
+  .card-footer {
+    padding: 0.9rem 0.8rem; background: white; border-top: 1px solid #f1f5f9;
+    font-size: 0.8rem; font-weight: 500; color: #1e293b;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .card-footer svg { width: 14px; height: 14px; fill: #64748b; flex-shrink: 0; }
+
+  .status {
+    background: #ffffff; padding: 2rem; border-radius: 32px;
+    text-align: center; font-size: 1rem; color: #334155;
+    margin: 2rem 0; border: 1px solid #e2e8f0;
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.75rem; flex-wrap: wrap;
+  }
+  .spinner {
+    width: 22px; height: 22px; border: 3px solid #e2e8f0;
+    border-top-color: #3b82f6; border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .lightbox {
+    position: fixed; inset: 0; background: rgba(15,23,42,0.85);
+    backdrop-filter: blur(6px); display: flex; align-items: center;
+    justify-content: center; z-index: 1000; opacity: 0; visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease; padding: 1.5rem;
+  }
+  .lightbox.active { opacity: 1; visibility: visible; }
+  .lightbox-content {
+    max-width: 90vw; max-height: 85vh; border-radius: 24px;
+    background: #0f172a; position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .lightbox-content img {
+    max-width: 90vw; max-height: 85vh; object-fit: contain; display: block;
+  }
+  .close-btn {
+    position: absolute; top: 16px; right: 20px;
+    background: rgba(255,255,255,0.2); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.15); color: white;
+    width: 40px; height: 40px; border-radius: 50%; font-size: 24px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 10;
+  }
+  .close-btn:hover { background: rgba(255,255,255,0.35); }
+
+  .footer-note {
+    margin-top: 3rem; font-size: 0.85rem; text-align: center;
+    color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 2rem;
+  }
+  @media (max-width: 500px) {
+    body { padding: 1.25rem; }
+    .gallery { grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 1rem; }
+    h1 { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Drive gallery <span id="imageCountBadge">—</span></h1>
+    <div class="folder-badge">
+      <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+      <span>1aGMNDelh3D8_znDnHYgblvjSSz-OhF73</span>
+    </div>
+  </div>
+
+  <div id="gallery" class="gallery"></div>
+  <div id="statusMessage" class="status">
+    <div class="spinner"></div> Loading images from Google Drive folder…
+  </div>
+  <div class="footer-note">Click any image to enlarge</div>
+</div>
+
+<div id="lightbox" class="lightbox">
+  <div class="lightbox-content">
+    <button class="close-btn" id="closeLightboxBtn" aria-label="Close">&times;</button>
+    <img id="lightboxImage" src="" alt="Enlarged view" />
+  </div>
+</div>
+
+<script>
+(function () {
+  // ============================================================
+  // 1. YOUR FOLDER ID (already filled from your link)
+  // ============================================================
+  const FOLDER_ID = "1aGMNDelh3D8_znDnHYgblvjSSz-OhF73";
+
+  // ============================================================
+  // 2. YOUR API KEY  ← PASTE IT HERE BETWEEN THE QUOTES
+  //    Get one from https://console.cloud.google.com/
+  //    Enable "Google Drive API", then create an API key.
+  // ============================================================
+  const API_KEY = "PASTE_YOUR_API_KEY_HERE";
+
+  // ============================================================
+  const API_URL =
+    `https://www.googleapis.com/drive/v3/files` +
+    `?q='${FOLDER_ID}'+in+parents+and+mimeType+contains+'image/'` +
+    `&key=${API_KEY}` +
+    `&fields=files(id,name,mimeType,thumbnailLink,webContentLink)` +
+    `&pageSize=1000`;
+
+  const galleryEl        = document.getElementById("gallery");
+  const statusMessageEl  = document.getElementById("statusMessage");
+  const imageCountBadge  = document.getElementById("imageCountBadge");
+  const lightbox         = document.getElementById("lightbox");
+  const lightboxImage    = document.getElementById("lightboxImage");
+  const closeLightboxBtn = document.getElementById("closeLightboxBtn");
+
+  // -- helpers -------------------------------------------------
+  function escapeHtml(t) {
+    return (t || "").replace(/[&<>"]/g, m =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
+  }
+
+  function getImageUrl(file) {
+    if (file.thumbnailLink) {
+      // Bump thumbnail size up (default is often =s220)
+      return file.thumbnailLink.replace(/=s\d+.*$/, "=s1600");
+    }
+    if (file.webContentLink) return file.webContentLink;
+    return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
+  }
+
+  function openLightbox(url, name) {
+    lightboxImage.src = url;
+    lightboxImage.alt = name || "Drive image";
+    lightbox.classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+  function closeLightbox() {
+    lightbox.classList.remove("active");
+    lightboxImage.src = "";
+    document.body.style.overflow = "";
+  }
+  closeLightboxBtn.addEventListener("click", closeLightbox);
+  lightbox.addEventListener("click", e => { if (e.target === lightbox) closeLightbox(); });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && lightbox.classList.contains("active")) closeLightbox();
+  });
+
+  // -- render --------------------------------------------------
+  function renderGallery(files) {
+    statusMessageEl.style.display = "none";
+    galleryEl.innerHTML = "";
+
+    if (!files || files.length === 0) {
+      imageCountBadge.textContent = "0 items";
+      galleryEl.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:4rem 1rem;background:#fff;border-radius:32px;color:#64748b;">
+          <p style="font-size:1.1rem;">No images found in this folder.</p>
+          <p style="font-size:.9rem;margin-top:.5rem;">Check that the folder is public and contains images.</p>
+        </div>`;
+      return;
+    }
+
+    imageCountBadge.textContent = `${files.length} ${files.length === 1 ? "item" : "items"}`;
+
+    files.forEach(file => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const imgContainer = document.createElement("div");
+      imgContainer.className = "card-image";
+
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      img.alt = file.name || "Drive image";
+      const url = getImageUrl(file);
+      img.src = url;
+      img.onerror = function () {
+        this.onerror = null;
+        this.parentNode.innerHTML = `
+          <div class="image-fallback">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
+            <span>preview unavailable</span>
+          </div>`;
+      };
+
+      imgContainer.appendChild(img);
+
+      const footer = document.createElement("div");
+      footer.className = "card-footer";
+      footer.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(file.name || "Untitled")}</span>`;
+
+      card.appendChild(imgContainer);
+      card.appendChild(footer);
+      card.addEventListener("click", () => openLightbox(url, file.name));
+
+      galleryEl.appendChild(card);
+    });
+  }
+
+  // -- fetch ---------------------------------------------------
+  async function fetchImages() {
+    if (API_KEY === "AIzaSyCYx5yyZoEthHCu0pu75ijxfAkGBvrZeCo" || !API_KEY.trim()) {
+      statusMessageEl.innerHTML = `
+        <div style="text-align:center;max-width:600px;">
+          <p style="font-size:1.05rem;font-weight:600;color:#b45309;margin-bottom:.75rem;">
+            ⚠️ API key required
+          </p>
+          <p style="font-size:.9rem;color:#475569;line-height:1.55;">
+            Open this file in a text editor and replace
+            <code style="background:#f1f5f9;padding:2px 6px;border-radius:6px;">PASTE_YOUR_API_KEY_HERE</code>
+            with a Google Drive API key.
+          </p>
+          <ol style="text-align:left;font-size:.85rem;color:#475569;margin-top:1rem;padding-left:1.25rem;line-height:1.7;">
+            <li>Go to <b>console.cloud.google.com</b></li>
+            <li>Create a project (or pick one)</li>
+            <li>Enable the <b>Google Drive API</b></li>
+            <li>Create an <b>API key</b> under Credentials</li>
+            <li>Paste it in the <code>API_KEY</code> field</li>
+          </ol>
+        </div>`;
+      imageCountBadge.textContent = "setup needed";
+      return;
+    }
+
+    try {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error?.message || `HTTP ${res.status}`);
+      }
+      const files = (data.files || []).filter(f => f.thumbnailLink || f.webContentLink);
+      renderGallery(files);
+    } catch (err) {
+      console.error(err);
+      statusMessageEl.innerHTML = `
+        <div style="text-align:center;">
+          <p style="color:#b91c1c;font-weight:600;margin-bottom:.5rem;">Could not load images</p>
+          <p style="font-size:.85rem;color:#64748b;">${escapeHtml(err.message)}</p>
+        </div>`;
+      imageCountBadge.textContent = "error";
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", fetchImages);
+})();
+</script>
+</body>
+</html>
