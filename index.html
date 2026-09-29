@@ -227,6 +227,7 @@
     width:110px;padding:4px 6px;border:1px solid var(--line);font-size:0.8rem;
     font-family:"IBM Plex Mono",Consolas,monospace;
   }
+  .row-msg{font-size:0.72rem;margin-top:3px;}
   .row-msg.ok{color:var(--forest);}
   .row-msg.err{color:var(--rust);}
   .billing-select{
@@ -270,94 +271,16 @@
   }
   .photo-link:hover{background:var(--forest);color:#fff;}
 
-  /* ---------- JIT gallery styles ---------- */
-  .jit-gallery-row td{background:#FAF8F2;padding:0;border-bottom:1px solid var(--line);}
-  .jit-gallery-inner{padding:14px 16px 18px;}
-  .jit-gallery-head{
-    display:flex;justify-content:space-between;align-items:center;
-    font-size:0.78rem;color:var(--ink-soft);margin-bottom:10px;gap:10px;flex-wrap:wrap;
+  .jit-gallery{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:14px;
   }
-  .jit-gallery-head .title{font-weight:600;color:var(--forest-deep);}
-  .jit-thumbs{
-    display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;
+  .jit-gallery img{
+    width:100%;height:90px;object-fit:cover;border:1px solid var(--line);cursor:pointer;background:#EFEBDF;
   }
-  .jit-thumb{
-    position:relative;aspect-ratio:1/1;background:#EFEBDF;overflow:hidden;cursor:pointer;
-    border:1px solid var(--line);
-  }
-  .jit-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
-  .jit-thumb:hover{border-color:var(--forest);}
-  .jit-thumb .cap{
-    position:absolute;left:0;right:0;bottom:0;background:rgba(18,42,32,0.72);color:#fff;
-    font-size:0.62rem;padding:2px 5px;font-family:"IBM Plex Mono",Consolas,monospace;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  }
-  .gallery-empty{font-size:0.8rem;color:var(--ink-soft);padding:6px 0;}
-  .gallery-btn{
-    background:var(--forest);color:#fff;border:none;padding:6px 12px;font-size:0.75rem;
-    cursor:pointer;font-family:inherit;
-  }
-  .gallery-btn:hover{background:var(--forest-deep);}
-  .gallery-btn.secondary{background:none;border:1px solid var(--line);color:var(--ink-soft);}
-  .gallery-btn.secondary:hover{border-color:var(--forest);color:var(--forest-deep);background:none;}
-  .row-gallery-toggle{
-    background:none;border:1px solid var(--forest);color:var(--forest);
-    padding:3px 8px;font-size:0.72rem;cursor:pointer;font-family:inherit;white-space:nowrap;
-  }
-  .row-gallery-toggle:hover{background:var(--forest);color:#fff;}
-
-  /* Lightbox */
-  .lb-backdrop{
-    position:fixed;inset:0;background:rgba(18,20,16,0.9);z-index:1000;
-    display:none;align-items:center;justify-content:center;padding:24px;
-  }
-  .lb-backdrop.open{display:flex;}
-  .lb-img{
-    max-width:92vw;max-height:82vh;object-fit:contain;display:block;
-    background:#000;box-shadow:0 10px 40px rgba(0,0,0,0.5);
-  }
-  .lb-bar{
-    position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;
-    align-items:center;padding:12px 18px;color:#F1EEE3;font-size:0.85rem;gap:12px;
-    background:linear-gradient(180deg,rgba(0,0,0,0.55),rgba(0,0,0,0));
-  }
-  .lb-cap{font-family:"IBM Plex Mono",Consolas,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .lb-count{flex-shrink:0;opacity:0.85;}
-  .lb-close{
-    background:none;border:none;color:#F1EEE3;font-size:1.5rem;cursor:pointer;line-height:1;padding:0 6px;
-  }
-  .lb-nav{
-    position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.14);
-    border:none;color:#fff;font-size:1.6rem;padding:10px 16px;cursor:pointer;
-  }
-  .lb-nav:hover{background:rgba(255,255,255,0.28);}
-  .lb-prev{left:16px;}
-  .lb-next{right:16px;}
-
-  /* All-photos modal */
-  .gm-backdrop{
-    position:fixed;inset:0;background:rgba(18,20,16,0.72);z-index:900;
-    display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;
-  }
-  .gm-backdrop.open{display:flex;}
-  .gm-panel{
-    background:var(--panel);max-width:1080px;width:100%;border:1px solid var(--line);
-    padding:22px 24px 30px;
-  }
-  .gm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:8px;}
-  .gm-head h3{margin:0 0 4px;font-family:Georgia,serif;color:var(--forest-deep);font-size:1.1rem;}
-  .gm-head .sub{font-size:0.82rem;color:var(--ink-soft);}
-  .gm-close{background:none;border:1px solid var(--line);padding:5px 12px;font-size:0.78rem;cursor:pointer;font-family:inherit;color:var(--ink-soft);}
-  .gm-close:hover{border-color:var(--rust);color:var(--rust);}
-  .gm-group{margin-top:20px;border-top:1px solid var(--line);padding-top:14px;}
-  .gm-group:first-of-type{border-top:none;padding-top:6px;}
-  .gm-group-head{
-    display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px;
-  }
-  .gm-group-head .gtitle{font-weight:600;color:var(--forest-deep);font-size:0.92rem;}
-  .gm-group-head .gmeta{font-size:0.76rem;color:var(--ink-soft);font-family:"IBM Plex Mono",Consolas,monospace;}
-  .gm-group-head .gcount{font-size:0.72rem;color:var(--ink-soft);margin-left:auto;}
-  .gm-loading{font-size:0.82rem;color:var(--ink-soft);padding:8px 0;}
+  .jit-gallery img:hover{outline:2px solid var(--forest);}
+  #jitMapContainer{height:360px;border:1px solid var(--line);background:#EFEBDF;}
+  #jitMapContainer:empty{display:none;}
+  .leaflet-popup-content img{display:block;margin-bottom:4px;}
 
   @media (max-width:900px){
     .kpis{grid-template-columns:repeat(2,1fr);}
@@ -507,10 +430,7 @@
         <option value="">Select a subproject…</option>
       </select>
 
-      <div class="section-head-row" style="margin:0 0 10px;">
-        <h3 style="margin:0;font-size:0.9rem;color:var(--forest-deep);">JIT history</h3>
-        <button class="gallery-btn" id="jitViewAllBtn" disabled>View all photos for this subproject</button>
-      </div>
+      <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">JIT history</h3>
       <table id="jitHistoryTable">
         <thead>
           <tr><th>Date</th><th class="num">JIT %</th><th class="num">JIT Amount</th><th>Photos</th><th>Action</th></tr>
@@ -518,6 +438,13 @@
         <tbody></tbody>
       </table>
       <div class="empty-state" id="jitHistoryEmpty" style="display:none;">Select a subproject to see its JIT history.</div>
+
+      <div class="panel" id="jitMediaPanel" style="display:none;margin-top:18px;">
+        <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">Photos from JIT visits</h3>
+        <div class="empty-state" id="jitMediaStatus" style="display:none;padding:8px 0;"></div>
+        <div class="jit-gallery" id="jitGallery"></div>
+        <div id="jitMapContainer"></div>
+      </div>
 
       <h3 style="margin:20px 0 4px;font-size:0.9rem;color:var(--forest-deep);">New JIT entry</h3>
       <div class="billing-form jit-form">
@@ -534,8 +461,8 @@
           <input type="number" id="jitAmount" placeholder="0.00" step="0.01" min="0">
         </div>
         <div>
-          <label>Photo folder link (Google Drive)</label>
-          <input type="url" id="jitPhotoLink" placeholder="https://drive.google.com/drive/folders/…">
+          <label>Photo link (Google Drive)</label>
+          <input type="url" id="jitPhotoLink" placeholder="https://drive.google.com/…">
         </div>
         <button id="jitSubmit">Save JIT entry</button>
       </div>
@@ -543,32 +470,6 @@
     </section>
   </div><!-- /tabJIT -->
 
-</div>
-
-<!-- Lightbox -->
-<div class="lb-backdrop" id="lightbox">
-  <div class="lb-bar">
-    <span class="lb-cap" id="lbCap"></span>
-    <span class="lb-count" id="lbCount"></span>
-    <button class="lb-close" id="lbClose" aria-label="Close">×</button>
-  </div>
-  <button class="lb-nav lb-prev" id="lbPrev" aria-label="Previous">‹</button>
-  <img class="lb-img" id="lbImg" alt="">
-  <button class="lb-nav lb-next" id="lbNext" aria-label="Next">›</button>
-</div>
-
-<!-- All-photos modal -->
-<div class="gm-backdrop" id="galleryModal">
-  <div class="gm-panel">
-    <div class="gm-head">
-      <div>
-        <h3 id="gmTitle">All JIT photos</h3>
-        <div class="sub" id="gmSub"></div>
-      </div>
-      <button class="gm-close" id="gmClose">Close</button>
-    </div>
-    <div id="gmBody"></div>
-  </div>
 </div>
 
 <script>
@@ -582,8 +483,13 @@ const DISB_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq
 const JIT_SHEET_NAME = "JIT";
 const JIT_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(JIT_SHEET_NAME)}`;
 
-// Paste the deployed Apps Script Web App URL here
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztlHozmCUg1njwlkR191iKlefPsUUi6R4Os8CKi-9n44qDwAEll1w5BZN9y7YgKgQL/exec";
+// Paste a Google Cloud API key here (Drive API enabled, restricted to that API only,
+// no HTTP-referrer restriction since this file may be opened locally) to enable the
+// JIT photo gallery and geotagged map. See the setup notes in the chat reply.
+const DRIVE_API_KEY = "";
+
+// Paste the deployed Apps Script Web App URL here (see apps-script-backend.gs) to enable saving new billings/JIT entries.
+const APPS_SCRIPT_URL = "";
 
 const FALLBACK_DATA = [
   {no:1,name:"San Jose Multi-Purpose Warehouse with Solar Dryer",loc:"Vintar, Ilocos Norte",cat:"VCRI",status:"Completed",phys:100.00,cost:10267127.90,disb:10267127.90,rate:100.00,backlogPct:0.00,backlogAmt:0.00},
@@ -608,11 +514,11 @@ const pesoFull = n => "₱" + n.toLocaleString("en-PH",{minimumFractionDigits:2,
 
 let currentData = FALLBACK_DATA;
 let filtered = FALLBACK_DATA;
-let totalUnpaidBilling = null;
+let totalUnpaidBilling = null;   // null = not loaded yet
 let unpaidBillingError = null;
 let unpaidBillingCount = 0;
 
-// ---------- CSV parsing ----------
+// ---------- CSV parsing (no external library) ----------
 function parseCSV(text){
   const rows = [];
   let row = [], field = "", inQuotes = false;
@@ -648,6 +554,11 @@ function findCol(headers, matcher, fallbackIndex){
   return idx>=0 ? idx : (fallbackIndex!=null ? fallbackIndex : -1);
 }
 
+// Column layout as given in the sheet: A No. | B Subproject Name | C Location | D Category
+// | E Status | F Physical Accomp. (%) | G Total Cost (PHP) | H Total Disbursed (PHP)
+// | I Disb. Rate (%) | J Payment Backlog (%) | K Payment Backlog (Amount)
+// Header-text matching is tried first (resilient to reordered columns); if a header
+// can't be matched, it falls back to the fixed position below so J/K are always captured.
 function csvToData(rawRows){
   const headers = rawRows[0].map(h=>h.trim().toLowerCase());
   const colNo      = findCol(headers, h=>h==="no."||h==="no"||h==="#", 0);
@@ -659,8 +570,8 @@ function csvToData(rawRows){
   const colCost    = findCol(headers, h=>h.includes("total cost"), 6);
   const colDisb    = findCol(headers, h=>h.includes("total disbursed"), 7);
   const colRate    = findCol(headers, h=>h.includes("disb") && h.includes("rate"), 8);
-  const colBackPct = findCol(headers, h=>h.includes("backlog") && h.includes("%"), 9);
-  const colBackAmt = findCol(headers, h=>h.includes("backlog") && h.includes("amount"), 10);
+  const colBackPct = findCol(headers, h=>h.includes("backlog") && h.includes("%"), 9);   // Column J
+  const colBackAmt = findCol(headers, h=>h.includes("backlog") && h.includes("amount"), 10); // Column K
 
   return rawRows.slice(1).map((r,i)=>({
     no: colNo>=0 ? (num(r[colNo]) ?? i+1) : i+1,
@@ -762,6 +673,7 @@ function loadUnpaidBillingTotal(){
 }
 
 function renderCharts(data){
+  // Status donut
   const statusGroups = {};
   data.forEach(d=>{ statusGroups[d.status] = (statusGroups[d.status]||0)+1; });
   const palette = ["#1E4635","#B9862F","#8C8070","#5A7A8C","#A1402B"];
@@ -783,6 +695,7 @@ function renderCharts(data){
     <div class="legend">${statusData.map(d=>`<span><span class="dot" style="background:${d.color}"></span>${d.label} (${d.count})</span>`).join("")}</div>
   `;
 
+  // Physical vs financial
   const pfEl = document.getElementById("physFinChart");
   pfEl.innerHTML = "";
   data.forEach(d=>{
@@ -978,6 +891,10 @@ function renderBillingHistory(rows){
   });
 }
 
+// Recomputes a subproject's Total Disbursed / Disb. Rate / Backlog % / Backlog Amount
+// in the browser (based on the Physical % and Total Cost already loaded from the
+// Summary sheet) and refreshes every place that shows them. This is a live in-session
+// preview only — it does not write back to the Summary sheet itself.
 function recalcSubprojectDisb(subprojectName, deltaAmount){
   if (!deltaAmount) return;
   const rec = currentData.find(d=>d.name.trim().toLowerCase()===subprojectName.trim().toLowerCase());
@@ -1249,97 +1166,6 @@ function jitCsvToRows(rawRows){
   })).filter(r=>r.subproject !== "");
 }
 
-// ---------- JIT: Drive URL helpers + photo cache ----------
-const drivePhotoCache = {}; // folderId -> {loading, files, error, promise}
-
-function extractFolderId(url){
-  if (!url) return null;
-  const s = String(url).trim();
-  let m = s.match(/\/folders\/([a-zA-Z0-9_-]{10,})/);
-  if (m) return m[1];
-  m = s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
-  if (m && /folder/i.test(s)) return m[1];
-  return null;
-}
-function driveThumb(fileId, size){
-  const w = size || 400;
-  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${w}`;
-}
-
-function fetchJITFolderPhotos(folderId){
-  if (drivePhotoCache[folderId]) return drivePhotoCache[folderId].promise;
-  const entry = {loading:true, files:null, error:null};
-  entry.promise = new Promise((resolve, reject)=>{
-    if (!APPS_SCRIPT_URL){
-      entry.loading = false;
-      entry.error = "APPS_SCRIPT_URL is not set.";
-      reject(new Error(entry.error));
-      return;
-    }
-    fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      headers: {"Content-Type":"text/plain;charset=utf-8"},
-      body: JSON.stringify({ action:"getJITPhotos", folderId })
-    })
-      .then(r=>r.json())
-      .then(res=>{
-        if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
-        entry.loading = false;
-        entry.files = res.files || [];
-        resolve(entry.files);
-      })
-      .catch(err=>{
-        entry.loading = false;
-        entry.error = err.message;
-        reject(err);
-      });
-  });
-  drivePhotoCache[folderId] = entry;
-  return entry.promise;
-}
-
-// ---------- Lightbox ----------
-const lightboxState = {items:[], index:0};
-function openLightbox(items, index){
-  lightboxState.items = items;
-  lightboxState.index = index;
-  document.getElementById("lightbox").classList.add("open");
-  renderLightbox();
-}
-function renderLightbox(){
-  const {items, index} = lightboxState;
-  if (!items.length) return;
-  const it = items[index];
-  document.getElementById("lbImg").src = it.full || it.thumb;
-  document.getElementById("lbCap").textContent = it.name || "";
-  document.getElementById("lbCount").textContent = `${index+1} of ${items.length}`;
-  document.getElementById("lbPrev").style.visibility = items.length > 1 ? "visible" : "hidden";
-  document.getElementById("lbNext").style.visibility = items.length > 1 ? "visible" : "hidden";
-}
-function lbMove(delta){
-  const n = lightboxState.items.length;
-  if (!n) return;
-  lightboxState.index = (lightboxState.index + delta + n) % n;
-  renderLightbox();
-}
-function closeLightbox(){
-  document.getElementById("lightbox").classList.remove("open");
-  document.getElementById("lbImg").src = "";
-}
-document.getElementById("lbClose").addEventListener("click", closeLightbox);
-document.getElementById("lbPrev").addEventListener("click", ()=>lbMove(-1));
-document.getElementById("lbNext").addEventListener("click", ()=>lbMove(1));
-document.getElementById("lightbox").addEventListener("click", (e)=>{
-  if (e.target.id === "lightbox") closeLightbox();
-});
-document.addEventListener("keydown", (e)=>{
-  if (!document.getElementById("lightbox").classList.contains("open")) return;
-  if (e.key === "Escape") closeLightbox();
-  else if (e.key === "ArrowLeft") lbMove(-1);
-  else if (e.key === "ArrowRight") lbMove(1);
-});
-
-// ---------- JIT history rendering ----------
 function renderJitHistory(rows){
   const tbody = document.querySelector("#jitHistoryTable tbody");
   const empty = document.getElementById("jitHistoryEmpty");
@@ -1350,93 +1176,178 @@ function renderJitHistory(rows){
     return;
   }
   empty.style.display = "none";
-  rows.forEach((r, idx)=>{
+  rows.forEach(r=>{
     const tr = document.createElement("tr");
     tr.dataset.id = r.id || "";
-    tr.dataset.rowIndex = idx;
     tr.dataset.origDate = r.date;
     tr.dataset.origPct = r.jitPct==null ? "" : r.jitPct;
     tr.dataset.origAmount = r.jitAmount;
     tr.dataset.origPhoto = r.photoLink || "";
-    tr.dataset.photoLink = r.photoLink || "";
     const noId = !r.id;
     const safeLink = (r.photoLink||"").replace(/"/g,"&quot;");
     const openLink = r.photoLink ? `<a class="photo-link" href="${safeLink}" target="_blank" rel="noopener">Open</a>` : "";
-    const folderId = extractFolderId(r.photoLink);
-    const hasFolder = !!folderId;
-    const galleryBtn = hasFolder
-      ? `<button type="button" class="row-gallery-toggle" data-folder="${folderId}">📷 View gallery</button>`
-      : "";
     tr.innerHTML = `
       <td><input type="date" class="edit-jit-date" value="${r.date || ""}" ${noId?"disabled":""}></td>
       <td class="num"><input type="number" class="edit-jit-pct" value="${r.jitPct==null?"":r.jitPct}" step="0.01" min="0" max="100" ${noId?"disabled":""}></td>
       <td class="num"><input type="number" class="edit-jit-amount" value="${r.jitAmount}" step="0.01" min="0" ${noId?"disabled":""}></td>
-      <td>
-        <div class="photo-cell">
-          <input type="url" class="edit-jit-photo" value="${safeLink}" placeholder="https://drive.google.com/…" ${noId?"disabled":""}>
-          ${openLink}
-        </div>
-        ${galleryBtn ? `<div style="margin-top:4px;">${galleryBtn}</div>` : ""}
-      </td>
+      <td><div class="photo-cell"><input type="url" class="edit-jit-photo" value="${safeLink}" placeholder="https://drive.google.com/…" ${noId?"disabled":""}>${openLink}</div></td>
       <td><button class="row-save" ${noId?"disabled title='This entry predates row IDs and can\\'t be edited here — update it directly in the sheet.'":""}>Save</button><span class="row-msg"></span></td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-// Toggle inline gallery under a JIT row + handle Save
-document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>{
-  const galBtn = e.target.closest(".row-gallery-toggle");
-  if (galBtn){
-    const tr = galBtn.closest("tr");
-    const folderId = galBtn.dataset.folder;
-    const next = tr.nextElementSibling;
-    if (next && next.classList.contains("jit-gallery-row")){
-      next.remove();
-      return;
-    }
-    document.querySelectorAll(".jit-gallery-row").forEach(el=>el.remove());
-    const galRow = document.createElement("tr");
-    galRow.className = "jit-gallery-row";
-    const td = document.createElement("td");
-    td.colSpan = 5;
-    td.innerHTML = `<div class="jit-gallery-inner">
-      <div class="jit-gallery-head">
-        <span class="title">JIT photos — ${tr.querySelector(".edit-jit-date").value || "no date"}</span>
-        <span class="gcount">Loading…</span>
-      </div>
-      <div class="jit-thumbs"></div>
-    </div>`;
-    galRow.appendChild(td);
-    tr.parentNode.insertBefore(galRow, tr.nextSibling);
+// ---------- JIT photo gallery + geotagged map ----------
+function extractDriveFolderId(url){
+  if (!url) return null;
+  let m = url.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  return null;
+}
 
-    fetchJITFolderPhotos(folderId)
-      .then(files=>{
-        const thumbs = td.querySelector(".jit-thumbs");
-        const countEl = td.querySelector(".gcount");
-        if (!files.length){
-          thumbs.innerHTML = `<div class="gallery-empty">No photos found in this folder.</div>`;
-          countEl.textContent = "";
-          return;
-        }
-        const items = files.map(f=>({name:f.name, thumb: driveThumb(f.id, 400), full: driveThumb(f.id, 1600)}));
-        countEl.textContent = `${items.length} photo${items.length===1?"":"s"}`;
-        thumbs.innerHTML = items.map((it,i)=>`
-          <div class="jit-thumb" data-idx="${i}">
-            <img loading="lazy" src="${it.thumb}" alt="${it.name}">
-            <div class="cap">${it.name}</div>
-          </div>`).join("");
-        thumbs.querySelectorAll(".jit-thumb").forEach(el=>{
-          el.addEventListener("click", ()=>openLightbox(items, Number(el.dataset.idx)));
-        });
-      })
-      .catch(err=>{
-        td.querySelector(".jit-thumbs").innerHTML = `<div class="gallery-empty">Could not load photos: ${err.message}</div>`;
-        td.querySelector(".gcount").textContent = "";
-      });
+let leafletLoadPromise = null;
+function loadLeaflet(){
+  if (window.L) return Promise.resolve();
+  if (leafletLoadPromise) return leafletLoadPromise;
+  leafletLoadPromise = new Promise((resolve, reject)=>{
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css";
+    document.head.appendChild(css);
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js";
+    script.onload = ()=> resolve();
+    script.onerror = ()=> reject(new Error("Could not load the map library — check your internet connection."));
+    document.head.appendChild(script);
+  });
+  return leafletLoadPromise;
+}
+
+function fetchDriveImages(folderId){
+  const q = encodeURIComponent(`'${folderId}' in parents and mimeType contains 'image/' and trashed = false`);
+  const fields = encodeURIComponent("files(id,name,webViewLink,imageMediaMetadata)");
+  const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=${fields}&pageSize=200&key=${DRIVE_API_KEY}`;
+  return fetch(url).then(r=>{
+    if (!r.ok) return r.json().then(j=>{ throw new Error((j && j.error && j.error.message) || ("HTTP "+r.status)); });
+    return r.json();
+  }).then(json => json.files || []);
+}
+
+async function loadJitMedia(subprojectName, rows){
+  const panel = document.getElementById("jitMediaPanel");
+  const status = document.getElementById("jitMediaStatus");
+  const gallery = document.getElementById("jitGallery");
+  const mapEl = document.getElementById("jitMapContainer");
+  gallery.innerHTML = "";
+  mapEl.innerHTML = "";
+  status.style.display = "none";
+  panel.style.display = "none";
+
+  const links = [...new Set((rows||[]).map(r=>r.photoLink).filter(Boolean))];
+  if (!links.length) return;
+
+  panel.style.display = "block";
+
+  if (!DRIVE_API_KEY){
+    status.style.display = "block";
+    status.textContent = "Set DRIVE_API_KEY in this file to load photo galleries and maps from Google Drive (see the chat for setup steps).";
     return;
   }
 
+  status.style.display = "block";
+  status.textContent = "Loading photos…";
+
+  const folderIds = links.map(extractDriveFolderId).filter(Boolean);
+  if (!folderIds.length){
+    status.textContent = "Couldn't recognize a Google Drive folder link in the Photos column for this subproject.";
+    return;
+  }
+
+  try {
+    const results = await Promise.all(folderIds.map(id => fetchDriveImages(id).catch(()=>[])));
+    const allFiles = results.flat();
+    if (!allFiles.length){
+      status.textContent = 'No images found — make sure the Drive folder is shared as "Anyone with the link – Viewer".';
+      return;
+    }
+    status.style.display = "none";
+
+    allFiles.forEach(f=>{
+      const img = document.createElement("img");
+      img.src = `https://drive.google.com/thumbnail?id=${f.id}&sz=w300`;
+      img.title = f.name || "";
+      img.loading = "lazy";
+      img.addEventListener("click", ()=> window.open(f.webViewLink || `https://drive.google.com/file/d/${f.id}/view`, "_blank"));
+      gallery.appendChild(img);
+    });
+
+    const geoFiles = allFiles.filter(f => f.imageMediaMetadata && f.imageMediaMetadata.location &&
+      typeof f.imageMediaMetadata.location.latitude === "number");
+    if (!geoFiles.length){
+      mapEl.innerHTML = `<div class="empty-state" style="padding:14px;">None of these photos have embedded location (geotag) data.</div>`;
+      return;
+    }
+
+    await loadLeaflet();
+    const first = geoFiles[0].imageMediaMetadata.location;
+    const map = L.map(mapEl).setView([first.latitude, first.longitude], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    const bounds = [];
+    geoFiles.forEach(f=>{
+      const loc = f.imageMediaMetadata.location;
+      bounds.push([loc.latitude, loc.longitude]);
+      L.marker([loc.latitude, loc.longitude]).addTo(map)
+        .bindPopup(`<img src="https://drive.google.com/thumbnail?id=${f.id}&sz=w200" style="width:160px;"><a href="${f.webViewLink||'#'}" target="_blank">${f.name||"Open in Drive"}</a>`);
+    });
+    if (bounds.length > 1) map.fitBounds(bounds, {padding:[24,24]});
+  } catch(err){
+    status.style.display = "block";
+    status.textContent = "Could not load photos: " + err.message;
+  }
+}
+
+function loadJitHistory(subprojectName){
+  const empty = document.getElementById("jitHistoryEmpty");
+  if (!subprojectName){
+    document.querySelector("#jitHistoryTable tbody").innerHTML = "";
+    empty.style.display = "block";
+    empty.textContent = "Select a subproject to see its JIT history.";
+    document.getElementById("jitMediaPanel").style.display = "none";
+    return;
+  }
+  empty.style.display = "block";
+  empty.textContent = "Loading JIT history…";
+  fetch(JIT_CSV_URL)
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+    .then(text=>{
+      const rows = jitCsvToRows(parseCSV(text));
+      const matched = rows.filter(r=>r.subproject.trim().toLowerCase() === subprojectName.trim().toLowerCase());
+      renderJitHistory(matched);
+      loadJitMedia(subprojectName, matched);
+    })
+    .catch(err=>{
+      empty.style.display = "block";
+      empty.textContent = `Could not load JIT history (${err.message}). Make sure the "${JIT_SHEET_NAME}" sheet exists and is shared as "Anyone with the link – Viewer".`;
+      document.querySelector("#jitHistoryTable tbody").innerHTML = "";
+    });
+}
+
+document.getElementById("jitSubproject").addEventListener("change", (e)=>{
+  loadJitHistory(e.target.value);
+});
+
+document.querySelector("#jitHistoryTable tbody").addEventListener("input", (e)=>{
+  if (e.target.classList.contains("edit-jit-date") || e.target.classList.contains("edit-jit-pct") || e.target.classList.contains("edit-jit-amount") || e.target.classList.contains("edit-jit-photo")){
+    e.target.closest("tr").classList.add("row-dirty");
+  }
+});
+
+document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>{
   if (!e.target.classList.contains("row-save")) return;
   const tr = e.target.closest("tr");
   const id = tr.dataset.id;
@@ -1471,7 +1382,6 @@ document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>
       tr.dataset.origPct = jitPct;
       tr.dataset.origAmount = jitAmount;
       tr.dataset.origPhoto = photoLink;
-      tr.dataset.photoLink = photoLink;
       const cell = tr.querySelector(".photo-cell");
       const existingLink = cell.querySelector(".photo-link");
       if (photoLink){
@@ -1481,22 +1391,10 @@ document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>
       } else if (existingLink){
         existingLink.remove();
       }
-      // Refresh gallery toggle based on new link
-      const galHolder = tr.querySelector("td:nth-child(4)");
-      const oldBtn = galHolder.querySelector(".row-gallery-toggle");
-      const newFolderId = extractFolderId(photoLink);
-      if (oldBtn) oldBtn.remove();
-      if (newFolderId){
-        galHolder.insertAdjacentHTML("beforeend", `<div style="margin-top:4px;"><button type="button" class="row-gallery-toggle" data-folder="${newFolderId}">📷 View gallery</button></div>`);
-      }
-      // Invalidate cache for old folder if it changed
-      if (tr.dataset.origPhoto && tr.dataset.origPhoto !== photoLink){
-        const oldId = extractFolderId(tr.dataset.origPhoto);
-        if (oldId) delete drivePhotoCache[oldId];
-      }
-      // Refresh currentJitRows so "View all" uses fresh data
-      const subproject = document.getElementById("jitSubproject").value;
-      if (subproject) loadJitHistory(subproject);
+      const rowsNow = Array.from(document.querySelectorAll("#jitHistoryTable tbody tr")).map(t=>({
+        photoLink: t.dataset.origPhoto || ""
+      }));
+      loadJitMedia(document.getElementById("jitSubproject").value, rowsNow);
     })
     .catch(err=>{
       msg.className = "row-msg err";
@@ -1505,166 +1403,6 @@ document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>
     .finally(()=>{ btn.disabled = false; });
 });
 
-document.querySelector("#jitHistoryTable tbody").addEventListener("input", (e)=>{
-  if (e.target.classList.contains("edit-jit-date") || e.target.classList.contains("edit-jit-pct") || e.target.classList.contains("edit-jit-amount") || e.target.classList.contains("edit-jit-photo")){
-    e.target.closest("tr").classList.add("row-dirty");
-  }
-});
-
-// Keep a copy of the current rows for the "View all" modal
-let currentJitRows = [];
-
-function loadJitHistory(subprojectName){
-  const empty = document.getElementById("jitHistoryEmpty");
-  const viewAllBtn = document.getElementById("jitViewAllBtn");
-  if (!subprojectName){
-    document.querySelector("#jitHistoryTable tbody").innerHTML = "";
-    empty.style.display = "block";
-    empty.textContent = "Select a subproject to see its JIT history.";
-    viewAllBtn.disabled = true;
-    currentJitRows = [];
-    return;
-  }
-  empty.style.display = "block";
-  empty.textContent = "Loading JIT history…";
-  viewAllBtn.disabled = true;
-  fetch(JIT_CSV_URL)
-    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
-    .then(text=>{
-      const rows = jitCsvToRows(parseCSV(text));
-      const matched = rows.filter(r=>r.subproject.trim().toLowerCase() === subprojectName.trim().toLowerCase());
-      currentJitRows = matched;
-      renderJitHistory(matched);
-      const folderCount = matched.filter(r=>extractFolderId(r.photoLink)).length;
-      viewAllBtn.disabled = folderCount === 0;
-      console.log("[loadJitHistory]", subprojectName, "→", matched.length, "rows,", folderCount, "with folder links");
-    })
-    .catch(err=>{
-      empty.style.display = "block";
-      empty.textContent = `Could not load JIT history (${err.message}). Make sure the "${JIT_SHEET_NAME}" sheet exists and is shared as "Anyone with the link – Viewer".`;
-      document.querySelector("#jitHistoryTable tbody").innerHTML = "";
-      viewAllBtn.disabled = true;
-      currentJitRows = [];
-    });
-}
-
-document.getElementById("jitSubproject").addEventListener("change", (e)=>{
-  loadJitHistory(e.target.value);
-});
-
-// ---------- "View all photos for this subproject" modal ----------
-function openAllPhotosModal(subprojectName, rows){
-  const modal = document.getElementById("galleryModal");
-  const title = document.getElementById("gmTitle");
-  const sub = document.getElementById("gmSub");
-  const body = document.getElementById("gmBody");
-
-  const withFolders = rows.filter(r => extractFolderId(r.photoLink));
-
-  title.textContent = "All JIT photos";
-  sub.textContent = subprojectName + " — " + withFolders.length + " JIT entr" + (withFolders.length===1?"y":"ies") + " with photos";
-  body.innerHTML = `<div class="gm-loading">Loading photos…</div>`;
-  modal.classList.add("open");
-
-  if (!withFolders.length){
-    body.innerHTML = `<div class="gm-loading">No JIT entries for this subproject have a Google Drive <em>folder</em> link yet. ` +
-      `Open the JIT tab, edit a row, and paste a link like <code>https://drive.google.com/drive/folders/…</code> into the Photo link field.</div>`;
-    return;
-  }
-
-  body.innerHTML = "";
-  withFolders.forEach((r)=>{
-    const folderId = extractFolderId(r.photoLink);
-    const groupEl = document.createElement("div");
-    groupEl.className = "gm-group";
-    const dateStr = r.date || "no date";
-    const pctStr = r.jitPct==null ? "—" : r.jitPct.toFixed(2) + "%";
-    const amtStr = r.jitAmount ? pesoFull(r.jitAmount) : "—";
-    groupEl.innerHTML = `
-      <div class="gm-group-head">
-        <span class="gtitle">JIT — ${dateStr}</span>
-        <span class="gmeta">${pctStr} · ${amtStr}</span>
-        <span class="gcount">Loading…</span>
-      </div>
-      <div class="jit-thumbs"></div>
-    `;
-    body.appendChild(groupEl);
-
-    fetchJITFolderPhotos(folderId)
-      .then(files=>{
-        const thumbs = groupEl.querySelector(".jit-thumbs");
-        const countEl = groupEl.querySelector(".gcount");
-        if (!files.length){
-          thumbs.innerHTML = `<div class="gallery-empty">No photos found in this folder.</div>`;
-          countEl.textContent = "";
-          return;
-        }
-        const items = files.map(f=>({name:f.name, thumb: driveThumb(f.id, 400), full: driveThumb(f.id, 1600)}));
-        countEl.textContent = `${items.length} photo${items.length===1?"":"s"}`;
-        thumbs.innerHTML = items.map((it,i)=>`
-          <div class="jit-thumb" data-idx="${i}">
-            <img loading="lazy" src="${it.thumb}" alt="${it.name}">
-            <div class="cap">${it.name}</div>
-          </div>`).join("");
-        thumbs.querySelectorAll(".jit-thumb").forEach(el=>{
-          el.addEventListener("click", ()=>openLightbox(items, Number(el.dataset.idx)));
-        });
-      })
-      .catch(err=>{
-        groupEl.querySelector(".jit-thumbs").innerHTML = `<div class="gallery-empty">Could not load photos: ${err.message}</div>`;
-        groupEl.querySelector(".gcount").textContent = "";
-      });
-  });
-}
-
-document.getElementById("jitViewAllBtn").addEventListener("click", ()=>{
-  const subproject = document.getElementById("jitSubproject").value;
-  const modal = document.getElementById("galleryModal");
-  const title = document.getElementById("gmTitle");
-  const sub = document.getElementById("gmSub");
-  const body = document.getElementById("gmBody");
-
-  if (!subproject){
-    alert("Select a subproject first.");
-    return;
-  }
-
-  const withFolders = currentJitRows.filter(r => extractFolderId(r.photoLink));
-  console.log("[ViewAll] subproject:", subproject);
-  console.log("[ViewAll] total JIT rows:", currentJitRows.length);
-  console.log("[ViewAll] rows with folder link:", withFolders.length, withFolders);
-
-  if (!withFolders.length){
-    // Show modal anyway with clear explanation
-    title.textContent = "All JIT photos";
-    sub.textContent = subproject;
-    body.innerHTML = `<div class="gm-loading">No JIT entries for this subproject have a Google Drive <em>folder</em> link yet. ` +
-      `Open the JIT tab, edit a row, and paste a link like <code>https://drive.google.com/drive/folders/…</code> into the Photo link field.</div>`;
-    modal.classList.add("open");
-    return;
-  }
-
-  openAllPhotosModal(subproject, currentJitRows);
-});
-
-document.getElementById("gmClose").addEventListener("click", ()=>{
-  document.getElementById("galleryModal").classList.remove("open");
-  document.getElementById("gmBody").innerHTML = "";
-});
-document.getElementById("galleryModal").addEventListener("click", (e)=>{
-  if (e.target.id === "galleryModal"){
-    document.getElementById("galleryModal").classList.remove("open");
-    document.getElementById("gmBody").innerHTML = "";
-  }
-});
-document.addEventListener("keydown", (e)=>{
-  if (e.key === "Escape" && document.getElementById("galleryModal").classList.contains("open")){
-    document.getElementById("galleryModal").classList.remove("open");
-    document.getElementById("gmBody").innerHTML = "";
-  }
-});
-
-// ---------- New JIT entry form ----------
 document.getElementById("jitSubmit").addEventListener("click", ()=>{
   const msg = document.getElementById("jitMsg");
   const subproject = document.getElementById("jitSubproject").value;
@@ -1700,8 +1438,6 @@ document.getElementById("jitSubmit").addEventListener("click", ()=>{
       document.getElementById("jitPct").value = "";
       document.getElementById("jitAmount").value = "";
       document.getElementById("jitPhotoLink").value = "";
-      const newFolderId = extractFolderId(photoLink);
-      if (newFolderId) delete drivePhotoCache[newFolderId];
       loadJitHistory(subproject);
     })
     .catch(err=>{
@@ -1727,16 +1463,17 @@ function loadData(){
     });
 }
 
-// ---------- Export ----------
+// ---------- Export to Excel (CSV, opens directly in Excel) ----------
 function sanitizeFilename(s){
   return (s||"export").toString().trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60) || "export";
 }
+
 function downloadCSV(rows, headers, filename){
   const esc = v => `"${String(v==null?"":v).replace(/"/g,'""')}"`;
   const lines = [headers.map(esc).join(",")];
   rows.forEach(r => lines.push(r.map(esc).join(",")));
   const csv = lines.join("\r\n");
-  const blob = new Blob(["\ufeff" + csv], {type:"text/csv;charset=utf-8;"});
+  const blob = new Blob(["\ufeff" + csv], {type:"text/csv;charset=utf-8;"}); // BOM so Excel reads UTF-8 correctly
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -1746,6 +1483,7 @@ function downloadCSV(rows, headers, filename){
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
 document.getElementById("exportOverviewBtn").addEventListener("click", ()=>{
   const headers = ["No.","Subproject","Location","Category","Status","Physical %","Total Cost (PHP)","Total Disbursed (PHP)","Disb. Rate (%)","Backlog Amount (PHP)"];
   const rows = filtered.map(d=>[
@@ -1759,6 +1497,7 @@ document.getElementById("exportOverviewBtn").addEventListener("click", ()=>{
   const dateStr = new Date().toISOString().slice(0,10);
   downloadCSV(rows, headers, `ibuild-subprojects-${dateStr}.csv`);
 });
+
 document.getElementById("exportBillingBtn").addEventListener("click", ()=>{
   const subproject = document.getElementById("billSubproject").value;
   if (!subproject) return;
