@@ -1,344 +1,284 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>I-BUILD JIT · with image gallery</title>
-  <style>
-    :root{
-      --bg:#F6F4EE;
-      --panel:#FFFFFF;
-      --ink:#23281F;
-      --ink-soft:#5B6152;
-      --forest:#1E4635;
-      --forest-deep:#122A20;
-      --gold:#B9862F;
-      --rust:#A1402B;
-      --line:#DFDACB;
-      --vcri:#1E4635;
-      --fmr:#B9862F;
-      --bridge:#5A7A8C;
-      --nol:#8C8070;
-    }
-    *{box-sizing:border-box;}
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--ink);
-      font-family:"IBM Plex Sans","Segoe UI",Helvetica,Arial,sans-serif;
-      line-height:1.45;
-    }
-    .wrap{max-width:1180px;margin:0 auto;padding:40px 28px 70px;}
-    header{
-      display:flex;justify-content:space-between;align-items:flex-end;
-      border-bottom:3px solid var(--forest);
-      padding-bottom:18px;margin-bottom:30px;flex-wrap:wrap;gap:12px;
-    }
-    header h1{
-      font-family:Georgia,"Times New Roman",serif;
-      font-size:1.9rem;margin:0 0 6px;color:var(--forest-deep);font-weight:600;
-    }
-    header p{margin:0;color:var(--ink-soft);font-size:0.92rem;}
-    .meta{text-align:right;font-size:0.85rem;color:var(--ink-soft);}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>I-BUILD Subprojects — Financial &amp; Physical Status</title>
+<style>
+  :root{
+    --bg:#F6F4EE;
+    --panel:#FFFFFF;
+    --ink:#23281F;
+    --ink-soft:#5B6152;
+    --forest:#1E4635;
+    --forest-deep:#122A20;
+    --gold:#B9862F;
+    --rust:#A1402B;
+    --line:#DFDACB;
+    --vcri:#1E4635;
+    --fmr:#B9862F;
+    --bridge:#5A7A8C;
+    --nol:#8C8070;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"IBM Plex Sans","Segoe UI",Helvetica,Arial,sans-serif;
+    line-height:1.45;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 28px 70px;}
+  header{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:3px solid var(--forest);
+    padding-bottom:18px;margin-bottom:30px;flex-wrap:wrap;gap:12px;
+  }
+  header h1{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:1.9rem;margin:0 0 6px;color:var(--forest-deep);font-weight:600;
+  }
+  header p{margin:0;color:var(--ink-soft);font-size:0.92rem;}
+  .meta{text-align:right;font-size:0.85rem;color:var(--ink-soft);}
 
-    .kpis{
-      display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:34px;
-    }
-    .kpi{
-      background:var(--panel);border:1px solid var(--line);
-      border-left:4px solid var(--forest);
-      padding:16px 16px 14px;
-    }
-    .kpi.warn{border-left-color:var(--rust);}
-    .kpi .label{font-size:0.74rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;}
-    .kpi .value{font-family:"IBM Plex Mono",Consolas,monospace;font-size:1.5rem;font-weight:600;color:var(--forest-deep);}
-    .kpi.warn .value{color:var(--rust);}
-    .kpi .sub{font-size:0.78rem;color:var(--ink-soft);margin-top:4px;}
+  .kpis{
+    display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:34px;
+  }
+  .kpi{
+    background:var(--panel);border:1px solid var(--line);
+    border-left:4px solid var(--forest);
+    padding:16px 16px 14px;
+  }
+  .kpi.warn{border-left-color:var(--rust);}
+  .kpi .label{font-size:0.74rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;}
+  .kpi .value{font-family:"IBM Plex Mono",Consolas,monospace;font-size:1.5rem;font-weight:600;color:var(--forest-deep);}
+  .kpi.warn .value{color:var(--rust);}
+  .kpi .sub{font-size:0.78rem;color:var(--ink-soft);margin-top:4px;}
 
-    section{margin-bottom:38px;}
-    h2{
-      font-family:Georgia,"Times New Roman",serif;font-size:1.15rem;
-      color:var(--forest-deep);margin:0 0 14px;font-weight:600;
-      border-bottom:1px solid var(--line);padding-bottom:8px;
-    }
+  section{margin-bottom:38px;}
+  h2{
+    font-family:Georgia,"Times New Roman",serif;font-size:1.15rem;
+    color:var(--forest-deep);margin:0 0 14px;font-weight:600;
+    border-bottom:1px solid var(--line);padding-bottom:8px;
+  }
 
-    .grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;}
-    .panel{background:var(--panel);border:1px solid var(--line);padding:18px;}
-    .panel h3{margin:0 0 14px;font-size:0.86rem;font-weight:600;color:var(--forest-deep);text-align:center;}
-    .barchart{display:flex;flex-direction:column;gap:8px;}
-    .barrow{display:grid;grid-template-columns:200px 1fr 64px;align-items:center;gap:8px;font-size:0.78rem;}
-    .barrow .lbl{color:var(--ink-soft);white-space:normal;word-break:break-word;line-height:1.2;}
-    .barrow .track{background:#EFEBDF;height:14px;position:relative;}
-    .barrow .fill{height:100%;}
-    .barrow .val{font-family:"IBM Plex Mono",Consolas,monospace;text-align:right;}
-    .legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:14px;font-size:0.8rem;color:var(--ink-soft);}
-    .legend span.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;}
-    .grouped{display:flex;flex-direction:column;gap:10px;}
-    .grouped .row{display:grid;grid-template-columns:200px 1fr;gap:10px;align-items:center;font-size:0.76rem;}
-    .grouped .row .lbl{white-space:normal;word-break:break-word;line-height:1.2;color:var(--ink-soft);}
-    .grouped .bars{display:flex;flex-direction:column;gap:4px;}
-    .grouped .bar-line{display:flex;align-items:center;gap:8px;}
-    .grouped .bar-line .track{flex:1;}
-    .grouped .track{background:#EFEBDF;height:9px;position:relative;}
-    .grouped .fill{height:100%;}
-    .grouped .bar-line .val{width:52px;flex-shrink:0;text-align:right;font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.7rem;color:var(--ink-soft);}
+  .grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;}
+  .panel{background:var(--panel);border:1px solid var(--line);padding:18px;}
+  .panel h3{margin:0 0 14px;font-size:0.86rem;font-weight:600;color:var(--forest-deep);text-align:center;}
+  .barchart{display:flex;flex-direction:column;gap:8px;}
+  .barrow{display:grid;grid-template-columns:200px 1fr 64px;align-items:center;gap:8px;font-size:0.78rem;}
+  .barrow .lbl{color:var(--ink-soft);white-space:normal;word-break:break-word;line-height:1.2;}
+  .barrow .track{background:#EFEBDF;height:14px;position:relative;}
+  .barrow .fill{height:100%;}
+  .barrow .val{font-family:"IBM Plex Mono",Consolas,monospace;text-align:right;}
+  .legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:14px;font-size:0.8rem;color:var(--ink-soft);}
+  .legend span.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+  .grouped{display:flex;flex-direction:column;gap:10px;}
+  .grouped .row{display:grid;grid-template-columns:200px 1fr;gap:10px;align-items:center;font-size:0.76rem;}
+  .grouped .row .lbl{white-space:normal;word-break:break-word;line-height:1.2;color:var(--ink-soft);}
+  .grouped .bars{display:flex;flex-direction:column;gap:4px;}
+  .grouped .bar-line{display:flex;align-items:center;gap:8px;}
+  .grouped .bar-line .track{flex:1;}
+  .grouped .track{background:#EFEBDF;height:9px;position:relative;}
+  .grouped .fill{height:100%;}
+  .grouped .bar-line .val{width:52px;flex-shrink:0;text-align:right;font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.7rem;color:var(--ink-soft);}
 
-    table{width:100%;border-collapse:collapse;font-size:0.86rem;background:var(--panel);}
-    caption{text-align:left;caption-side:top;margin-bottom:0;}
-    th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;}
-    th{
-      background:var(--forest-deep);color:#F1EEE3;font-weight:500;
-      font-size:0.74rem;text-transform:uppercase;letter-spacing:.03em;
-    }
-    td.num{text-align:right;font-family:"IBM Plex Mono",Consolas,monospace;}
-    tr:hover td{background:#FAF8F2;}
-    .tag{display:inline-block;padding:2px 8px;font-size:0.74rem;border-radius:2px;color:#fff;}
-    .tag.completed{background:var(--forest);}
-    .tag.ongoing{background:var(--gold);}
-    .tag.nol{background:var(--nol);}
-    .cat{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle;}
-    .cat.VCRI{background:var(--vcri);}
-    .cat.FMR{background:var(--fmr);}
-    .cat.Bridge{background:var(--bridge);}
-    .cat.FMRB{background:var(--bridge);}
-    .backlog-hi{color:var(--rust);font-weight:600;}
-    .backlog-neg{color:#6E7BA8;font-weight:600;}
+  table{width:100%;border-collapse:collapse;font-size:0.86rem;background:var(--panel);}
+  caption{text-align:left;caption-side:top;margin-bottom:0;}
+  th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;}
+  th{
+    background:var(--forest-deep);color:#F1EEE3;font-weight:500;
+    font-size:0.74rem;text-transform:uppercase;letter-spacing:.03em;
+  }
+  td.num{text-align:right;font-family:"IBM Plex Mono",Consolas,monospace;}
+  tr:hover td{background:#FAF8F2;}
+  .tag{display:inline-block;padding:2px 8px;font-size:0.74rem;border-radius:2px;color:#fff;}
+  .tag.completed{background:var(--forest);}
+  .tag.ongoing{background:var(--gold);}
+  .tag.nol{background:var(--nol);}
+  .cat{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle;}
+  .cat.VCRI{background:var(--vcri);}
+  .cat.FMR{background:var(--fmr);}
+  .cat.Bridge{background:var(--bridge);}
+  .cat.FMRB{background:var(--bridge);}
+  .backlog-hi{color:var(--rust);font-weight:600;}
+  .backlog-neg{color:#6E7BA8;font-weight:600;}
 
-    footer{margin-top:36px;font-size:0.78rem;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:14px;}
+  footer{margin-top:36px;font-size:0.78rem;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:14px;}
 
-    .databar{
-      display:flex;justify-content:space-between;align-items:center;gap:12px;
-      background:#EFEBDD;border:1px solid var(--line);padding:8px 14px;
-      font-size:0.8rem;color:var(--ink-soft);margin-bottom:26px;flex-wrap:wrap;
-    }
-    .databar.live{border-left:4px solid var(--forest);}
-    .databar.fallback{border-left:4px solid var(--rust);}
-    .databar button{
-      background:var(--forest-deep);color:#F1EEE3;border:none;padding:6px 14px;
-      font-size:0.78rem;cursor:pointer;
-    }
-    .databar button:hover{background:var(--forest);}
+  .databar{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    background:#EFEBDD;border:1px solid var(--line);padding:8px 14px;
+    font-size:0.8rem;color:var(--ink-soft);margin-bottom:26px;flex-wrap:wrap;
+  }
+  .databar.live{border-left:4px solid var(--forest);}
+  .databar.fallback{border-left:4px solid var(--rust);}
+  .databar button{
+    background:var(--forest-deep);color:#F1EEE3;border:none;padding:6px 14px;
+    font-size:0.78rem;cursor:pointer;
+  }
+  .databar button:hover{background:var(--forest);}
 
-    .tbl-summary{
-      display:grid;grid-template-columns:repeat(7,1fr);gap:1px;
-      background:var(--line);border:1px solid var(--line);margin-bottom:16px;
-    }
-    .tbl-summary .sitem{
-      background:var(--panel);padding:10px 12px;display:flex;flex-direction:column;gap:3px;
-    }
-    .tbl-summary .slabel{font-size:0.68rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;}
-    .tbl-summary .sval{font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.92rem;font-weight:600;color:var(--forest-deep);}
-    .tbl-summary .sitem.neg .sval{color:#6E7BA8;}
-    .tbl-summary.sp-summary{grid-template-columns:repeat(6,1fr);margin-top:0;margin-bottom:20px;}
-    @media (max-width:900px){ .tbl-summary{grid-template-columns:repeat(2,1fr);} }
+  .tbl-summary{
+    display:grid;grid-template-columns:repeat(7,1fr);gap:1px;
+    background:var(--line);border:1px solid var(--line);margin-bottom:16px;
+  }
+  .tbl-summary .sitem{
+    background:var(--panel);padding:10px 12px;display:flex;flex-direction:column;gap:3px;
+  }
+  .tbl-summary .slabel{font-size:0.68rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;}
+  .tbl-summary .sval{font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.92rem;font-weight:600;color:var(--forest-deep);}
+  .tbl-summary .sitem.neg .sval{color:#6E7BA8;}
+  .tbl-summary.sp-summary{grid-template-columns:repeat(6,1fr);margin-top:0;margin-bottom:20px;}
+  @media (max-width:900px){ .tbl-summary{grid-template-columns:repeat(2,1fr);} }
 
-    .bill-charts{margin-bottom:22px;}
-    .bill-charts .grid2{gap:18px;margin-bottom:18px;}
-    .bill-charts .panel h3{margin:0 0 12px;font-size:0.86rem;font-weight:600;color:var(--forest-deep);text-align:left;}
+  .bill-charts{margin-bottom:22px;}
+  .bill-charts .grid2{gap:18px;margin-bottom:18px;}
+  .bill-charts .panel h3{margin:0 0 12px;font-size:0.86rem;font-weight:600;color:var(--forest-deep);text-align:left;}
 
-    .stacked-bar{display:flex;height:26px;background:#EFEBDF;overflow:hidden;border:1px solid var(--line);}
-    .stacked-bar .seg{height:100%;}
-    .stacked-bar .seg.disbursed{background:#1E4635;}
-    .stacked-bar .seg.backlog{background:#A1402B;}
-    .stacked-bar .seg.backlog.neg{background:#6E7BA8;}
-    .stacked-legend{display:flex;gap:16px;margin-top:10px;font-size:0.78rem;color:var(--ink-soft);flex-wrap:wrap;}
-    .stacked-legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;}
+  .stacked-bar{display:flex;height:26px;background:#EFEBDF;overflow:hidden;border:1px solid var(--line);}
+  .stacked-bar .seg{height:100%;}
+  .stacked-bar .seg.disbursed{background:#1E4635;}
+  .stacked-bar .seg.backlog{background:#A1402B;}
+  .stacked-bar .seg.backlog.neg{background:#6E7BA8;}
+  .stacked-legend{display:flex;gap:16px;margin-top:10px;font-size:0.78rem;color:var(--ink-soft);flex-wrap:wrap;}
+  .stacked-legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;}
 
-    .pr-bars{display:flex;flex-direction:column;gap:14px;margin-top:2px;}
-    .pr-row{display:grid;grid-template-columns:80px 1fr 56px;align-items:center;gap:10px;font-size:0.82rem;}
-    .pr-row .lbl{color:var(--ink-soft);}
-    .pr-row .track{background:#EFEBDF;height:14px;position:relative;}
-    .pr-row .fill{height:100%;}
-    .pr-row .val{font-family:"IBM Plex Mono",Consolas,monospace;text-align:right;}
+  .pr-bars{display:flex;flex-direction:column;gap:14px;margin-top:2px;}
+  .pr-row{display:grid;grid-template-columns:80px 1fr 56px;align-items:center;gap:10px;font-size:0.82rem;}
+  .pr-row .lbl{color:var(--ink-soft);}
+  .pr-row .track{background:#EFEBDF;height:14px;position:relative;}
+  .pr-row .fill{height:100%;}
+  .pr-row .val{font-family:"IBM Plex Mono",Consolas,monospace;text-align:right;}
 
-    .timeline-wrap{display:flex;align-items:flex-end;gap:14px;min-height:160px;padding:10px 4px 0;overflow-x:auto;}
-    .timeline-bar-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:160px;min-width:50px;}
-    .timeline-bar{width:28px;border-radius:2px 2px 0 0;}
-    .timeline-bar.paid{background:#1E4635;}
-    .timeline-bar.unpaid{background:#A1402B;}
-    .timeline-val{font-size:0.66rem;color:var(--ink-soft);margin-bottom:3px;font-family:"IBM Plex Mono",Consolas,monospace;white-space:nowrap;}
-    .timeline-lbl{font-size:0.66rem;color:var(--ink-soft);margin-top:6px;text-align:center;max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .timeline-wrap{display:flex;align-items:flex-end;gap:14px;min-height:160px;padding:10px 4px 0;overflow-x:auto;}
+  .timeline-bar-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:160px;min-width:50px;}
+  .timeline-bar{width:28px;border-radius:2px 2px 0 0;}
+  .timeline-bar.paid{background:#1E4635;}
+  .timeline-bar.unpaid{background:#A1402B;}
+  .timeline-val{font-size:0.66rem;color:var(--ink-soft);margin-bottom:3px;font-family:"IBM Plex Mono",Consolas,monospace;white-space:nowrap;}
+  .timeline-lbl{font-size:0.66rem;color:var(--ink-soft);margin-top:6px;text-align:center;max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
-    .filters{
-      display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;
-    }
-    .filters input[type=text]{
-      padding:7px 10px;border:1px solid var(--line);font-size:0.84rem;min-width:220px;
-      font-family:inherit;background:#fff;color:var(--ink);
-    }
-    .filters select{
-      padding:7px 10px;border:1px solid var(--line);font-size:0.84rem;
-      font-family:inherit;background:#fff;color:var(--ink);
-    }
-    .filters .count{font-size:0.78rem;color:var(--ink-soft);margin-left:auto;}
-    .filters button.clear{
-      background:none;border:1px solid var(--line);padding:7px 12px;font-size:0.78rem;
-      cursor:pointer;color:var(--ink-soft);
-    }
-    .filters button.clear:hover{border-color:var(--rust);color:var(--rust);}
-    .export-btn{
-      background:var(--forest);color:#fff;border:none;padding:8px 16px;font-size:0.8rem;
-      cursor:pointer;font-family:inherit;
-    }
-    .export-btn:hover{background:var(--forest-deep);}
-    .export-btn:disabled{background:#B7B2A2;cursor:not-allowed;}
-    .section-head-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
-    tr.hidden-row{display:none;}
+  .filters{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;
+  }
+  .filters input[type=text]{
+    padding:7px 10px;border:1px solid var(--line);font-size:0.84rem;min-width:220px;
+    font-family:inherit;background:#fff;color:var(--ink);
+  }
+  .filters select{
+    padding:7px 10px;border:1px solid var(--line);font-size:0.84rem;
+    font-family:inherit;background:#fff;color:var(--ink);
+  }
+  .filters .count{font-size:0.78rem;color:var(--ink-soft);margin-left:auto;}
+  .filters button.clear{
+    background:none;border:1px solid var(--line);padding:7px 12px;font-size:0.78rem;
+    cursor:pointer;color:var(--ink-soft);
+  }
+  .filters button.clear:hover{border-color:var(--rust);color:var(--rust);}
+  .export-btn{
+    background:var(--forest);color:#fff;border:none;padding:8px 16px;font-size:0.8rem;
+    cursor:pointer;font-family:inherit;
+  }
+  .export-btn:hover{background:var(--forest-deep);}
+  .export-btn:disabled{background:#B7B2A2;cursor:not-allowed;}
+  .section-head-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  tr.hidden-row{display:none;}
 
-    .tabs{display:flex;gap:6px;margin-bottom:26px;border-bottom:1px solid var(--line);}
-    .tab-btn{
-      background:none;border:none;padding:10px 18px;font-size:0.88rem;cursor:pointer;
-      color:var(--ink-soft);font-family:inherit;border-bottom:3px solid transparent;margin-bottom:-1px;
-    }
-    .tab-btn.active{color:var(--forest-deep);font-weight:600;border-bottom-color:var(--forest);}
-    .tab-panel{display:none;}
-    .tab-panel.active{display:block;}
+  .tabs{display:flex;gap:6px;margin-bottom:26px;border-bottom:1px solid var(--line);}
+  .tab-btn{
+    background:none;border:none;padding:10px 18px;font-size:0.88rem;cursor:pointer;
+    color:var(--ink-soft);font-family:inherit;border-bottom:3px solid transparent;margin-bottom:-1px;
+  }
+  .tab-btn.active{color:var(--forest-deep);font-weight:600;border-bottom-color:var(--forest);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
 
-    .billing-form{
-      display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end;
-      background:var(--panel);border:1px solid var(--line);padding:16px;margin-top:16px;
-    }
-    .billing-form label{display:block;font-size:0.72rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px;}
-    .billing-form input,.billing-form select{
-      width:100%;padding:8px 10px;border:1px solid var(--line);font-size:0.86rem;font-family:inherit;background:#fff;color:var(--ink);
-    }
-    .billing-form button{
-      background:var(--forest);color:#fff;border:none;padding:9px 18px;font-size:0.85rem;cursor:pointer;height:38px;
-    }
-    .billing-form button:hover{background:var(--forest-deep);}
-    .billing-form button:disabled{background:#B7B2A2;cursor:not-allowed;}
-    .form-msg{font-size:0.8rem;margin-top:10px;}
-    .form-msg.ok{color:var(--forest);}
-    .form-msg.err{color:var(--rust);}
-    .tag.paid{background:var(--forest);}
-    .tag.unpaid{background:var(--rust);}
-    .row-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-    .mini-btn{
-      background:none;border:1px solid var(--line);padding:3px 9px;font-size:0.72rem;
-      cursor:pointer;color:var(--ink-soft);font-family:inherit;
-    }
-    .mini-btn:hover{border-color:var(--forest);color:var(--forest-deep);}
-    .mini-btn.primary{background:var(--forest);color:#fff;border-color:var(--forest);}
-    .mini-btn.primary:hover{background:var(--forest-deep);}
-    .mini-btn.toggle-paid{border-color:var(--forest);color:var(--forest);}
-    .mini-btn.toggle-unpaid{border-color:var(--rust);color:var(--rust);}
-    .mini-btn:disabled{opacity:0.5;cursor:not-allowed;}
-    .edit-amount-input{
-      width:110px;padding:4px 6px;border:1px solid var(--line);font-size:0.8rem;
-      font-family:"IBM Plex Mono",Consolas,monospace;
-    }
-    .row-msg{font-size:0.72rem;margin-top:3px;}
-    .row-msg.ok{color:var(--forest);}
-    .row-msg.err{color:var(--rust);}
-    .billing-select{
-      padding:9px 12px;border:1px solid var(--line);font-size:0.92rem;font-family:inherit;
-      background:#fff;color:var(--ink);min-width:340px;margin-bottom:16px;
-    }
-    .empty-state{color:var(--ink-soft);font-size:0.85rem;padding:14px 0;}
+  .billing-form{
+    display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end;
+    background:var(--panel);border:1px solid var(--line);padding:16px;margin-top:16px;
+  }
+  .billing-form label{display:block;font-size:0.72rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px;}
+  .billing-form input,.billing-form select{
+    width:100%;padding:8px 10px;border:1px solid var(--line);font-size:0.86rem;font-family:inherit;background:#fff;color:var(--ink);
+  }
+  .billing-form button{
+    background:var(--forest);color:#fff;border:none;padding:9px 18px;font-size:0.85rem;cursor:pointer;height:38px;
+  }
+  .billing-form button:hover{background:var(--forest-deep);}
+  .billing-form button:disabled{background:#B7B2A2;cursor:not-allowed;}
+  .form-msg{font-size:0.8rem;margin-top:10px;}
+  .form-msg.ok{color:var(--forest);}
+  .form-msg.err{color:var(--rust);}
+  .tag.paid{background:var(--forest);}
+  .tag.unpaid{background:var(--rust);}
+  .row-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+  .mini-btn{
+    background:none;border:1px solid var(--line);padding:3px 9px;font-size:0.72rem;
+    cursor:pointer;color:var(--ink-soft);font-family:inherit;
+  }
+  .mini-btn:hover{border-color:var(--forest);color:var(--forest-deep);}
+  .mini-btn.primary{background:var(--forest);color:#fff;border-color:var(--forest);}
+  .mini-btn.primary:hover{background:var(--forest-deep);}
+  .mini-btn.toggle-paid{border-color:var(--forest);color:var(--forest);}
+  .mini-btn.toggle-unpaid{border-color:var(--rust);color:var(--rust);}
+  .mini-btn:disabled{opacity:0.5;cursor:not-allowed;}
+  .edit-amount-input{
+    width:110px;padding:4px 6px;border:1px solid var(--line);font-size:0.8rem;
+    font-family:"IBM Plex Mono",Consolas,monospace;
+  }
+  .row-msg{font-size:0.72rem;margin-top:3px;}
+  .row-msg.ok{color:var(--forest);}
+  .row-msg.err{color:var(--rust);}
+  .billing-select{
+    padding:9px 12px;border:1px solid var(--line);font-size:0.92rem;font-family:inherit;
+    background:#fff;color:var(--ink);min-width:340px;margin-bottom:16px;
+  }
+  .empty-state{color:var(--ink-soft);font-size:0.85rem;padding:14px 0;}
 
-    .edit-amount{
-      width:110px;padding:5px 7px;border:1px solid var(--line);
-      font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.82rem;background:#fff;color:var(--ink);
-    }
-    .paid-toggle{display:flex;align-items:center;gap:6px;font-size:0.78rem;cursor:pointer;}
-    .row-save{
-      background:var(--forest);color:#fff;border:none;padding:5px 12px;font-size:0.76rem;cursor:pointer;
-    }
-    .row-save:hover{background:var(--forest-deep);}
-    .row-save:disabled{background:#B7B2A2;cursor:not-allowed;}
-    .row-msg{font-size:0.72rem;margin-left:8px;}
-    .row-msg.ok{color:var(--forest);}
-    .row-msg.err{color:var(--rust);}
-    #billHistoryTable tr.row-dirty td{background:#FBF6E8;}
+  .edit-amount{
+    width:110px;padding:5px 7px;border:1px solid var(--line);
+    font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.82rem;background:#fff;color:var(--ink);
+  }
+  .paid-toggle{display:flex;align-items:center;gap:6px;font-size:0.78rem;cursor:pointer;}
+  .row-save{
+    background:var(--forest);color:#fff;border:none;padding:5px 12px;font-size:0.76rem;cursor:pointer;
+  }
+  .row-save:hover{background:var(--forest-deep);}
+  .row-save:disabled{background:#B7B2A2;cursor:not-allowed;}
+  .row-msg{font-size:0.72rem;margin-left:8px;}
+  .row-msg.ok{color:var(--forest);}
+  .row-msg.err{color:var(--rust);}
+  #billHistoryTable tr.row-dirty td{background:#FBF6E8;}
 
-    /* image gallery */
-    .img-gallery {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 16px;
-    }
-    .img-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      padding: 10px;
-      width: 140px;
-      text-align: center;
-      border-radius: 4px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    }
-    .img-card img {
-      max-width: 100%;
-      height: 90px;
-      object-fit: cover;
-      border: 1px solid var(--line);
-      background: #f0eee6;
-    }
-    .img-card .img-name {
-      font-size: 0.7rem;
-      color: var(--ink-soft);
-      margin-top: 6px;
-      word-break: break-word;
-      max-height: 2.4em;
-      overflow: hidden;
-    }
-    .img-upload-area {
-      background: #FCFAF4;
-      border: 2px dashed var(--line);
-      padding: 20px;
-      text-align: center;
-      margin-bottom: 12px;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: border-color 0.2s;
-    }
-    .img-upload-area:hover {
-      border-color: var(--forest);
-    }
-    .img-upload-area input[type=file] {
-      display: none;
-    }
-    .btn-upload-trigger {
-      background: var(--forest);
-      color: #fff;
-      border: none;
-      padding: 8px 16px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      border-radius: 2px;
-    }
-    .btn-upload-trigger:hover {
-      background: var(--forest-deep);
-    }
-    .img-preview-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .preview-item {
-      position: relative;
-      width: 60px;
-      height: 60px;
-      border: 1px solid var(--line);
-      background: #f0eee6;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .preview-item img {
-      max-width: 100%;
-      max-height: 100%;
-    }
+  #jitHistoryTable{table-layout:fixed;}
+  #jitHistoryTable th:nth-child(1),#jitHistoryTable td:nth-child(1){width:160px;}
+  #jitHistoryTable th:nth-child(2),#jitHistoryTable td:nth-child(2){width:110px;}
+  #jitHistoryTable th:nth-child(3),#jitHistoryTable td:nth-child(3){width:150px;}
+  #jitHistoryTable th:nth-child(4),#jitHistoryTable td:nth-child(4){width:220px;}
+  #jitHistoryTable th:nth-child(5),#jitHistoryTable td:nth-child(5){width:130px;}
+  #jitHistoryTable tr.row-dirty td{background:#FBF6E8;}
+  .edit-jit-date,.edit-jit-pct,.edit-jit-amount,.edit-jit-photo{
+    width:100%;box-sizing:border-box;padding:5px 7px;border:1px solid var(--line);
+    font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.8rem;background:#fff;color:var(--ink);
+  }
+  .jit-form{grid-template-columns:1fr 0.7fr 0.9fr 1.6fr auto;}
+  .photo-cell{display:flex;gap:6px;align-items:center;}
+  .photo-cell input{flex:1;}
+  .photo-link{
+    font-size:0.72rem;color:var(--forest);text-decoration:none;border:1px solid var(--forest);
+    padding:4px 8px;white-space:nowrap;
+  }
+  .photo-link:hover{background:var(--forest);color:#fff;}
 
-    @media (max-width:900px){
-      .kpis{grid-template-columns:repeat(2,1fr);}
-      .grid2{grid-template-columns:1fr;}
-      .billing-form{grid-template-columns:1fr;}
-      .grouped .row{grid-template-columns:110px 1fr;}
-      .barrow{grid-template-columns:110px 1fr 56px;}
-    }
-  </style>
+  @media (max-width:900px){
+    .kpis{grid-template-columns:repeat(2,1fr);}
+    .grid2{grid-template-columns:1fr;}
+    .billing-form{grid-template-columns:1fr;}
+    .grouped .row{grid-template-columns:110px 1fr;}
+    .barrow{grid-template-columns:110px 1fr 56px;}
+  }
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -348,7 +288,7 @@
       <h1>I-BUILD Subprojects — Financial &amp; Physical Status</h1>
       <p>PRDP RPCO I · Region I coverage · <span id="spCount">15</span> subprojects tracked</p>
     </div>
-    <div class="meta">Source: Google Sheet — "Summary", "Disbursement" &amp; "JIT"</div>
+    <div class="meta">Source: Google Sheet — "Summary" &amp; "Disbursement"</div>
   </header>
 
   <div class="tabs">
@@ -357,1160 +297,1080 @@
     <button class="tab-btn" id="tabBtnJIT">JIT</button>
   </div>
 
-  <!-- OVERVIEW TAB (unchanged) -->
   <div class="tab-panel active" id="tabOverview">
-    <div class="databar" id="dataBar">Loading data…</div>
-    <div class="kpis" id="kpis"></div>
-    <section>
-      <h2>Physical vs. financial accomplishment</h2>
-      <div class="grid2">
-        <div class="panel"><div class="grouped" id="physFinChart"></div>
-          <div class="legend"><span><span class="dot" style="background:#5A7A8C"></span>Physical accomplishment</span><span><span class="dot" style="background:#B9862F"></span>Disbursement rate</span></div>
-        </div>
-        <div class="panel"><h3>Status mix (count of subprojects)</h3><div id="statusChart"></div></div>
-      </div>
-    </section>
-    <section>
-      <h2>Subproject register</h2>
-      <div class="tbl-summary" id="tblSummary"></div>
-      <div class="filters">
-        <input type="text" id="fSearch" placeholder="Search name or location…">
-        <select id="fCategory"><option value="">All categories</option></select>
-        <select id="fStatus"><option value="">All statuses</option></select>
-        <select id="fBacklog">
-          <option value="">All backlog levels</option>
-          <option value="high">Backlog &gt; 20%</option>
-          <option value="neg">Negative backlog</option>
-        </select>
-        <button class="clear" id="fClear">Clear filters</button>
-        <button class="clear" id="exportOverviewBtn">Export to Excel</button>
-        <span class="count" id="fCount"></span>
-      </div>
-      <table id="regTable">
-        <thead><tr><th>No.</th><th>Subproject</th><th>Location</th><th>Category</th><th>Status</th><th class="num">Physical %</th><th class="num">Total Cost</th><th class="num">Disbursed</th><th class="num">Disb. Rate</th><th class="num">Backlog</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </section>
-    <footer id="footerNote">Negative backlog values indicate disbursement recorded ahead of the physical accomplishment on file and are worth a data-quality check with the subproject's finance officer.</footer>
-  </div>
 
-  <!-- BILLING TAB (unchanged) -->
+  <div class="databar" id="dataBar">Loading data…</div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <section>
+    <h2>Physical vs. financial accomplishment</h2>
+    <div class="grid2">
+      <div class="panel">
+        <div class="grouped" id="physFinChart"></div>
+        <div class="legend"><span><span class="dot" style="background:#5A7A8C"></span>Physical accomplishment</span><span><span class="dot" style="background:#B9862F"></span>Disbursement rate</span></div>
+      </div>
+      <div class="panel">
+        <h3>Status mix (count of subprojects)</h3>
+        <div id="statusChart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Subproject register</h2>
+    <div class="tbl-summary" id="tblSummary"></div>
+    <div class="filters">
+      <input type="text" id="fSearch" placeholder="Search name or location…">
+      <select id="fCategory"><option value="">All categories</option></select>
+      <select id="fStatus"><option value="">All statuses</option></select>
+      <select id="fBacklog">
+        <option value="">All backlog levels</option>
+        <option value="high">Backlog &gt; 20%</option>
+        <option value="neg">Negative backlog</option>
+      </select>
+      <button class="clear" id="fClear">Clear filters</button>
+      <button class="clear" id="exportOverviewBtn">Export to Excel</button>
+      <span class="count" id="fCount"></span>
+    </div>
+    <table id="regTable">
+      <thead>
+        <tr>
+          <th>No.</th><th>Subproject</th><th>Location</th><th>Category</th><th>Status</th>
+          <th class="num">Physical %</th><th class="num">Total Cost</th><th class="num">Disbursed</th>
+          <th class="num">Disb. Rate</th><th class="num">Backlog</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <footer id="footerNote">
+    Negative backlog values indicate disbursement recorded ahead of the physical accomplishment on file and are worth a data-quality check with the subproject's finance officer.
+  </footer>
+
+  </div><!-- /tabOverview -->
+
   <div class="tab-panel" id="tabBilling">
     <section>
       <h2>Add a billing entry</h2>
-      <select class="billing-select" id="billSubproject"><option value="">Select a subproject…</option></select>
+      <select class="billing-select" id="billSubproject">
+        <option value="">Select a subproject…</option>
+      </select>
+
       <div class="tbl-summary" id="billSpSummary" style="display:none;"></div>
+
       <div class="bill-charts" id="billCharts" style="display:none;">
         <div class="grid2">
-          <div class="panel"><h3>Cost breakdown: Disbursed vs. Backlog</h3><div id="billCostBreakdown"></div></div>
-          <div class="panel"><h3>Physical % vs. Disbursement Rate %</h3><div id="billPhysVsRate"></div></div>
+          <div class="panel">
+            <h3>Cost breakdown: Disbursed vs. Backlog</h3>
+            <div id="billCostBreakdown"></div>
+          </div>
+          <div class="panel">
+            <h3>Physical % vs. Disbursement Rate %</h3>
+            <div id="billPhysVsRate"></div>
+          </div>
         </div>
-        <div class="panel"><h3>Billing timeline</h3><div id="billTimeline"></div></div>
+        <div class="panel">
+          <h3>Billing timeline</h3>
+          <div id="billTimeline"></div>
+        </div>
       </div>
+
       <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);display:flex;align-items:center;justify-content:space-between;gap:12px;">
         <span>Billing history</span>
         <button class="clear" id="exportBillingBtn" disabled style="font-size:0.72rem;padding:5px 10px;">Export to Excel</button>
       </h3>
-      <table id="billHistoryTable"><thead><tr><th>Date</th><th>Billing</th><th class="num">Amount</th><th>Paid</th><th>Action</th></tr></thead><tbody></tbody></table>
+      <table id="billHistoryTable">
+        <thead>
+          <tr><th>Date</th><th>Billing</th><th class="num">Amount</th><th>Paid</th><th>Action</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
       <div class="empty-state" id="billHistoryEmpty" style="display:none;">Select a subproject to see its billing history.</div>
+
       <h3 style="margin:20px 0 4px;font-size:0.9rem;color:var(--forest-deep);">New billing</h3>
       <div class="billing-form">
-        <div><label>Billing</label><input type="text" id="billLabel" placeholder="e.g., 3rd Billing"></div>
-        <div><label>Amount to be billed</label><input type="number" id="billAmount" placeholder="0.00" step="0.01" min="0"></div>
-        <div><label>Status</label><select id="billStatus"><option value="Unpaid">Unpaid</option><option value="Paid">Paid</option></select></div>
+        <div>
+          <label>Billing</label>
+          <input type="text" id="billLabel" placeholder="e.g., 3rd Billing">
+        </div>
+        <div>
+          <label>Amount to be billed</label>
+          <input type="number" id="billAmount" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div>
+          <label>Status</label>
+          <select id="billStatus">
+            <option value="Unpaid">Unpaid</option>
+            <option value="Paid">Paid</option>
+          </select>
+        </div>
         <button id="billSubmit">Save billing</button>
       </div>
       <div class="form-msg" id="billMsg"></div>
     </section>
-  </div>
+  </div><!-- /tabBilling -->
 
-  <!-- JIT TAB (with image gallery) -->
   <div class="tab-panel" id="tabJIT">
     <section>
       <h2>JIT (Just-In-Time fund release)</h2>
-      <select class="billing-select" id="jitSubproject"><option value="">Select a subproject…</option></select>
+      <select class="billing-select" id="jitSubproject">
+        <option value="">Select a subproject…</option>
+      </select>
 
-      <!-- JIT image upload section -->
-      <div style="margin-top: 18px;">
-        <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">JIT activity images</h3>
-        <div class="img-upload-area" id="jitUploadArea">
-          <p style="margin:0 0 6px;font-size:0.85rem;color:var(--ink-soft);">Click to select images (or drag &amp; drop)</p>
-          <p style="margin:0 0 10px;font-size:0.75rem;color:var(--ink-soft);">Supported: JPG, PNG, GIF. Max 5 MB per file.</p>
-          <button class="btn-upload-trigger" type="button" id="jitUploadBtn">Choose images</button>
-          <input type="file" id="jitFileInput" accept="image/*" multiple>
-        </div>
-        <div id="jitImagePreview" class="img-preview-list"></div>
-        <div id="jitGallery" class="img-gallery"></div>
-        <div class="form-msg" id="jitImgMsg" style="margin-top:8px;"></div>
-        <!-- Hidden field to store the Drive folder link (or you can set it via JS) -->
-        <input type="hidden" id="driveFolderLink" value="">
-      </div>
-
-      <h3 style="margin:20px 0 10px;font-size:0.9rem;color:var(--forest-deep);">JIT history</h3>
-      <table id="jitHistoryTable"><thead><tr><th>Date</th><th class="num">JIT %</th><th class="num">JIT Amount</th><th>Action</th></tr></thead><tbody></tbody></table>
+      <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">JIT history</h3>
+      <table id="jitHistoryTable">
+        <thead>
+          <tr><th>Date</th><th class="num">JIT %</th><th class="num">JIT Amount</th><th>Photos</th><th>Action</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
       <div class="empty-state" id="jitHistoryEmpty" style="display:none;">Select a subproject to see its JIT history.</div>
 
       <h3 style="margin:20px 0 4px;font-size:0.9rem;color:var(--forest-deep);">New JIT entry</h3>
-      <div class="billing-form">
-        <div><label>Date</label><input type="date" id="jitDate"></div>
-        <div><label>JIT %</label><input type="number" id="jitPct" placeholder="0.00" step="0.01" min="0" max="100"></div>
-        <div><label>JIT Amount</label><input type="number" id="jitAmount" placeholder="0.00" step="0.01" min="0"></div>
+      <div class="billing-form jit-form">
+        <div>
+          <label>Date</label>
+          <input type="date" id="jitDate">
+        </div>
+        <div>
+          <label>JIT %</label>
+          <input type="number" id="jitPct" placeholder="0.00" step="0.01" min="0" max="100">
+        </div>
+        <div>
+          <label>JIT Amount</label>
+          <input type="number" id="jitAmount" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div>
+          <label>Photo link (Google Drive)</label>
+          <input type="url" id="jitPhotoLink" placeholder="https://drive.google.com/…">
+        </div>
         <button id="jitSubmit">Save JIT entry</button>
       </div>
       <div class="form-msg" id="jitMsg"></div>
     </section>
-  </div>
+  </div><!-- /tabJIT -->
 
 </div>
 
 <script>
-  // --------------------------------------------------------------
-  // DATA & CONFIG (same as original, with a few additions)
-  // --------------------------------------------------------------
-  const SHEET_ID = "1KshU51bCXvq7gF4qbCOYs3OuWuhSJFsvdcqT5wfJnjU";
-  const SHEET_NAME = "Summary";
-  const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+const SHEET_ID = "1KshU51bCXvq7gF4qbCOYs3OuWuhSJFsvdcqT5wfJnjU";
+const SHEET_NAME = "Summary";
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
 
-  const DISB_SHEET_NAME = "Disbursement";
-  const DISB_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(DISB_SHEET_NAME)}`;
+const DISB_SHEET_NAME = "Disbursement";
+const DISB_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(DISB_SHEET_NAME)}`;
 
-  const JIT_SHEET_NAME = "JIT";
-  const JIT_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(JIT_SHEET_NAME)}`;
+const JIT_SHEET_NAME = "JIT";
+const JIT_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(JIT_SHEET_NAME)}`;
 
-  // ⚠️ Replace with your deployed Apps Script Web App URL (must handle image uploads)
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9epoF2RItFm_nNWkIZa2xT4PY0HrbwUM5X2OliLhckGqnKqX3u6cXtCfmnltGBzUh/exec";
+// Paste the deployed Apps Script Web App URL here (see apps-script-backend.gs) to enable saving new billings/JIT entries.
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZxiIRCCKVVxlUMcG0oYwdmF7v0bkgds2cDUnW9bUVL5pdY-O5HY3Gu6FY5v6jSwFg/exec";
 
-  // Google Drive folder link (optional – used for direct links if needed)
-  const DRIVE_FOLDER_LINK = "https://drive.google.com/drive/folders/1YourFolderIdHere"; // <- replace
+const FALLBACK_DATA = [
+  {no:1,name:"San Jose Multi-Purpose Warehouse with Solar Dryer",loc:"Vintar, Ilocos Norte",cat:"VCRI",status:"Completed",phys:100.00,cost:10267127.90,disb:10267127.90,rate:100.00,backlogPct:0.00,backlogAmt:0.00},
+  {no:2,name:"Multi-Purpose Drying Pavement in Bugallon",loc:"Pangasinan",cat:"VCRI",status:"Completed",phys:100.00,cost:37828715.27,disb:32723204.09,rate:86.50,backlogPct:13.50,backlogAmt:5105511.18},
+  {no:3,name:"Multi-Purpose Drying Pavement in Sta. Barbara",loc:"Pangasinan",cat:"VCRI",status:"Completed",phys:100.00,cost:37072178.19,disb:33496960.43,rate:90.36,backlogPct:9.64,backlogAmt:3575217.76},
+  {no:4,name:"Multi-Purpose Drying Pavement in San Quintin",loc:"Pangasinan",cat:"VCRI",status:"Completed",phys:100.00,cost:38116329.40,disb:36290328.65,rate:95.21,backlogPct:4.79,backlogAmt:1826000.75},
+  {no:5,name:"Establishment of Rosales Slaughterhouse",loc:"Rosales, Pangasinan",cat:"VCRI",status:"On-going",phys:82.29,cost:70775845.63,disb:28598603.25,rate:40.41,backlogPct:41.88,backlogAmt:29642840.12},
+  {no:6,name:"Construction of Alcala Cold Storage for Onion",loc:"Alcala, Pangasinan",cat:"VCRI",status:"On-going",phys:42.89,cost:170758323.86,disb:14627821.05,rate:8.57,backlogPct:34.32,backlogAmt:58610424.05},
+  {no:7,name:"Construction of Bayambang Onion Cold Storage Facility",loc:"Bayambang, Pangasinan",cat:"VCRI",status:"On-going",phys:40.36,cost:220541291.06,disb:71857886.82,rate:32.58,backlogPct:7.78,backlogAmt:17152578.25},
+  {no:8,name:"Construction of Ubbog Bridge with Approaches",loc:"Paoay, Ilocos Norte",cat:"Bridge",status:"On-going",phys:41.94,cost:91611896.70,disb:31137120.40,rate:33.99,backlogPct:7.95,backlogAmt:7284909.08},
+  {no:9,name:"Bangus Breeding and Hatchery",loc:"Bolinao, Pangasinan",cat:"VCRI",status:"On-going",phys:8.90,cost:212174996.00,disb:31826249.39,rate:15.00,backlogPct:-6.10,backlogAmt:-12942674.75},
+  {no:10,name:"San Gabriel II – Pantol Farm-to-Market Road",loc:"Bayambang, Pangasinan",cat:"FMR",status:"with NOL1",phys:0.00,cost:272323852.70,disb:0,rate:0.00,backlogPct:0.00,backlogAmt:0.00},
+  {no:11,name:"Establishment of Tagudin Slaughterhouse",loc:"Tagudin, Ilocos Sur",cat:"VCRI",status:"On-going",phys:25.53,cost:74185399.22,disb:8892918.16,rate:11.99,backlogPct:13.54,backlogAmt:10046614.26},
+  {no:12,name:"San Vicente–Viga Farm-to-Market Road",loc:"Dasol, Pangasinan",cat:"FMR w/ Bridge",status:"with NOL1",phys:null,cost:233674555.90,disb:0,rate:0.00,backlogPct:0.00,backlogAmt:0.00},
+  {no:13,name:"Rehabilitation of Ramot–Puguil Farm-to-Market Road",loc:"La Union",cat:"FMR",status:"On-going",phys:3.02,cost:261035065.16,disb:0,rate:0.00,backlogPct:3.02,backlogAmt:7883258.97},
+  {no:14,name:"Provincial Storage Facility with Solar Dryer",loc:"La Union",cat:"VCRI",status:"On-going",phys:0.10,cost:15039899.99,disb:0,rate:0.00,backlogPct:0.10,backlogAmt:15039.90},
+  {no:15,name:"Construction of Batac City Slaughterhouse",loc:"Batac City, Ilocos Norte",cat:"VCRI",status:"with NOL1",phys:null,cost:141613400.00,disb:0,rate:0.00,backlogPct:0.00,backlogAmt:0.00}
+];
 
-  // Fallback data (same as original)
-  const FALLBACK_DATA = [
-    {no:1,name:"San Jose Multi-Purpose Warehouse with Solar Dryer",loc:"Vintar, Ilocos Norte",cat:"VCRI",status:"Completed",phys:100.00,cost:10267127.90,disb:10267127.90,rate:100.00,backlogPct:0.00,backlogAmt:0.00},
-    {no:2,name:"Multi-Purpose Drying Pavement in Bugallon",loc:"Pangasinan",cat:"VCRI",status:"Completed",phys:100.00,cost:37828715.27,disb:32723204.09,rate:86.50,backlogPct:13.50,backlogAmt:5105511.18},
-    {no:3,name:"Multi-Purpose Drying Pavement in Sta. Barbara",loc:"Pangasinan",cat:"VCRI",status:"Completed",phys:100.00,cost:37072178.19,disb:33496960.43,rate:90.36,backlogPct:9.64,backlogAmt:3575217.76},
-    {no:4,name:"Multi-Purpose Drying Pavement in San Quintin",loc:"Pangasinan",cat:"VCRI",status:"Completed",phys:100.00,cost:38116329.40,disb:36290328.65,rate:95.21,backlogPct:4.79,backlogAmt:1826000.75},
-    {no:5,name:"Establishment of Rosales Slaughterhouse",loc:"Rosales, Pangasinan",cat:"VCRI",status:"On-going",phys:82.29,cost:70775845.63,disb:28598603.25,rate:40.41,backlogPct:41.88,backlogAmt:29642840.12},
-    {no:6,name:"Construction of Alcala Cold Storage for Onion",loc:"Alcala, Pangasinan",cat:"VCRI",status:"On-going",phys:42.89,cost:170758323.86,disb:14627821.05,rate:8.57,backlogPct:34.32,backlogAmt:58610424.05},
-    {no:7,name:"Construction of Bayambang Onion Cold Storage Facility",loc:"Bayambang, Pangasinan",cat:"VCRI",status:"On-going",phys:40.36,cost:220541291.06,disb:71857886.82,rate:32.58,backlogPct:7.78,backlogAmt:17152578.25},
-    {no:8,name:"Construction of Ubbog Bridge with Approaches",loc:"Paoay, Ilocos Norte",cat:"Bridge",status:"On-going",phys:41.94,cost:91611896.70,disb:31137120.40,rate:33.99,backlogPct:7.95,backlogAmt:7284909.08},
-    {no:9,name:"Bangus Breeding and Hatchery",loc:"Bolinao, Pangasinan",cat:"VCRI",status:"On-going",phys:8.90,cost:212174996.00,disb:31826249.39,rate:15.00,backlogPct:-6.10,backlogAmt:-12942674.75},
-    {no:10,name:"San Gabriel II – Pantol Farm-to-Market Road",loc:"Bayambang, Pangasinan",cat:"FMR",status:"with NOL1",phys:0.00,cost:272323852.70,disb:0,rate:0.00,backlogPct:0.00,backlogAmt:0.00},
-    {no:11,name:"Establishment of Tagudin Slaughterhouse",loc:"Tagudin, Ilocos Sur",cat:"VCRI",status:"On-going",phys:25.53,cost:74185399.22,disb:8892918.16,rate:11.99,backlogPct:13.54,backlogAmt:10046614.26},
-    {no:12,name:"San Vicente–Viga Farm-to-Market Road",loc:"Dasol, Pangasinan",cat:"FMR w/ Bridge",status:"with NOL1",phys:null,cost:233674555.90,disb:0,rate:0.00,backlogPct:0.00,backlogAmt:0.00},
-    {no:13,name:"Rehabilitation of Ramot–Puguil Farm-to-Market Road",loc:"La Union",cat:"FMR",status:"On-going",phys:3.02,cost:261035065.16,disb:0,rate:0.00,backlogPct:3.02,backlogAmt:7883258.97},
-    {no:14,name:"Provincial Storage Facility with Solar Dryer",loc:"La Union",cat:"VCRI",status:"On-going",phys:0.10,cost:15039899.99,disb:0,rate:0.00,backlogPct:0.10,backlogAmt:15039.90},
-    {no:15,name:"Construction of Batac City Slaughterhouse",loc:"Batac City, Ilocos Norte",cat:"VCRI",status:"with NOL1",phys:null,cost:141613400.00,disb:0,rate:0.00,backlogPct:0.00,backlogAmt:0.00}
-  ];
+const peso = n => "₱" + n.toLocaleString("en-PH",{maximumFractionDigits:0});
+const pesoFull = n => "₱" + n.toLocaleString("en-PH",{minimumFractionDigits:2,maximumFractionDigits:2});
 
-  const peso = n => "₱" + n.toLocaleString("en-PH",{maximumFractionDigits:0});
-  const pesoFull = n => "₱" + n.toLocaleString("en-PH",{minimumFractionDigits:2,maximumFractionDigits:2});
+let currentData = FALLBACK_DATA;
+let filtered = FALLBACK_DATA;
+let totalUnpaidBilling = null;   // null = not loaded yet
+let unpaidBillingError = null;
+let unpaidBillingCount = 0;
 
-  let currentData = FALLBACK_DATA;
-  let filtered = FALLBACK_DATA;
-  let totalUnpaidBilling = null;
-  let unpaidBillingError = null;
-  let unpaidBillingCount = 0;
-
-  // ---------- CSV parsing (no external library) ----------
-  function parseCSV(text){
-    const rows = [];
-    let row = [], field = "", inQuotes = false;
-    for (let i=0;i<text.length;i++){
-      const c = text[i];
-      if (inQuotes){
-        if (c === '"'){
-          if (text[i+1] === '"'){ field += '"'; i++; }
-          else inQuotes = false;
-        } else field += c;
-      } else {
-        if (c === '"') inQuotes = true;
-        else if (c === ',') { row.push(field); field=""; }
-        else if (c === '\n'){ row.push(field); rows.push(row); row=[]; field=""; }
-        else if (c === '\r'){ /* skip */ }
-        else field += c;
-      }
-    }
-    if (field.length || row.length){ row.push(field); rows.push(row); }
-    return rows.filter(r => r.some(c => c.trim() !== ""));
-  }
-
-  function num(v){
-    if (v==null) return null;
-    const cleaned = String(v).replace(/[₱,%\s]/g,"").trim();
-    if (cleaned === "" || cleaned === "-") return null;
-    const n = parseFloat(cleaned);
-    return isNaN(n) ? null : n;
-  }
-
-  function findCol(headers, matcher, fallbackIndex){
-    const idx = headers.findIndex(matcher);
-    return idx>=0 ? idx : (fallbackIndex!=null ? fallbackIndex : -1);
-  }
-
-  function csvToData(rawRows){
-    const headers = rawRows[0].map(h=>h.trim().toLowerCase());
-    const colNo      = findCol(headers, h=>h==="no."||h==="no"||h==="#", 0);
-    const colName    = findCol(headers, h=>h.includes("subproject") || h.includes("name"), 1);
-    const colLoc     = findCol(headers, h=>h.includes("location"), 2);
-    const colCat     = findCol(headers, h=>h.includes("categ"), 3);
-    const colStatus  = findCol(headers, h=>h==="status", 4);
-    const colPhys    = findCol(headers, h=>h.includes("physical"), 5);
-    const colCost    = findCol(headers, h=>h.includes("total cost"), 6);
-    const colDisb    = findCol(headers, h=>h.includes("total disbursed"), 7);
-    const colRate    = findCol(headers, h=>h.includes("disb") && h.includes("rate"), 8);
-    const colBackPct = findCol(headers, h=>h.includes("backlog") && h.includes("%"), 9);
-    const colBackAmt = findCol(headers, h=>h.includes("backlog") && h.includes("amount"), 10);
-
-    return rawRows.slice(1).map((r,i)=>({
-      no: colNo>=0 ? (num(r[colNo]) ?? i+1) : i+1,
-      name: (colName>=0 ? r[colName] : "").trim(),
-      loc: (colLoc>=0 ? r[colLoc] : "").trim(),
-      cat: (colCat>=0 ? r[colCat] : "").trim(),
-      status: (colStatus>=0 ? r[colStatus] : "").trim(),
-      phys: colPhys>=0 ? num(r[colPhys]) : null,
-      cost: colCost>=0 ? (num(r[colCost]) ?? 0) : 0,
-      disb: colDisb>=0 ? (num(r[colDisb]) ?? 0) : 0,
-      rate: colRate>=0 ? (num(r[colRate]) ?? 0) : 0,
-      backlogPct: colBackPct>=0 ? (num(r[colBackPct]) ?? 0) : 0,
-      backlogAmt: colBackAmt>=0 ? (num(r[colBackAmt]) ?? 0) : 0
-    })).filter(d => d.name !== "");
-  }
-
-  // ---------- Rendering (reuse original functions) ----------
-  function renderAll(dataset, meta){
-    currentData = dataset;
-    document.getElementById("spCount").textContent = dataset.length;
-
-    const bar = document.getElementById("dataBar");
-    if (meta.live){
-      bar.className = "databar live";
-      bar.innerHTML = `Showing live data from the Google Sheet ("${SHEET_NAME}") · fetched ${new Date().toLocaleString("en-PH")} <button id="fRefresh">Refresh</button>`;
+// ---------- CSV parsing (no external library) ----------
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for (let i=0;i<text.length;i++){
+    const c = text[i];
+    if (inQuotes){
+      if (c === '"'){
+        if (text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
     } else {
-      bar.className = "databar fallback";
-      bar.innerHTML = `Could not load the live Google Sheet (${meta.error||"unknown error"}) — showing the last known snapshot instead. Make sure the sheet is shared as "Anyone with the link – Viewer". <button id="fRefresh">Retry</button>`;
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field=""; }
+      else if (c === '\n'){ row.push(field); rows.push(row); row=[]; field=""; }
+      else if (c === '\r'){ /* skip */ }
+      else field += c;
     }
-    document.getElementById("fRefresh").addEventListener("click", loadData);
-
-    renderKPIs(dataset);
-    renderCharts(dataset);
-    populateFilterOptions(dataset);
-    applyFilters();
-    populateBillingSubprojects(dataset);
   }
+  if (field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim() !== ""));
+}
 
-  function renderKPIs(data){
-    const totalCost = data.reduce((s,d)=>s+d.cost,0);
-    const totalDisb = data.reduce((s,d)=>s+d.disb,0);
-    const overallRate = totalCost ? (totalDisb/totalCost*100) : 0;
-    const totalBacklog = data.reduce((s,d)=>s+d.backlogAmt,0);
-    const completed = data.filter(d=>d.status==="Completed").length;
-    const ongoing = data.filter(d=>d.status==="On-going").length;
-    const withNol = data.filter(d=>d.status!=="Completed" && d.status!=="On-going").length;
-    const physVals = data.filter(d=>d.phys!=null);
-    const avgPhys = physVals.length ? physVals.reduce((s,d)=>s+d.phys,0)/physVals.length : 0;
+function num(v){
+  if (v==null) return null;
+  const cleaned = String(v).replace(/[₱,%\s]/g,"").trim();
+  if (cleaned === "" || cleaned === "-") return null;
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? null : n;
+}
 
-    const kpis = [
-      {label:"Subprojects tracked",value:data.length,sub:`${completed} completed · ${ongoing} on-going · ${withNol} with NOL1`},
-      {label:"Total programmed cost",value:peso(totalCost),sub:`Across ${data.length} subprojects`},
-      {label:"Total disbursed",value:peso(totalDisb),sub:`${overallRate.toFixed(1)}% of programmed cost`},
-      {label:"Undisbursed / backlog",value:peso(totalBacklog),sub:"Sum of payment backlog, all subprojects",warn:true},
-      {label:"Avg. physical accomplishment",value:avgPhys.toFixed(1)+"%",sub:"Subprojects with reported progress"},
-      unpaidBillingKpi()
-    ];
-    const kpiEl = document.getElementById("kpis");
-    kpiEl.innerHTML = "";
-    kpis.forEach(k=>{
-      const div = document.createElement("div");
-      div.className = "kpi"+(k.warn?" warn":"");
-      div.innerHTML = `<div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div>`;
-      kpiEl.appendChild(div);
-    });
+function findCol(headers, matcher, fallbackIndex){
+  const idx = headers.findIndex(matcher);
+  return idx>=0 ? idx : (fallbackIndex!=null ? fallbackIndex : -1);
+}
+
+// Column layout as given in the sheet: A No. | B Subproject Name | C Location | D Category
+// | E Status | F Physical Accomp. (%) | G Total Cost (PHP) | H Total Disbursed (PHP)
+// | I Disb. Rate (%) | J Payment Backlog (%) | K Payment Backlog (Amount)
+// Header-text matching is tried first (resilient to reordered columns); if a header
+// can't be matched, it falls back to the fixed position below so J/K are always captured.
+function csvToData(rawRows){
+  const headers = rawRows[0].map(h=>h.trim().toLowerCase());
+  const colNo      = findCol(headers, h=>h==="no."||h==="no"||h==="#", 0);
+  const colName    = findCol(headers, h=>h.includes("subproject") || h.includes("name"), 1);
+  const colLoc     = findCol(headers, h=>h.includes("location"), 2);
+  const colCat     = findCol(headers, h=>h.includes("categ"), 3);
+  const colStatus  = findCol(headers, h=>h==="status", 4);
+  const colPhys    = findCol(headers, h=>h.includes("physical"), 5);
+  const colCost    = findCol(headers, h=>h.includes("total cost"), 6);
+  const colDisb    = findCol(headers, h=>h.includes("total disbursed"), 7);
+  const colRate    = findCol(headers, h=>h.includes("disb") && h.includes("rate"), 8);
+  const colBackPct = findCol(headers, h=>h.includes("backlog") && h.includes("%"), 9);   // Column J
+  const colBackAmt = findCol(headers, h=>h.includes("backlog") && h.includes("amount"), 10); // Column K
+
+  return rawRows.slice(1).map((r,i)=>({
+    no: colNo>=0 ? (num(r[colNo]) ?? i+1) : i+1,
+    name: (colName>=0 ? r[colName] : "").trim(),
+    loc: (colLoc>=0 ? r[colLoc] : "").trim(),
+    cat: (colCat>=0 ? r[colCat] : "").trim(),
+    status: (colStatus>=0 ? r[colStatus] : "").trim(),
+    phys: colPhys>=0 ? num(r[colPhys]) : null,
+    cost: colCost>=0 ? (num(r[colCost]) ?? 0) : 0,
+    disb: colDisb>=0 ? (num(r[colDisb]) ?? 0) : 0,
+    rate: colRate>=0 ? (num(r[colRate]) ?? 0) : 0,
+    backlogPct: colBackPct>=0 ? (num(r[colBackPct]) ?? 0) : 0,
+    backlogAmt: colBackAmt>=0 ? (num(r[colBackAmt]) ?? 0) : 0
+  })).filter(d => d.name !== "");
+}
+
+// ---------- Rendering ----------
+function renderAll(dataset, meta){
+  currentData = dataset;
+  document.getElementById("spCount").textContent = dataset.length;
+
+  const bar = document.getElementById("dataBar");
+  if (meta.live){
+    bar.className = "databar live";
+    bar.innerHTML = `Showing live data from the Google Sheet ("${SHEET_NAME}") · fetched ${new Date().toLocaleString("en-PH")} <button id="fRefresh">Refresh</button>`;
+  } else {
+    bar.className = "databar fallback";
+    bar.innerHTML = `Could not load the live Google Sheet (${meta.error||"unknown error"}) — showing the last known snapshot instead. Make sure the sheet is shared as "Anyone with the link – Viewer". <button id="fRefresh">Retry</button>`;
   }
+  document.getElementById("fRefresh").addEventListener("click", loadData);
 
-  function unpaidBillingKpi(){
-    if (unpaidBillingError){
-      return {label:"Unpaid billings", value:"—", sub:"Could not load Disbursement data", warn:true};
-    }
-    if (totalUnpaidBilling === null){
-      return {label:"Unpaid billings", value:"Loading…", sub:"From the Disbursement sheet"};
-    }
-    return {
-      label:"Unpaid billings",
-      value: peso(totalUnpaidBilling),
-      sub: `${unpaidBillingCount} billing${unpaidBillingCount===1?"":"s"} marked Unpaid, all subprojects`,
-      warn: totalUnpaidBilling > 0
-    };
-  }
+  renderKPIs(dataset);
+  renderCharts(dataset);
+  populateFilterOptions(dataset);
+  applyFilters();
+  populateBillingSubprojects(dataset);
+}
 
-  function loadUnpaidBillingTotal(){
-    fetch(DISB_CSV_URL)
-      .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
-      .then(text=>{
-        const rows = billCsvToRows(parseCSV(text));
-        const unpaid = rows.filter(r=>!r.paid && r.amount > 0);
-        totalUnpaidBilling = unpaid.reduce((s,r)=>s+r.amount,0);
-        unpaidBillingCount = unpaid.length;
-        unpaidBillingError = null;
-        renderKPIs(currentData);
-      })
-      .catch(err=>{
-        unpaidBillingError = err.message;
-        totalUnpaidBilling = null;
-        renderKPIs(currentData);
-      });
-  }
+function renderKPIs(data){
+  const totalCost = data.reduce((s,d)=>s+d.cost,0);
+  const totalDisb = data.reduce((s,d)=>s+d.disb,0);
+  const overallRate = totalCost ? (totalDisb/totalCost*100) : 0;
+  const totalBacklog = data.reduce((s,d)=>s+d.backlogAmt,0);
+  const completed = data.filter(d=>d.status==="Completed").length;
+  const ongoing = data.filter(d=>d.status==="On-going").length;
+  const withNol = data.filter(d=>d.status!=="Completed" && d.status!=="On-going").length;
+  const physVals = data.filter(d=>d.phys!=null);
+  const avgPhys = physVals.length ? physVals.reduce((s,d)=>s+d.phys,0)/physVals.length : 0;
 
-  function renderCharts(data){
-    const statusGroups = {};
-    data.forEach(d=>{ statusGroups[d.status] = (statusGroups[d.status]||0)+1; });
-    const palette = ["#1E4635","#B9862F","#8C8070","#5A7A8C","#A1402B"];
-    const statusData = Object.keys(statusGroups).map((k,i)=>({label:k,count:statusGroups[k],color:palette[i%palette.length]}));
-    const total = data.length;
-    const r=60, cx=90, cy=90, circ=2*Math.PI*r;
-    let offset=0, arcs="";
-    statusData.forEach(d=>{
-      const len = (d.count/total)*circ;
-      arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${d.color}" stroke-width="26" stroke-dasharray="${len} ${circ-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"></circle>`;
-      offset += len;
-    });
-    document.getElementById("statusChart").innerHTML = `
-      <svg viewBox="0 0 180 180" style="display:block;margin:0 auto;max-width:220px;">
-        ${arcs}
-        <text x="90" y="84" text-anchor="middle" font-size="26" font-family="IBM Plex Mono, monospace" fill="#23281F" font-weight="600">${total}</text>
-        <text x="90" y="102" text-anchor="middle" font-size="11" fill="#5B6152">subprojects</text>
-      </svg>
-      <div class="legend">${statusData.map(d=>`<span><span class="dot" style="background:${d.color}"></span>${d.label} (${d.count})</span>`).join("")}</div>
-    `;
-
-    const pfEl = document.getElementById("physFinChart");
-    pfEl.innerHTML = "";
-    data.forEach(d=>{
-      const physVal = d.phys==null?0:d.phys;
-      const row = document.createElement("div");
-      row.className = "row";
-      row.innerHTML = `
-        <div class="lbl" title="${d.name.replace(/"/g,'&quot;')}">${d.name}</div>
-        <div class="bars">
-          <div class="bar-line"><div class="track"><div class="fill" style="width:${Math.min(physVal,100)}%;background:#5A7A8C;"></div></div><div class="val">${d.phys==null?"—":physVal.toFixed(1)+"%"}</div></div>
-          <div class="bar-line"><div class="track"><div class="fill" style="width:${Math.min(d.rate,100)}%;background:#B9862F;"></div></div><div class="val">${d.rate.toFixed(1)}%</div></div>
-        </div>`;
-      pfEl.appendChild(row);
-    });
-  }
-
-  function populateFilterOptions(data){
-    const catSel = document.getElementById("fCategory");
-    const statusSel = document.getElementById("fStatus");
-    const cats = [...new Set(data.map(d=>d.cat).filter(Boolean))].sort();
-    const statuses = [...new Set(data.map(d=>d.status).filter(Boolean))].sort();
-    catSel.innerHTML = `<option value="">All categories</option>` + cats.map(c=>`<option value="${c}">${c}</option>`).join("");
-    statusSel.innerHTML = `<option value="">All statuses</option>` + statuses.map(s=>`<option value="${s}">${s}</option>`).join("");
-  }
-
-  function computeColumnSummary(data){
-    const n = data.length;
-    const sum = (fn) => data.reduce((s,d)=>s+fn(d),0);
-    const physVals = data.filter(d=>d.phys!=null);
-    return {
-      count: n,
-      avgPhys: physVals.length ? sum(d=>d.phys==null?0:d.phys)/physVals.length : 0,
-      sumCost: sum(d=>d.cost),
-      sumDisb: sum(d=>d.disb),
-      avgRate: n ? sum(d=>d.rate)/n : 0,
-      avgBacklogPct: n ? sum(d=>d.backlogPct)/n : 0,
-      sumBacklogAmt: sum(d=>d.backlogAmt)
-    };
-  }
-
-  function renderTableSummary(data){
-    const s = computeColumnSummary(data);
-    document.getElementById("tblSummary").innerHTML = `
-      <div class="sitem"><span class="slabel">Rows</span><span class="sval">${s.count}</span></div>
-      <div class="sitem"><span class="slabel">Avg. Physical %</span><span class="sval">${s.avgPhys.toFixed(2)}%</span></div>
-      <div class="sitem"><span class="slabel">Σ Total Cost</span><span class="sval">${pesoFull(s.sumCost)}</span></div>
-      <div class="sitem"><span class="slabel">Σ Total Disbursed</span><span class="sval">${pesoFull(s.sumDisb)}</span></div>
-      <div class="sitem"><span class="slabel">Avg. Disb. Rate</span><span class="sval">${s.avgRate.toFixed(2)}%</span></div>
-      <div class="sitem"><span class="slabel">Avg. Backlog %</span><span class="sval">${s.avgBacklogPct.toFixed(2)}%</span></div>
-      <div class="sitem ${s.sumBacklogAmt<0?'neg':''}"><span class="slabel">Σ Backlog Amount</span><span class="sval">${pesoFull(s.sumBacklogAmt)}</span></div>
-    `;
-  }
-
-  function applyFilters(){
-    const q = document.getElementById("fSearch").value.trim().toLowerCase();
-    const cat = document.getElementById("fCategory").value;
-    const status = document.getElementById("fStatus").value;
-    const backlog = document.getElementById("fBacklog").value;
-
-    filtered = currentData.filter(d=>{
-      if (q && !(d.name.toLowerCase().includes(q) || d.loc.toLowerCase().includes(q))) return false;
-      if (cat && d.cat !== cat) return false;
-      if (status && d.status !== status) return false;
-      if (backlog === "high" && !(d.backlogPct > 20)) return false;
-      if (backlog === "neg" && !(d.backlogAmt < 0)) return false;
-      return true;
-    });
-    renderTable(filtered);
-    renderTableSummary(filtered);
-    document.getElementById("fCount").textContent = `${filtered.length} of ${currentData.length} subprojects`;
-  }
-
-  function renderTable(data){
-    const tbody = document.querySelector("#regTable tbody");
-    tbody.innerHTML = "";
-    data.forEach(d=>{
-      const tr = document.createElement("tr");
-      const statusClass = d.status==="Completed"?"completed":(d.status==="On-going"?"ongoing":"nol");
-      const catClass = d.cat==="VCRI"?"VCRI":d.cat==="FMR"?"FMR":d.cat==="Bridge"?"Bridge":"FMRB";
-      const backlogClass = d.backlogAmt<0?"backlog-neg":(d.backlogPct>20?"backlog-hi":"");
-      tr.innerHTML = `
-        <td>${d.no}</td>
-        <td>${d.name}</td>
-        <td>${d.loc}</td>
-        <td><span class="cat ${catClass}"></span>${d.cat}</td>
-        <td><span class="tag ${statusClass}">${d.status}</span></td>
-        <td class="num">${d.phys==null?"—":d.phys.toFixed(2)+"%"}</td>
-        <td class="num">${pesoFull(d.cost)}</td>
-        <td class="num">${pesoFull(d.disb)}</td>
-        <td class="num">${d.rate.toFixed(2)}%</td>
-        <td class="num ${backlogClass}">${pesoFull(d.backlogAmt)}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  ["fSearch","fCategory","fStatus","fBacklog"].forEach(id=>{
-    document.getElementById(id).addEventListener("input", applyFilters);
-    document.getElementById(id).addEventListener("change", applyFilters);
+  const kpis = [
+    {label:"Subprojects tracked",value:data.length,sub:`${completed} completed · ${ongoing} on-going · ${withNol} with NOL1`},
+    {label:"Total programmed cost",value:peso(totalCost),sub:`Across ${data.length} subprojects`},
+    {label:"Total disbursed",value:peso(totalDisb),sub:`${overallRate.toFixed(1)}% of programmed cost`},
+    {label:"Undisbursed / backlog",value:peso(totalBacklog),sub:"Sum of payment backlog, all subprojects",warn:true},
+    {label:"Avg. physical accomplishment",value:avgPhys.toFixed(1)+"%",sub:"Subprojects with reported progress"},
+    unpaidBillingKpi()
+  ];
+  const kpiEl = document.getElementById("kpis");
+  kpiEl.innerHTML = "";
+  kpis.forEach(k=>{
+    const div = document.createElement("div");
+    div.className = "kpi"+(k.warn?" warn":"");
+    div.innerHTML = `<div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div>`;
+    kpiEl.appendChild(div);
   });
-  document.getElementById("fClear").addEventListener("click", ()=>{
-    document.getElementById("fSearch").value = "";
-    document.getElementById("fCategory").value = "";
-    document.getElementById("fStatus").value = "";
-    document.getElementById("fBacklog").value = "";
-    applyFilters();
-  });
+}
 
-  // ---------- Tabs ----------
-  document.getElementById("tabBtnOverview").addEventListener("click", ()=>switchTab("Overview"));
-  document.getElementById("tabBtnBilling").addEventListener("click", ()=>switchTab("Billing"));
-  document.getElementById("tabBtnJIT").addEventListener("click", ()=>switchTab("JIT"));
-  function switchTab(name){
-    ["Overview","Billing","JIT"].forEach(n=>{
-      document.getElementById("tab"+n).classList.toggle("active", n===name);
-      document.getElementById("tabBtn"+n).classList.toggle("active", n===name);
-    });
+function unpaidBillingKpi(){
+  if (unpaidBillingError){
+    return {label:"Unpaid billings", value:"—", sub:"Could not load Disbursement data", warn:true};
   }
-
-  // ---------- Billing tab (same as original) ----------
-  function populateBillingSubprojects(dataset){
-    const names = dataset.map(d=>d.name).filter(Boolean);
-    ["billSubproject","jitSubproject"].forEach(id=>{
-      const sel = document.getElementById(id);
-      const current = sel.value;
-      sel.innerHTML = `<option value="">Select a subproject…</option>` + names.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join("");
-      if (names.includes(current)) sel.value = current;
-    });
+  if (totalUnpaidBilling === null){
+    return {label:"Unpaid billings", value:"Loading…", sub:"From the Disbursement sheet"};
   }
+  return {
+    label:"Unpaid billings",
+    value: peso(totalUnpaidBilling),
+    sub: `${unpaidBillingCount} billing${unpaidBillingCount===1?"":"s"} marked Unpaid, all subprojects`,
+    warn: totalUnpaidBilling > 0
+  };
+}
 
-  function billNum(v){
-    if (v==null) return null;
-    const cleaned = String(v).replace(/[₱,\s]/g,"").trim();
-    if (cleaned === "") return null;
-    const n = parseFloat(cleaned);
-    return isNaN(n) ? null : n;
-  }
-
-  function billCsvToRows(rawRows){
-    if (!rawRows.length) return [];
-    const headers = rawRows[0].map(h=>h.trim().toLowerCase());
-    const colSub  = findCol(headers, h=>h.includes("subproject")||h.includes("name"), 0);
-    const colBill = findCol(headers, h=>h.includes("billing"), 1);
-    const colAmt  = findCol(headers, h=>h.includes("amount"), 2);
-    const colPaid = findCol(headers, h=>h.includes("paid"), 3);
-    const colDate = findCol(headers, h=>h.includes("date")||h.includes("timestamp"), 4);
-    const colId   = findCol(headers, h=>h==="id", 5);
-    return rawRows.slice(1).map(r=>({
-      id: (colId>=0 ? r[colId] : "").trim(),
-      date: (colDate>=0 ? r[colDate] : "").trim(),
-      subproject: (colSub>=0 ? r[colSub] : "").trim(),
-      billing: (colBill>=0 ? r[colBill] : "").trim(),
-      amount: colAmt>=0 ? (billNum(r[colAmt]) ?? 0) : 0,
-      paid: colPaid>=0 ? paidToBool(r[colPaid]) : false
-    })).filter(r=>r.subproject !== "");
-  }
-
-  function paidToBool(v){
-    const s = (v||"").toString().trim().toLowerCase();
-    return (s==="true"||s==="1"||s==="yes"||s==="✓"||s==="checked");
-  }
-
-  function renderBillingHistory(rows){
-    const tbody = document.querySelector("#billHistoryTable tbody");
-    const empty = document.getElementById("billHistoryEmpty");
-    tbody.innerHTML = "";
-    if (!rows.length){
-      empty.style.display = "block";
-      empty.textContent = "No billing history found for this subproject yet.";
-      return;
-    }
-    empty.style.display = "none";
-    rows.forEach(r=>{
-      const tr = document.createElement("tr");
-      tr.dataset.id = r.id || "";
-      tr.dataset.origAmount = r.amount;
-      tr.dataset.origPaid = r.paid ? "1" : "0";
-      const noId = !r.id;
-      tr.innerHTML = `
-        <td>${r.date || "—"}</td>
-        <td>${r.billing || "—"}</td>
-        <td class="num"><input type="number" class="edit-amount" value="${r.amount}" step="0.01" min="0" ${noId?"disabled":""}></td>
-        <td>
-          <label class="paid-toggle">
-            <input type="checkbox" class="edit-paid" ${r.paid ? "checked" : ""} ${noId?"disabled":""}>
-            <span class="paid-label">${r.paid ? "Paid" : "Unpaid"}</span>
-          </label>
-        </td>
-        <td><button class="row-save" ${noId?"disabled title='This entry predates row IDs and can\\'t be edited here — update it directly in the sheet.'":""}>Save</button><span class="row-msg"></span></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function recalcSubprojectDisb(subprojectName, deltaAmount){
-    if (!deltaAmount) return;
-    const rec = currentData.find(d=>d.name.trim().toLowerCase()===subprojectName.trim().toLowerCase());
-    if (!rec) return;
-    rec.disb = Math.max(0, rec.disb + deltaAmount);
-    rec.rate = rec.cost ? (rec.disb/rec.cost*100) : 0;
-    const physVal = rec.phys==null ? 0 : rec.phys;
-    rec.backlogPct = physVal - rec.rate;
-    rec.backlogAmt = rec.cost*(physVal/100) - rec.disb;
-
-    renderBillSpSummary(subprojectName);
-    renderKPIs(currentData);
-    renderCharts(currentData);
-    applyFilters();
-  }
-
-  document.querySelector("#billHistoryTable tbody").addEventListener("input", (e)=>{
-    if (e.target.classList.contains("edit-amount")) e.target.closest("tr").classList.add("row-dirty");
-  });
-  document.querySelector("#billHistoryTable tbody").addEventListener("change", (e)=>{
-    if (e.target.classList.contains("edit-paid")){
-      e.target.closest("tr").classList.add("row-dirty");
-      e.target.closest("label").querySelector(".paid-label").textContent = e.target.checked ? "Paid" : "Unpaid";
-    }
-  });
-
-  document.querySelector("#billHistoryTable tbody").addEventListener("click", (e)=>{
-    if (!e.target.classList.contains("row-save")) return;
-    const tr = e.target.closest("tr");
-    const id = tr.dataset.id;
-    const msg = tr.querySelector(".row-msg");
-    if (!id){ msg.className="row-msg err"; msg.textContent="No ID — edit in the sheet instead."; return; }
-    if (!APPS_SCRIPT_URL){
-      msg.className="row-msg err";
-      msg.textContent = "Set APPS_SCRIPT_URL first.";
-      return;
-    }
-    const amount = Number(tr.querySelector(".edit-amount").value);
-    const paid = tr.querySelector(".edit-paid").checked;
-    if (!amount || amount <= 0){ msg.className="row-msg err"; msg.textContent="Enter a valid amount."; return; }
-
-    const wasPaid = tr.dataset.origPaid === "1";
-    const wasAmount = Number(tr.dataset.origAmount) || 0;
-    let delta = 0;
-    if (wasPaid && paid) delta = amount - wasAmount;
-    else if (wasPaid && !paid) delta = -wasAmount;
-    else if (!wasPaid && paid) delta = amount;
-
-    const btn = e.target;
-    btn.disabled = true;
-    msg.className = "row-msg"; msg.textContent = "Saving…";
-
-    fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      headers: {"Content-Type":"text/plain;charset=utf-8"},
-      body: JSON.stringify({ action:"update", id, amount, paid })
+function loadUnpaidBillingTotal(){
+  fetch(DISB_CSV_URL)
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+    .then(text=>{
+      const rows = billCsvToRows(parseCSV(text));
+      const unpaid = rows.filter(r=>!r.paid && r.amount > 0);
+      totalUnpaidBilling = unpaid.reduce((s,r)=>s+r.amount,0);
+      unpaidBillingCount = unpaid.length;
+      unpaidBillingError = null;
+      renderKPIs(currentData);
     })
-      .then(r=>r.json())
-      .then(res=>{
-        if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
-        msg.className = "row-msg ok";
-        msg.textContent = "Saved.";
-        tr.classList.remove("row-dirty");
-        tr.dataset.origAmount = amount;
-        tr.dataset.origPaid = paid ? "1" : "0";
-        const subproject = document.getElementById("billSubproject").value;
-        recalcSubprojectDisb(subproject, delta);
-        renderBillTimeline(collectBillingRowsFromTable());
-        loadUnpaidBillingTotal();
-      })
-      .catch(err=>{
-        msg.className = "row-msg err";
-        msg.textContent = "Error: " + err.message;
-      })
-      .finally(()=>{ btn.disabled = false; });
-  });
+    .catch(err=>{
+      unpaidBillingError = err.message;
+      totalUnpaidBilling = null;
+      renderKPIs(currentData);
+    });
+}
 
-  function loadBillingHistory(subprojectName){
-    const empty = document.getElementById("billHistoryEmpty");
-    if (!subprojectName){
+function renderCharts(data){
+  // Status donut
+  const statusGroups = {};
+  data.forEach(d=>{ statusGroups[d.status] = (statusGroups[d.status]||0)+1; });
+  const palette = ["#1E4635","#B9862F","#8C8070","#5A7A8C","#A1402B"];
+  const statusData = Object.keys(statusGroups).map((k,i)=>({label:k,count:statusGroups[k],color:palette[i%palette.length]}));
+  const total = data.length;
+  const r=60, cx=90, cy=90, circ=2*Math.PI*r;
+  let offset=0, arcs="";
+  statusData.forEach(d=>{
+    const len = (d.count/total)*circ;
+    arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${d.color}" stroke-width="26" stroke-dasharray="${len} ${circ-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"></circle>`;
+    offset += len;
+  });
+  document.getElementById("statusChart").innerHTML = `
+    <svg viewBox="0 0 180 180" style="display:block;margin:0 auto;max-width:220px;">
+      ${arcs}
+      <text x="90" y="84" text-anchor="middle" font-size="26" font-family="IBM Plex Mono, monospace" fill="#23281F" font-weight="600">${total}</text>
+      <text x="90" y="102" text-anchor="middle" font-size="11" fill="#5B6152">subprojects</text>
+    </svg>
+    <div class="legend">${statusData.map(d=>`<span><span class="dot" style="background:${d.color}"></span>${d.label} (${d.count})</span>`).join("")}</div>
+  `;
+
+  // Physical vs financial
+  const pfEl = document.getElementById("physFinChart");
+  pfEl.innerHTML = "";
+  data.forEach(d=>{
+    const physVal = d.phys==null?0:d.phys;
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `
+      <div class="lbl" title="${d.name.replace(/"/g,'&quot;')}">${d.name}</div>
+      <div class="bars">
+        <div class="bar-line"><div class="track"><div class="fill" style="width:${Math.min(physVal,100)}%;background:#5A7A8C;"></div></div><div class="val">${d.phys==null?"—":physVal.toFixed(1)+"%"}</div></div>
+        <div class="bar-line"><div class="track"><div class="fill" style="width:${Math.min(d.rate,100)}%;background:#B9862F;"></div></div><div class="val">${d.rate.toFixed(1)}%</div></div>
+      </div>`;
+    pfEl.appendChild(row);
+  });
+}
+
+// ---------- Filtering ----------
+function populateFilterOptions(data){
+  const catSel = document.getElementById("fCategory");
+  const statusSel = document.getElementById("fStatus");
+  const cats = [...new Set(data.map(d=>d.cat).filter(Boolean))].sort();
+  const statuses = [...new Set(data.map(d=>d.status).filter(Boolean))].sort();
+  catSel.innerHTML = `<option value="">All categories</option>` + cats.map(c=>`<option value="${c}">${c}</option>`).join("");
+  statusSel.innerHTML = `<option value="">All statuses</option>` + statuses.map(s=>`<option value="${s}">${s}</option>`).join("");
+}
+
+function computeColumnSummary(data){
+  const n = data.length;
+  const sum = (fn) => data.reduce((s,d)=>s+fn(d),0);
+  const physVals = data.filter(d=>d.phys!=null);
+  return {
+    count: n,
+    avgPhys: physVals.length ? sum(d=>d.phys==null?0:d.phys)/physVals.length : 0,
+    sumCost: sum(d=>d.cost),
+    sumDisb: sum(d=>d.disb),
+    avgRate: n ? sum(d=>d.rate)/n : 0,
+    avgBacklogPct: n ? sum(d=>d.backlogPct)/n : 0,
+    sumBacklogAmt: sum(d=>d.backlogAmt)
+  };
+}
+
+function renderTableSummary(data){
+  const s = computeColumnSummary(data);
+  document.getElementById("tblSummary").innerHTML = `
+    <div class="sitem"><span class="slabel">Rows</span><span class="sval">${s.count}</span></div>
+    <div class="sitem"><span class="slabel">Avg. Physical %</span><span class="sval">${s.avgPhys.toFixed(2)}%</span></div>
+    <div class="sitem"><span class="slabel">Σ Total Cost</span><span class="sval">${pesoFull(s.sumCost)}</span></div>
+    <div class="sitem"><span class="slabel">Σ Total Disbursed</span><span class="sval">${pesoFull(s.sumDisb)}</span></div>
+    <div class="sitem"><span class="slabel">Avg. Disb. Rate</span><span class="sval">${s.avgRate.toFixed(2)}%</span></div>
+    <div class="sitem"><span class="slabel">Avg. Backlog %</span><span class="sval">${s.avgBacklogPct.toFixed(2)}%</span></div>
+    <div class="sitem ${s.sumBacklogAmt<0?'neg':''}"><span class="slabel">Σ Backlog Amount</span><span class="sval">${pesoFull(s.sumBacklogAmt)}</span></div>
+  `;
+}
+
+function applyFilters(){
+  const q = document.getElementById("fSearch").value.trim().toLowerCase();
+  const cat = document.getElementById("fCategory").value;
+  const status = document.getElementById("fStatus").value;
+  const backlog = document.getElementById("fBacklog").value;
+
+  filtered = currentData.filter(d=>{
+    if (q && !(d.name.toLowerCase().includes(q) || d.loc.toLowerCase().includes(q))) return false;
+    if (cat && d.cat !== cat) return false;
+    if (status && d.status !== status) return false;
+    if (backlog === "high" && !(d.backlogPct > 20)) return false;
+    if (backlog === "neg" && !(d.backlogAmt < 0)) return false;
+    return true;
+  });
+  renderTable(filtered);
+  renderTableSummary(filtered);
+  document.getElementById("fCount").textContent = `${filtered.length} of ${currentData.length} subprojects`;
+}
+
+function renderTable(data){
+  const tbody = document.querySelector("#regTable tbody");
+  tbody.innerHTML = "";
+  data.forEach(d=>{
+    const tr = document.createElement("tr");
+    const statusClass = d.status==="Completed"?"completed":(d.status==="On-going"?"ongoing":"nol");
+    const catClass = d.cat==="VCRI"?"VCRI":d.cat==="FMR"?"FMR":d.cat==="Bridge"?"Bridge":"FMRB";
+    const backlogClass = d.backlogAmt<0?"backlog-neg":(d.backlogPct>20?"backlog-hi":"");
+    tr.innerHTML = `
+      <td>${d.no}</td>
+      <td>${d.name}</td>
+      <td>${d.loc}</td>
+      <td><span class="cat ${catClass}"></span>${d.cat}</td>
+      <td><span class="tag ${statusClass}">${d.status}</span></td>
+      <td class="num">${d.phys==null?"—":d.phys.toFixed(2)+"%"}</td>
+      <td class="num">${pesoFull(d.cost)}</td>
+      <td class="num">${pesoFull(d.disb)}</td>
+      <td class="num">${d.rate.toFixed(2)}%</td>
+      <td class="num ${backlogClass}">${pesoFull(d.backlogAmt)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+["fSearch","fCategory","fStatus","fBacklog"].forEach(id=>{
+  document.getElementById(id).addEventListener("input", applyFilters);
+  document.getElementById(id).addEventListener("change", applyFilters);
+});
+document.getElementById("fClear").addEventListener("click", ()=>{
+  document.getElementById("fSearch").value = "";
+  document.getElementById("fCategory").value = "";
+  document.getElementById("fStatus").value = "";
+  document.getElementById("fBacklog").value = "";
+  applyFilters();
+});
+
+// ---------- Tabs ----------
+document.getElementById("tabBtnOverview").addEventListener("click", ()=>switchTab("Overview"));
+document.getElementById("tabBtnBilling").addEventListener("click", ()=>switchTab("Billing"));
+document.getElementById("tabBtnJIT").addEventListener("click", ()=>switchTab("JIT"));
+function switchTab(name){
+  ["Overview","Billing","JIT"].forEach(n=>{
+    document.getElementById("tab"+n).classList.toggle("active", n===name);
+    document.getElementById("tabBtn"+n).classList.toggle("active", n===name);
+  });
+}
+
+// ---------- Billing tab ----------
+function populateBillingSubprojects(dataset){
+  const names = dataset.map(d=>d.name).filter(Boolean);
+  ["billSubproject","jitSubproject"].forEach(id=>{
+    const sel = document.getElementById(id);
+    const current = sel.value;
+    sel.innerHTML = `<option value="">Select a subproject…</option>` + names.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join("");
+    if (names.includes(current)) sel.value = current;
+  });
+}
+
+function billNum(v){
+  if (v==null) return null;
+  const cleaned = String(v).replace(/[₱,\s]/g,"").trim();
+  if (cleaned === "") return null;
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? null : n;
+}
+
+function billCsvToRows(rawRows){
+  if (!rawRows.length) return [];
+  const headers = rawRows[0].map(h=>h.trim().toLowerCase());
+  const colSub  = findCol(headers, h=>h.includes("subproject")||h.includes("name"), 0);
+  const colBill = findCol(headers, h=>h.includes("billing"), 1);
+  const colAmt  = findCol(headers, h=>h.includes("amount"), 2);
+  const colPaid = findCol(headers, h=>h.includes("paid"), 3);
+  const colDate = findCol(headers, h=>h.includes("date")||h.includes("timestamp"), 4);
+  const colId   = findCol(headers, h=>h==="id", 5);
+  return rawRows.slice(1).map(r=>({
+    id: (colId>=0 ? r[colId] : "").trim(),
+    date: (colDate>=0 ? r[colDate] : "").trim(),
+    subproject: (colSub>=0 ? r[colSub] : "").trim(),
+    billing: (colBill>=0 ? r[colBill] : "").trim(),
+    amount: colAmt>=0 ? (billNum(r[colAmt]) ?? 0) : 0,
+    paid: colPaid>=0 ? paidToBool(r[colPaid]) : false
+  })).filter(r=>r.subproject !== "");
+}
+
+function paidToBool(v){
+  const s = (v||"").toString().trim().toLowerCase();
+  return (s==="true"||s==="1"||s==="yes"||s==="✓"||s==="checked");
+}
+
+function renderBillingHistory(rows){
+  const tbody = document.querySelector("#billHistoryTable tbody");
+  const empty = document.getElementById("billHistoryEmpty");
+  tbody.innerHTML = "";
+  if (!rows.length){
+    empty.style.display = "block";
+    empty.textContent = "No billing history found for this subproject yet.";
+    return;
+  }
+  empty.style.display = "none";
+  rows.forEach(r=>{
+    const tr = document.createElement("tr");
+    tr.dataset.id = r.id || "";
+    tr.dataset.origAmount = r.amount;
+    tr.dataset.origPaid = r.paid ? "1" : "0";
+    const noId = !r.id;
+    tr.innerHTML = `
+      <td>${r.date || "—"}</td>
+      <td>${r.billing || "—"}</td>
+      <td class="num"><input type="number" class="edit-amount" value="${r.amount}" step="0.01" min="0" ${noId?"disabled":""}></td>
+      <td>
+        <label class="paid-toggle">
+          <input type="checkbox" class="edit-paid" ${r.paid ? "checked" : ""} ${noId?"disabled":""}>
+          <span class="paid-label">${r.paid ? "Paid" : "Unpaid"}</span>
+        </label>
+      </td>
+      <td><button class="row-save" ${noId?"disabled title='This entry predates row IDs and can\\'t be edited here — update it directly in the sheet.'":""}>Save</button><span class="row-msg"></span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Recomputes a subproject's Total Disbursed / Disb. Rate / Backlog % / Backlog Amount
+// in the browser (based on the Physical % and Total Cost already loaded from the
+// Summary sheet) and refreshes every place that shows them. This is a live in-session
+// preview only — it does not write back to the Summary sheet itself.
+function recalcSubprojectDisb(subprojectName, deltaAmount){
+  if (!deltaAmount) return;
+  const rec = currentData.find(d=>d.name.trim().toLowerCase()===subprojectName.trim().toLowerCase());
+  if (!rec) return;
+  rec.disb = Math.max(0, rec.disb + deltaAmount);
+  rec.rate = rec.cost ? (rec.disb/rec.cost*100) : 0;
+  const physVal = rec.phys==null ? 0 : rec.phys;
+  rec.backlogPct = physVal - rec.rate;
+  rec.backlogAmt = rec.cost*(physVal/100) - rec.disb;
+
+  renderBillSpSummary(subprojectName);
+  renderKPIs(currentData);
+  renderCharts(currentData);
+  applyFilters();
+}
+
+document.querySelector("#billHistoryTable tbody").addEventListener("input", (e)=>{
+  if (e.target.classList.contains("edit-amount")) e.target.closest("tr").classList.add("row-dirty");
+});
+document.querySelector("#billHistoryTable tbody").addEventListener("change", (e)=>{
+  if (e.target.classList.contains("edit-paid")){
+    e.target.closest("tr").classList.add("row-dirty");
+    e.target.closest("label").querySelector(".paid-label").textContent = e.target.checked ? "Paid" : "Unpaid";
+  }
+});
+
+document.querySelector("#billHistoryTable tbody").addEventListener("click", (e)=>{
+  if (!e.target.classList.contains("row-save")) return;
+  const tr = e.target.closest("tr");
+  const id = tr.dataset.id;
+  const msg = tr.querySelector(".row-msg");
+  if (!id){ msg.className="row-msg err"; msg.textContent="No ID — edit in the sheet instead."; return; }
+  if (!APPS_SCRIPT_URL){
+    msg.className="row-msg err";
+    msg.textContent = "Set APPS_SCRIPT_URL first.";
+    return;
+  }
+  const amount = Number(tr.querySelector(".edit-amount").value);
+  const paid = tr.querySelector(".edit-paid").checked;
+  if (!amount || amount <= 0){ msg.className="row-msg err"; msg.textContent="Enter a valid amount."; return; }
+
+  const wasPaid = tr.dataset.origPaid === "1";
+  const wasAmount = Number(tr.dataset.origAmount) || 0;
+  let delta = 0;
+  if (wasPaid && paid) delta = amount - wasAmount;
+  else if (wasPaid && !paid) delta = -wasAmount;
+  else if (!wasPaid && paid) delta = amount;
+
+  const btn = e.target;
+  btn.disabled = true;
+  msg.className = "row-msg"; msg.textContent = "Saving…";
+
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    headers: {"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify({ action:"update", id, amount, paid })
+  })
+    .then(r=>r.json())
+    .then(res=>{
+      if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
+      msg.className = "row-msg ok";
+      msg.textContent = "Saved.";
+      tr.classList.remove("row-dirty");
+      tr.dataset.origAmount = amount;
+      tr.dataset.origPaid = paid ? "1" : "0";
+      const subproject = document.getElementById("billSubproject").value;
+      recalcSubprojectDisb(subproject, delta);
+      renderBillTimeline(collectBillingRowsFromTable());
+      loadUnpaidBillingTotal();
+    })
+    .catch(err=>{
+      msg.className = "row-msg err";
+      msg.textContent = "Error: " + err.message;
+    })
+    .finally(()=>{ btn.disabled = false; });
+});
+
+function loadBillingHistory(subprojectName){
+  const empty = document.getElementById("billHistoryEmpty");
+  if (!subprojectName){
+    document.querySelector("#billHistoryTable tbody").innerHTML = "";
+    empty.style.display = "block";
+    empty.textContent = "Select a subproject to see its billing history.";
+    return;
+  }
+  empty.style.display = "block";
+  empty.textContent = "Loading billing history…";
+  fetch(DISB_CSV_URL)
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+    .then(text=>{
+      const rows = billCsvToRows(parseCSV(text));
+      const matched = rows.filter(r=>r.subproject.trim().toLowerCase() === subprojectName.trim().toLowerCase());
+      renderBillingHistory(matched);
+      renderBillTimeline(matched);
+    })
+    .catch(err=>{
+      empty.style.display = "block";
+      empty.textContent = `Could not load billing history (${err.message}). Make sure the "${DISB_SHEET_NAME}" sheet exists and is shared as "Anyone with the link – Viewer".`;
       document.querySelector("#billHistoryTable tbody").innerHTML = "";
-      empty.style.display = "block";
-      empty.textContent = "Select a subproject to see its billing history.";
-      return;
-    }
-    empty.style.display = "block";
-    empty.textContent = "Loading billing history…";
-    fetch(DISB_CSV_URL)
-      .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
-      .then(text=>{
-        const rows = billCsvToRows(parseCSV(text));
-        const matched = rows.filter(r=>r.subproject.trim().toLowerCase() === subprojectName.trim().toLowerCase());
-        renderBillingHistory(matched);
-        renderBillTimeline(matched);
-      })
-      .catch(err=>{
-        empty.style.display = "block";
-        empty.textContent = `Could not load billing history (${err.message}). Make sure the "${DISB_SHEET_NAME}" sheet exists and is shared as "Anyone with the link – Viewer".`;
-        document.querySelector("#billHistoryTable tbody").innerHTML = "";
-      });
-  }
-
-  document.getElementById("billSubproject").addEventListener("change", (e)=>{
-    renderBillSpSummary(e.target.value);
-    loadBillingHistory(e.target.value);
-    document.getElementById("exportBillingBtn").disabled = !e.target.value;
-  });
-
-  function renderBillSpSummary(subprojectName){
-    const el = document.getElementById("billSpSummary");
-    const chartsEl = document.getElementById("billCharts");
-    if (!subprojectName){
-      el.style.display = "none";
-      el.innerHTML = "";
-      chartsEl.style.display = "none";
-      return;
-    }
-    const rec = currentData.find(d => d.name.trim().toLowerCase() === subprojectName.trim().toLowerCase());
-    if (!rec){
-      el.style.display = "none";
-      el.innerHTML = "";
-      chartsEl.style.display = "none";
-      return;
-    }
-    el.className = "tbl-summary sp-summary";
-    el.style.display = "grid";
-    el.innerHTML = `
-      <div class="sitem"><span class="slabel">Total Cost</span><span class="sval">${pesoFull(rec.cost)}</span></div>
-      <div class="sitem"><span class="slabel">Total Disbursed</span><span class="sval">${pesoFull(rec.disb)}</span></div>
-      <div class="sitem"><span class="slabel">Physical %</span><span class="sval">${rec.phys==null?"—":rec.phys.toFixed(2)+"%"}</span></div>
-      <div class="sitem"><span class="slabel">Disb. Rate %</span><span class="sval">${rec.rate.toFixed(2)}%</span></div>
-      <div class="sitem"><span class="slabel">Backlog %</span><span class="sval">${rec.backlogPct.toFixed(2)}%</span></div>
-      <div class="sitem ${rec.backlogAmt<0?'neg':''}"><span class="slabel">Backlog Amount</span><span class="sval">${pesoFull(rec.backlogAmt)}</span></div>
-    `;
-    chartsEl.style.display = "block";
-    renderBillCostBreakdown(rec);
-    renderBillPhysVsRate(rec);
-  }
-
-  function renderBillCostBreakdown(rec){
-    const el = document.getElementById("billCostBreakdown");
-    if (!rec || !rec.cost){ el.innerHTML = "<div class='empty-state'>No cost data for this subproject.</div>"; return; }
-    const disbPct = Math.max(0, Math.min(100, (rec.disb/rec.cost)*100));
-    const remainingPct = Math.max(0, 100 - disbPct);
-    const backlogIsNeg = rec.backlogAmt < 0;
-    el.innerHTML = `
-      <div class="stacked-bar">
-        <div class="seg disbursed" style="width:${disbPct}%;"></div>
-        <div class="seg backlog ${backlogIsNeg?'neg':''}" style="width:${remainingPct}%;"></div>
-      </div>
-      <div class="stacked-legend">
-        <span><span class="dot" style="background:#1E4635;"></span>Disbursed: ${pesoFull(rec.disb)} (${disbPct.toFixed(1)}%)</span>
-        <span><span class="dot" style="background:${backlogIsNeg?'#6E7BA8':'#A1402B'};"></span>Backlog: ${pesoFull(rec.backlogAmt)}</span>
-      </div>
-    `;
-  }
-
-  function renderBillPhysVsRate(rec){
-    const el = document.getElementById("billPhysVsRate");
-    if (!rec){ el.innerHTML = ""; return; }
-    const phys = rec.phys==null ? 0 : rec.phys;
-    const rate = rec.rate;
-    el.innerHTML = `
-      <div class="pr-bars">
-        <div class="pr-row"><div class="lbl">Physical</div><div class="track"><div class="fill" style="width:${Math.min(phys,100)}%;background:#5A7A8C;"></div></div><div class="val">${rec.phys==null?"—":phys.toFixed(1)+"%"}</div></div>
-        <div class="pr-row"><div class="lbl">Disb. Rate</div><div class="track"><div class="fill" style="width:${Math.min(rate,100)}%;background:#B9862F;"></div></div><div class="val">${rate.toFixed(1)}%</div></div>
-      </div>
-    `;
-  }
-
-  function collectBillingRowsFromTable(){
-    return Array.from(document.querySelectorAll("#billHistoryTable tbody tr")).map(tr=>({
-      billing: tr.children[1] ? tr.children[1].textContent.trim() : "",
-      amount: Number(tr.querySelector(".edit-amount") ? tr.querySelector(".edit-amount").value : 0) || 0,
-      paid: tr.querySelector(".edit-paid") ? tr.querySelector(".edit-paid").checked : false
-    }));
-  }
-
-  function renderBillTimeline(rows){
-    const el = document.getElementById("billTimeline");
-    if (!rows.length){ el.innerHTML = "<div class='empty-state'>No billings yet to chart.</div>"; return; }
-    const maxAmt = Math.max(...rows.map(r=>r.amount), 1);
-    const bars = rows.map(r=>{
-      const h = Math.max(4, Math.round((r.amount/maxAmt)*120));
-      const cls = r.paid ? "paid" : "unpaid";
-      const label = (r.billing || "—").replace(/</g,"&lt;");
-      return `
-        <div class="timeline-bar-col" title="${label}: ${pesoFull(r.amount)} — ${r.paid?'Paid':'Unpaid'}">
-          <div class="timeline-val">${peso(r.amount)}</div>
-          <div class="timeline-bar ${cls}" style="height:${h}px;"></div>
-          <div class="timeline-lbl">${label}</div>
-        </div>`;
-    }).join("");
-    el.innerHTML = `
-      <div class="timeline-wrap">${bars}</div>
-      <div class="legend"><span><span class="dot" style="background:#1E4635"></span>Paid</span><span><span class="dot" style="background:#A1402B"></span>Unpaid</span></div>
-    `;
-  }
-
-  document.getElementById("billSubmit").addEventListener("click", ()=>{
-    const msg = document.getElementById("billMsg");
-    const subproject = document.getElementById("billSubproject").value;
-    const billing = document.getElementById("billLabel").value.trim();
-    const amount = document.getElementById("billAmount").value;
-    const status = document.getElementById("billStatus").value;
-
-    if (!subproject){ msg.className="form-msg err"; msg.textContent="Select a subproject first."; return; }
-    if (!billing){ msg.className="form-msg err"; msg.textContent="Enter which billing this is."; return; }
-    if (!amount || Number(amount) <= 0){ msg.className="form-msg err"; msg.textContent="Enter a valid billing amount."; return; }
-    if (!APPS_SCRIPT_URL){
-      msg.className="form-msg err";
-      msg.textContent = "Saving isn't wired up yet — deploy apps-script-backend.gs and paste its Web App URL into APPS_SCRIPT_URL in this file.";
-      return;
-    }
-
-    const btn = document.getElementById("billSubmit");
-    btn.disabled = true;
-    msg.className = "form-msg"; msg.textContent = "Saving…";
-
-    fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      headers: {"Content-Type":"text/plain;charset=utf-8"},
-      body: JSON.stringify({ subproject, billing, amount: Number(amount), paid: status === "Paid" })
-    })
-      .then(r=>r.json())
-      .then(res=>{
-        if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
-        msg.className = "form-msg ok";
-        msg.textContent = "Billing saved.";
-        document.getElementById("billLabel").value = "";
-        document.getElementById("billAmount").value = "";
-        document.getElementById("billStatus").value = "Unpaid";
-        loadBillingHistory(subproject);
-        if (status === "Paid") recalcSubprojectDisb(subproject, Number(amount));
-        loadUnpaidBillingTotal();
-      })
-      .catch(err=>{
-        msg.className = "form-msg err";
-        msg.textContent = "Could not save: " + err.message;
-      })
-      .finally(()=>{ btn.disabled = false; });
-  });
-
-  // ---------- JIT tab (existing + image gallery) ----------
-  function jitNum(v){
-    if (v==null) return null;
-    const cleaned = String(v).replace(/[₱,%\s]/g,"").trim();
-    if (cleaned === "" || cleaned === "-") return null;
-    const n = parseFloat(cleaned);
-    return isNaN(n) ? null : n;
-  }
-
-  function jitCsvToRows(rawRows){
-    if (!rawRows.length) return [];
-    const headers = rawRows[0].map(h=>h.trim().toLowerCase());
-    const colId  = findCol(headers, h=>h.includes("id"), 0);
-    const colSub = findCol(headers, h=>h.includes("subproject")||h.includes("name"), 1);
-    const colDate= findCol(headers, h=>h.includes("date"), 2);
-    const colPct = findCol(headers, h=>h.includes("%"), 3);
-    const colAmt = findCol(headers, h=>h.includes("amount"), 4);
-    return rawRows.slice(1).map(r=>({
-      id: (colId>=0 ? r[colId] : "").trim(),
-      subproject: (colSub>=0 ? r[colSub] : "").trim(),
-      date: (colDate>=0 ? r[colDate] : "").trim(),
-      jitPct: colPct>=0 ? jitNum(r[colPct]) : null,
-      jitAmount: colAmt>=0 ? (jitNum(r[colAmt]) ?? 0) : 0
-    })).filter(r=>r.subproject !== "");
-  }
-
-  function renderJitHistory(rows){
-    const tbody = document.querySelector("#jitHistoryTable tbody");
-    const empty = document.getElementById("jitHistoryEmpty");
-    tbody.innerHTML = "";
-    if (!rows.length){
-      empty.style.display = "block";
-      empty.textContent = "No JIT history found for this subproject yet.";
-      return;
-    }
-    empty.style.display = "none";
-    rows.forEach(r=>{
-      const tr = document.createElement("tr");
-      tr.dataset.id = r.id || "";
-      tr.dataset.origDate = r.date;
-      tr.dataset.origPct = r.jitPct==null ? "" : r.jitPct;
-      tr.dataset.origAmount = r.jitAmount;
-      const noId = !r.id;
-      tr.innerHTML = `
-        <td><input type="date" class="edit-jit-date" value="${r.date || ""}" ${noId?"disabled":""}></td>
-        <td class="num"><input type="number" class="edit-jit-pct" value="${r.jitPct==null?"":r.jitPct}" step="0.01" min="0" max="100" ${noId?"disabled":""}></td>
-        <td class="num"><input type="number" class="edit-jit-amount" value="${r.jitAmount}" step="0.01" min="0" ${noId?"disabled":""}></td>
-        <td><button class="row-save" ${noId?"disabled title='This entry predates row IDs and can\\'t be edited here — update it directly in the sheet.'":""}>Save</button><span class="row-msg"></span></td>
-      `;
-      tbody.appendChild(tr);
     });
+}
+
+document.getElementById("billSubproject").addEventListener("change", (e)=>{
+  renderBillSpSummary(e.target.value);
+  loadBillingHistory(e.target.value);
+  document.getElementById("exportBillingBtn").disabled = !e.target.value;
+});
+
+function renderBillSpSummary(subprojectName){
+  const el = document.getElementById("billSpSummary");
+  const chartsEl = document.getElementById("billCharts");
+  if (!subprojectName){
+    el.style.display = "none";
+    el.innerHTML = "";
+    chartsEl.style.display = "none";
+    return;
+  }
+  const rec = currentData.find(d => d.name.trim().toLowerCase() === subprojectName.trim().toLowerCase());
+  if (!rec){
+    el.style.display = "none";
+    el.innerHTML = "";
+    chartsEl.style.display = "none";
+    return;
+  }
+  el.className = "tbl-summary sp-summary";
+  el.style.display = "grid";
+  el.innerHTML = `
+    <div class="sitem"><span class="slabel">Total Cost</span><span class="sval">${pesoFull(rec.cost)}</span></div>
+    <div class="sitem"><span class="slabel">Total Disbursed</span><span class="sval">${pesoFull(rec.disb)}</span></div>
+    <div class="sitem"><span class="slabel">Physical %</span><span class="sval">${rec.phys==null?"—":rec.phys.toFixed(2)+"%"}</span></div>
+    <div class="sitem"><span class="slabel">Disb. Rate %</span><span class="sval">${rec.rate.toFixed(2)}%</span></div>
+    <div class="sitem"><span class="slabel">Backlog %</span><span class="sval">${rec.backlogPct.toFixed(2)}%</span></div>
+    <div class="sitem ${rec.backlogAmt<0?'neg':''}"><span class="slabel">Backlog Amount</span><span class="sval">${pesoFull(rec.backlogAmt)}</span></div>
+  `;
+  chartsEl.style.display = "block";
+  renderBillCostBreakdown(rec);
+  renderBillPhysVsRate(rec);
+}
+
+function renderBillCostBreakdown(rec){
+  const el = document.getElementById("billCostBreakdown");
+  if (!rec || !rec.cost){ el.innerHTML = "<div class='empty-state'>No cost data for this subproject.</div>"; return; }
+  const disbPct = Math.max(0, Math.min(100, (rec.disb/rec.cost)*100));
+  const remainingPct = Math.max(0, 100 - disbPct);
+  const backlogIsNeg = rec.backlogAmt < 0;
+  el.innerHTML = `
+    <div class="stacked-bar">
+      <div class="seg disbursed" style="width:${disbPct}%;"></div>
+      <div class="seg backlog ${backlogIsNeg?'neg':''}" style="width:${remainingPct}%;"></div>
+    </div>
+    <div class="stacked-legend">
+      <span><span class="dot" style="background:#1E4635;"></span>Disbursed: ${pesoFull(rec.disb)} (${disbPct.toFixed(1)}%)</span>
+      <span><span class="dot" style="background:${backlogIsNeg?'#6E7BA8':'#A1402B'};"></span>Backlog: ${pesoFull(rec.backlogAmt)}</span>
+    </div>
+  `;
+}
+
+function renderBillPhysVsRate(rec){
+  const el = document.getElementById("billPhysVsRate");
+  if (!rec){ el.innerHTML = ""; return; }
+  const phys = rec.phys==null ? 0 : rec.phys;
+  const rate = rec.rate;
+  el.innerHTML = `
+    <div class="pr-bars">
+      <div class="pr-row"><div class="lbl">Physical</div><div class="track"><div class="fill" style="width:${Math.min(phys,100)}%;background:#5A7A8C;"></div></div><div class="val">${rec.phys==null?"—":phys.toFixed(1)+"%"}</div></div>
+      <div class="pr-row"><div class="lbl">Disb. Rate</div><div class="track"><div class="fill" style="width:${Math.min(rate,100)}%;background:#B9862F;"></div></div><div class="val">${rate.toFixed(1)}%</div></div>
+    </div>
+  `;
+}
+
+function collectBillingRowsFromTable(){
+  return Array.from(document.querySelectorAll("#billHistoryTable tbody tr")).map(tr=>({
+    billing: tr.children[1] ? tr.children[1].textContent.trim() : "",
+    amount: Number(tr.querySelector(".edit-amount") ? tr.querySelector(".edit-amount").value : 0) || 0,
+    paid: tr.querySelector(".edit-paid") ? tr.querySelector(".edit-paid").checked : false
+  }));
+}
+
+function renderBillTimeline(rows){
+  const el = document.getElementById("billTimeline");
+  if (!rows.length){ el.innerHTML = "<div class='empty-state'>No billings yet to chart.</div>"; return; }
+  const maxAmt = Math.max(...rows.map(r=>r.amount), 1);
+  const bars = rows.map(r=>{
+    const h = Math.max(4, Math.round((r.amount/maxAmt)*120));
+    const cls = r.paid ? "paid" : "unpaid";
+    const label = (r.billing || "—").replace(/</g,"&lt;");
+    return `
+      <div class="timeline-bar-col" title="${label}: ${pesoFull(r.amount)} — ${r.paid?'Paid':'Unpaid'}">
+        <div class="timeline-val">${peso(r.amount)}</div>
+        <div class="timeline-bar ${cls}" style="height:${h}px;"></div>
+        <div class="timeline-lbl">${label}</div>
+      </div>`;
+  }).join("");
+  el.innerHTML = `
+    <div class="timeline-wrap">${bars}</div>
+    <div class="legend"><span><span class="dot" style="background:#1E4635"></span>Paid</span><span><span class="dot" style="background:#A1402B"></span>Unpaid</span></div>
+  `;
+}
+
+document.getElementById("billSubmit").addEventListener("click", ()=>{
+  const msg = document.getElementById("billMsg");
+  const subproject = document.getElementById("billSubproject").value;
+  const billing = document.getElementById("billLabel").value.trim();
+  const amount = document.getElementById("billAmount").value;
+  const status = document.getElementById("billStatus").value;
+
+  if (!subproject){ msg.className="form-msg err"; msg.textContent="Select a subproject first."; return; }
+  if (!billing){ msg.className="form-msg err"; msg.textContent="Enter which billing this is."; return; }
+  if (!amount || Number(amount) <= 0){ msg.className="form-msg err"; msg.textContent="Enter a valid billing amount."; return; }
+  if (!APPS_SCRIPT_URL){
+    msg.className="form-msg err";
+    msg.textContent = "Saving isn't wired up yet — deploy apps-script-backend.gs and paste its Web App URL into APPS_SCRIPT_URL in this file.";
+    return;
   }
 
-  function loadJitHistory(subprojectName){
-    const empty = document.getElementById("jitHistoryEmpty");
-    if (!subprojectName){
+  const btn = document.getElementById("billSubmit");
+  btn.disabled = true;
+  msg.className = "form-msg"; msg.textContent = "Saving…";
+
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    headers: {"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify({ subproject, billing, amount: Number(amount), paid: status === "Paid" })
+  })
+    .then(r=>r.json())
+    .then(res=>{
+      if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
+      msg.className = "form-msg ok";
+      msg.textContent = "Billing saved.";
+      document.getElementById("billLabel").value = "";
+      document.getElementById("billAmount").value = "";
+      document.getElementById("billStatus").value = "Unpaid";
+      loadBillingHistory(subproject);
+      if (status === "Paid") recalcSubprojectDisb(subproject, Number(amount));
+      loadUnpaidBillingTotal();
+    })
+    .catch(err=>{
+      msg.className = "form-msg err";
+      msg.textContent = "Could not save: " + err.message;
+    })
+    .finally(()=>{ btn.disabled = false; });
+});
+
+// ---------- JIT tab ----------
+function jitNum(v){
+  if (v==null) return null;
+  const cleaned = String(v).replace(/[₱,%\s]/g,"").trim();
+  if (cleaned === "" || cleaned === "-") return null;
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? null : n;
+}
+
+function jitCsvToRows(rawRows){
+  if (!rawRows.length) return [];
+  const headers = rawRows[0].map(h=>h.trim().toLowerCase());
+  const colId    = findCol(headers, h=>h.includes("id"), 0);
+  const colSub   = findCol(headers, h=>h.includes("subproject")||h.includes("name"), 1);
+  const colDate  = findCol(headers, h=>h.includes("date"), 2);
+  const colPct   = findCol(headers, h=>h.includes("%"), 3);
+  const colAmt   = findCol(headers, h=>h.includes("amount"), 4);
+  const colPhoto = findCol(headers, h=>h.includes("photo")||h.includes("drive")||h.includes("link")||h.includes("image"), 5);
+  return rawRows.slice(1).map(r=>({
+    id: (colId>=0 ? r[colId] : "").trim(),
+    subproject: (colSub>=0 ? r[colSub] : "").trim(),
+    date: (colDate>=0 ? r[colDate] : "").trim(),
+    jitPct: colPct>=0 ? jitNum(r[colPct]) : null,
+    jitAmount: colAmt>=0 ? (jitNum(r[colAmt]) ?? 0) : 0,
+    photoLink: (colPhoto>=0 ? r[colPhoto] : "").trim()
+  })).filter(r=>r.subproject !== "");
+}
+
+function renderJitHistory(rows){
+  const tbody = document.querySelector("#jitHistoryTable tbody");
+  const empty = document.getElementById("jitHistoryEmpty");
+  tbody.innerHTML = "";
+  if (!rows.length){
+    empty.style.display = "block";
+    empty.textContent = "No JIT history found for this subproject yet.";
+    return;
+  }
+  empty.style.display = "none";
+  rows.forEach(r=>{
+    const tr = document.createElement("tr");
+    tr.dataset.id = r.id || "";
+    tr.dataset.origDate = r.date;
+    tr.dataset.origPct = r.jitPct==null ? "" : r.jitPct;
+    tr.dataset.origAmount = r.jitAmount;
+    tr.dataset.origPhoto = r.photoLink || "";
+    const noId = !r.id;
+    const safeLink = (r.photoLink||"").replace(/"/g,"&quot;");
+    const openLink = r.photoLink ? `<a class="photo-link" href="${safeLink}" target="_blank" rel="noopener">Open</a>` : "";
+    tr.innerHTML = `
+      <td><input type="date" class="edit-jit-date" value="${r.date || ""}" ${noId?"disabled":""}></td>
+      <td class="num"><input type="number" class="edit-jit-pct" value="${r.jitPct==null?"":r.jitPct}" step="0.01" min="0" max="100" ${noId?"disabled":""}></td>
+      <td class="num"><input type="number" class="edit-jit-amount" value="${r.jitAmount}" step="0.01" min="0" ${noId?"disabled":""}></td>
+      <td><div class="photo-cell"><input type="url" class="edit-jit-photo" value="${safeLink}" placeholder="https://drive.google.com/…" ${noId?"disabled":""}>${openLink}</div></td>
+      <td><button class="row-save" ${noId?"disabled title='This entry predates row IDs and can\\'t be edited here — update it directly in the sheet.'":""}>Save</button><span class="row-msg"></span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function loadJitHistory(subprojectName){
+  const empty = document.getElementById("jitHistoryEmpty");
+  if (!subprojectName){
+    document.querySelector("#jitHistoryTable tbody").innerHTML = "";
+    empty.style.display = "block";
+    empty.textContent = "Select a subproject to see its JIT history.";
+    return;
+  }
+  empty.style.display = "block";
+  empty.textContent = "Loading JIT history…";
+  fetch(JIT_CSV_URL)
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+    .then(text=>{
+      const rows = jitCsvToRows(parseCSV(text));
+      const matched = rows.filter(r=>r.subproject.trim().toLowerCase() === subprojectName.trim().toLowerCase());
+      renderJitHistory(matched);
+    })
+    .catch(err=>{
+      empty.style.display = "block";
+      empty.textContent = `Could not load JIT history (${err.message}). Make sure the "${JIT_SHEET_NAME}" sheet exists and is shared as "Anyone with the link – Viewer".`;
       document.querySelector("#jitHistoryTable tbody").innerHTML = "";
-      empty.style.display = "block";
-      empty.textContent = "Select a subproject to see its JIT history.";
-      return;
-    }
-    empty.style.display = "block";
-    empty.textContent = "Loading JIT history…";
-    fetch(JIT_CSV_URL)
-      .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
-      .then(text=>{
-        const rows = jitCsvToRows(parseCSV(text));
-        const matched = rows.filter(r=>r.subproject.trim().toLowerCase() === subprojectName.trim().toLowerCase());
-        renderJitHistory(matched);
-        // Also load images for this subproject
-        loadJitImages(subprojectName);
-      })
-      .catch(err=>{
-        empty.style.display = "block";
-        empty.textContent = `Could not load JIT history (${err.message}). Make sure the "${JIT_SHEET_NAME}" sheet exists and is shared as "Anyone with the link – Viewer".`;
-        document.querySelector("#jitHistoryTable tbody").innerHTML = "";
-      });
-  }
-
-  document.getElementById("jitSubproject").addEventListener("change", (e)=>{
-    loadJitHistory(e.target.value);
-  });
-
-  document.querySelector("#jitHistoryTable tbody").addEventListener("input", (e)=>{
-    if (e.target.classList.contains("edit-jit-date") || e.target.classList.contains("edit-jit-pct") || e.target.classList.contains("edit-jit-amount")){
-      e.target.closest("tr").classList.add("row-dirty");
-    }
-  });
-
-  document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>{
-    if (!e.target.classList.contains("row-save")) return;
-    const tr = e.target.closest("tr");
-    const id = tr.dataset.id;
-    const msg = tr.querySelector(".row-msg");
-    if (!id){ msg.className="row-msg err"; msg.textContent="No ID — edit in the sheet instead."; return; }
-    if (!APPS_SCRIPT_URL){
-      msg.className="row-msg err";
-      msg.textContent = "Set APPS_SCRIPT_URL first.";
-      return;
-    }
-    const date = tr.querySelector(".edit-jit-date").value;
-    const jitPct = tr.querySelector(".edit-jit-pct").value;
-    const jitAmount = tr.querySelector(".edit-jit-amount").value;
-
-    const btn = e.target;
-    btn.disabled = true;
-    msg.className = "row-msg"; msg.textContent = "Saving…";
-
-    fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      headers: {"Content-Type":"text/plain;charset=utf-8"},
-      body: JSON.stringify({ action:"updateJIT", id, date, jitPct, jitAmount })
-    })
-      .then(r=>r.json())
-      .then(res=>{
-        if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
-        msg.className = "row-msg ok";
-        msg.textContent = "Saved.";
-        tr.classList.remove("row-dirty");
-        tr.dataset.origDate = date;
-        tr.dataset.origPct = jitPct;
-        tr.dataset.origAmount = jitAmount;
-      })
-      .catch(err=>{
-        msg.className = "row-msg err";
-        msg.textContent = "Error: " + err.message;
-      })
-      .finally(()=>{ btn.disabled = false; });
-  });
-
-  document.getElementById("jitSubmit").addEventListener("click", ()=>{
-    const msg = document.getElementById("jitMsg");
-    const subproject = document.getElementById("jitSubproject").value;
-    const date = document.getElementById("jitDate").value;
-    const jitPct = document.getElementById("jitPct").value;
-    const jitAmount = document.getElementById("jitAmount").value;
-
-    if (!subproject){ msg.className="form-msg err"; msg.textContent="Select a subproject first."; return; }
-    if (!date){ msg.className="form-msg err"; msg.textContent="Pick a date."; return; }
-    if (jitPct === "" && jitAmount === ""){ msg.className="form-msg err"; msg.textContent="Enter a JIT % and/or JIT Amount."; return; }
-    if (!APPS_SCRIPT_URL){
-      msg.className="form-msg err";
-      msg.textContent = "Saving isn't wired up yet — deploy apps-script-backend.gs and paste its Web App URL into APPS_SCRIPT_URL in this file.";
-      return;
-    }
-
-    const btn = document.getElementById("jitSubmit");
-    btn.disabled = true;
-    msg.className = "form-msg"; msg.textContent = "Saving…";
-
-    fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      headers: {"Content-Type":"text/plain;charset=utf-8"},
-      body: JSON.stringify({ action:"createJIT", subproject, date, jitPct, jitAmount })
-    })
-      .then(r=>r.json())
-      .then(res=>{
-        if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
-        msg.className = "form-msg ok";
-        msg.textContent = "JIT entry saved.";
-        document.getElementById("jitDate").value = "";
-        document.getElementById("jitPct").value = "";
-        document.getElementById("jitAmount").value = "";
-        loadJitHistory(subproject);
-      })
-      .catch(err=>{
-        msg.className = "form-msg err";
-        msg.textContent = "Could not save: " + err.message;
-      })
-      .finally(()=>{ btn.disabled = false; });
-  });
-
-  // ---------- NEW: JIT image handling ----------
-  // We'll store uploaded images in memory per subproject and render them.
-  // In a real app you'd upload to Drive and get URLs back. Here we simulate
-  // by converting the file to a data URL and keeping it in a simple object.
-  // You can replace this with an actual upload to Apps Script / Drive.
-  const jitImageStore = {}; // { subprojectName: [ { name, dataUrl } ] }
-
-  // Load images for a subproject (from our in-memory store, later from backend)
-  function loadJitImages(subprojectName) {
-    const gallery = document.getElementById("jitGallery");
-    const preview = document.getElementById("jitImagePreview");
-    if (!subprojectName) {
-      gallery.innerHTML = "";
-      preview.innerHTML = "";
-      return;
-    }
-    // Clear preview
-    preview.innerHTML = "";
-    // Render gallery from store
-    const images = jitImageStore[subprojectName] || [];
-    if (!images.length) {
-      gallery.innerHTML = '<div class="empty-state" style="padding:8px 0;">No images uploaded for this subproject yet.</div>';
-      return;
-    }
-    gallery.innerHTML = images.map((img, idx) => `
-      <div class="img-card">
-        <img src="${img.dataUrl}" alt="${img.name}" />
-        <div class="img-name">${img.name}</div>
-      </div>
-    `).join("");
-  }
-
-  // Handle file selection
-  function handleJitImages(files) {
-    const subproject = document.getElementById("jitSubproject").value;
-    const msgEl = document.getElementById("jitImgMsg");
-    if (!subproject) {
-      msgEl.className = "form-msg err";
-      msgEl.textContent = "Please select a subproject first.";
-      return;
-    }
-    if (!files || !files.length) return;
-
-    const maxSize = 5 * 1024 * 1024; // 5 MB
-    const validFiles = [];
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i];
-      if (f.size > maxSize) {
-        msgEl.className = "form-msg err";
-        msgEl.textContent = `File "${f.name}" exceeds 5 MB.`;
-        continue;
-      }
-      if (!f.type.startsWith("image/")) {
-        msgEl.className = "form-msg err";
-        msgEl.textContent = `File "${f.name}" is not an image.`;
-        continue;
-      }
-      validFiles.push(f);
-    }
-    if (!validFiles.length) return;
-
-    msgEl.className = "form-msg";
-    msgEl.textContent = "Reading files…";
-
-    // Read all files as data URLs
-    const readers = validFiles.map(file => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = e => resolve({ name: file.name, dataUrl: e.target.result });
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
     });
+}
 
-    Promise.all(readers).then(results => {
-      // Store in memory
-      if (!jitImageStore[subproject]) jitImageStore[subproject] = [];
-      results.forEach(r => jitImageStore[subproject].push(r));
-      // Re-render gallery
-      loadJitImages(subproject);
-      // Clear preview
-      document.getElementById("jitImagePreview").innerHTML = "";
-      // Reset file input
-      document.getElementById("jitFileInput").value = "";
-      msgEl.className = "form-msg ok";
-      msgEl.textContent = `${results.length} image(s) added.`;
+document.getElementById("jitSubproject").addEventListener("change", (e)=>{
+  loadJitHistory(e.target.value);
+});
 
-      // Optional: If you have an upload endpoint, you can send them here.
-      // For now, just keep in memory. To persist, you'd send to APPS_SCRIPT_URL.
-      // Example (commented out):
-      /*
-      if (APPS_SCRIPT_URL) {
-        fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            action: "uploadJITImages",
-            subproject: subproject,
-            images: results.map(r => ({ name: r.name, data: r.dataUrl }))
-          })
-        })
-        .then(r => r.json())
-        .then(res => {
-          if (res.result === "success") {
-            msgEl.textContent = "Images uploaded to Drive.";
-          } else {
-            msgEl.textContent = "Upload failed: " + (res.message || "unknown");
-          }
-        })
-        .catch(err => {
-          msgEl.textContent = "Upload error: " + err.message;
-        });
+document.querySelector("#jitHistoryTable tbody").addEventListener("input", (e)=>{
+  if (e.target.classList.contains("edit-jit-date") || e.target.classList.contains("edit-jit-pct") || e.target.classList.contains("edit-jit-amount") || e.target.classList.contains("edit-jit-photo")){
+    e.target.closest("tr").classList.add("row-dirty");
+  }
+});
+
+document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>{
+  if (!e.target.classList.contains("row-save")) return;
+  const tr = e.target.closest("tr");
+  const id = tr.dataset.id;
+  const msg = tr.querySelector(".row-msg");
+  if (!id){ msg.className="row-msg err"; msg.textContent="No ID — edit in the sheet instead."; return; }
+  if (!APPS_SCRIPT_URL){
+    msg.className="row-msg err";
+    msg.textContent = "Set APPS_SCRIPT_URL first.";
+    return;
+  }
+  const date = tr.querySelector(".edit-jit-date").value;
+  const jitPct = tr.querySelector(".edit-jit-pct").value;
+  const jitAmount = tr.querySelector(".edit-jit-amount").value;
+  const photoLink = tr.querySelector(".edit-jit-photo").value.trim();
+
+  const btn = e.target;
+  btn.disabled = true;
+  msg.className = "row-msg"; msg.textContent = "Saving…";
+
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    headers: {"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify({ action:"updateJIT", id, date, jitPct, jitAmount, photoLink })
+  })
+    .then(r=>r.json())
+    .then(res=>{
+      if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
+      msg.className = "row-msg ok";
+      msg.textContent = "Saved.";
+      tr.classList.remove("row-dirty");
+      tr.dataset.origDate = date;
+      tr.dataset.origPct = jitPct;
+      tr.dataset.origAmount = jitAmount;
+      tr.dataset.origPhoto = photoLink;
+      const cell = tr.querySelector(".photo-cell");
+      const existingLink = cell.querySelector(".photo-link");
+      if (photoLink){
+        const safeLink = photoLink.replace(/"/g,"&quot;");
+        if (existingLink) existingLink.setAttribute("href", safeLink);
+        else cell.insertAdjacentHTML("beforeend", `<a class="photo-link" href="${safeLink}" target="_blank" rel="noopener">Open</a>`);
+      } else if (existingLink){
+        existingLink.remove();
       }
-      */
-    }).catch(err => {
-      msgEl.className = "form-msg err";
-      msgEl.textContent = "Error reading files: " + err.message;
+    })
+    .catch(err=>{
+      msg.className = "row-msg err";
+      msg.textContent = "Error: " + err.message;
+    })
+    .finally(()=>{ btn.disabled = false; });
+});
+
+document.getElementById("jitSubmit").addEventListener("click", ()=>{
+  const msg = document.getElementById("jitMsg");
+  const subproject = document.getElementById("jitSubproject").value;
+  const date = document.getElementById("jitDate").value;
+  const jitPct = document.getElementById("jitPct").value;
+  const jitAmount = document.getElementById("jitAmount").value;
+  const photoLink = document.getElementById("jitPhotoLink").value.trim();
+
+  if (!subproject){ msg.className="form-msg err"; msg.textContent="Select a subproject first."; return; }
+  if (!date){ msg.className="form-msg err"; msg.textContent="Pick a date."; return; }
+  if (jitPct === "" && jitAmount === ""){ msg.className="form-msg err"; msg.textContent="Enter a JIT % and/or JIT Amount."; return; }
+  if (!APPS_SCRIPT_URL){
+    msg.className="form-msg err";
+    msg.textContent = "Saving isn't wired up yet — deploy apps-script-backend.gs and paste its Web App URL into APPS_SCRIPT_URL in this file.";
+    return;
+  }
+
+  const btn = document.getElementById("jitSubmit");
+  btn.disabled = true;
+  msg.className = "form-msg"; msg.textContent = "Saving…";
+
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    headers: {"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify({ action:"createJIT", subproject, date, jitPct, jitAmount, photoLink })
+  })
+    .then(r=>r.json())
+    .then(res=>{
+      if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
+      msg.className = "form-msg ok";
+      msg.textContent = "JIT entry saved.";
+      document.getElementById("jitDate").value = "";
+      document.getElementById("jitPct").value = "";
+      document.getElementById("jitAmount").value = "";
+      document.getElementById("jitPhotoLink").value = "";
+      loadJitHistory(subproject);
+    })
+    .catch(err=>{
+      msg.className = "form-msg err";
+      msg.textContent = "Could not save: " + err.message;
+    })
+    .finally(()=>{ btn.disabled = false; });
+});
+
+// ---------- Load data ----------
+function loadData(){
+  document.getElementById("dataBar").innerHTML = "Loading data…";
+  fetch(CSV_URL)
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+    .then(text=>{
+      const rows = parseCSV(text);
+      const parsed = csvToData(rows);
+      if (!parsed.length) throw new Error("no rows parsed");
+      renderAll(parsed, {live:true});
+    })
+    .catch(err=>{
+      renderAll(FALLBACK_DATA, {live:false, error: err.message});
     });
-  }
+}
 
-  // Wire up upload area
-  document.getElementById("jitUploadArea").addEventListener("click", (e) => {
-    if (e.target.tagName !== "BUTTON") {
-      document.getElementById("jitFileInput").click();
-    }
-  });
-  document.getElementById("jitUploadBtn").addEventListener("click", (e) => {
-    e.stopPropagation();
-    document.getElementById("jitFileInput").click();
-  });
-  document.getElementById("jitFileInput").addEventListener("change", (e) => {
-    handleJitImages(e.target.files);
-  });
+// ---------- Export to Excel (CSV, opens directly in Excel) ----------
+function sanitizeFilename(s){
+  return (s||"export").toString().trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60) || "export";
+}
 
-  // Drag & drop
-  const uploadArea = document.getElementById("jitUploadArea");
-  uploadArea.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = "#1E4635";
-  });
-  uploadArea.addEventListener("dragleave", () => {
-    uploadArea.style.borderColor = "#DFDACB";
-  });
-  uploadArea.addEventListener("drop", (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = "#DFDACB";
-    handleJitImages(e.dataTransfer.files);
-  });
+function downloadCSV(rows, headers, filename){
+  const esc = v => `"${String(v==null?"":v).replace(/"/g,'""')}"`;
+  const lines = [headers.map(esc).join(",")];
+  rows.forEach(r => lines.push(r.map(esc).join(",")));
+  const csv = lines.join("\r\n");
+  const blob = new Blob(["\ufeff" + csv], {type:"text/csv;charset=utf-8;"}); // BOM so Excel reads UTF-8 correctly
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
-  // ---------- Load data ----------
-  function loadData(){
-    document.getElementById("dataBar").innerHTML = "Loading data…";
-    fetch(CSV_URL)
-      .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
-      .then(text=>{
-        const rows = parseCSV(text);
-        const parsed = csvToData(rows);
-        if (!parsed.length) throw new Error("no rows parsed");
-        renderAll(parsed, {live:true});
-      })
-      .catch(err=>{
-        renderAll(FALLBACK_DATA, {live:false, error: err.message});
-      });
-  }
+document.getElementById("exportOverviewBtn").addEventListener("click", ()=>{
+  const headers = ["No.","Subproject","Location","Category","Status","Physical %","Total Cost (PHP)","Total Disbursed (PHP)","Disb. Rate (%)","Backlog Amount (PHP)"];
+  const rows = filtered.map(d=>[
+    d.no, d.name, d.loc, d.cat, d.status,
+    d.phys==null ? "" : Number(d.phys.toFixed(2)),
+    Number(d.cost.toFixed(2)),
+    Number(d.disb.toFixed(2)),
+    Number(d.rate.toFixed(2)),
+    Number(d.backlogAmt.toFixed(2))
+  ]);
+  const dateStr = new Date().toISOString().slice(0,10);
+  downloadCSV(rows, headers, `ibuild-subprojects-${dateStr}.csv`);
+});
 
-  // ---------- Export to Excel (CSV) ----------
-  function sanitizeFilename(s){
-    return (s||"export").toString().trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60) || "export";
-  }
+document.getElementById("exportBillingBtn").addEventListener("click", ()=>{
+  const subproject = document.getElementById("billSubproject").value;
+  if (!subproject) return;
+  const tableRows = Array.from(document.querySelectorAll("#billHistoryTable tbody tr")).map(tr=>({
+    date: tr.children[0] ? tr.children[0].textContent.trim() : "",
+    billing: tr.children[1] ? tr.children[1].textContent.trim() : "",
+    amount: Number(tr.querySelector(".edit-amount") ? tr.querySelector(".edit-amount").value : 0) || 0,
+    paid: tr.querySelector(".edit-paid") ? tr.querySelector(".edit-paid").checked : false
+  }));
+  const headers = ["Date","Subproject","Billing","Amount","Status"];
+  const rows = tableRows.map(r => [r.date, subproject, r.billing, r.amount, r.paid ? "Paid" : "Unpaid"]);
+  downloadCSV(rows, headers, `billing-history-${sanitizeFilename(subproject)}.csv`);
+});
 
-  function downloadCSV(rows, headers, filename){
-    const esc = v => `"${String(v==null?"":v).replace(/"/g,'""')}"`;
-    const lines = [headers.map(esc).join(",")];
-    rows.forEach(r => lines.push(r.map(esc).join(",")));
-    const csv = lines.join("\r\n");
-    const blob = new Blob(["\ufeff" + csv], {type:"text/csv;charset=utf-8;"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  document.getElementById("exportOverviewBtn").addEventListener("click", ()=>{
-    const headers = ["No.","Subproject","Location","Category","Status","Physical %","Total Cost (PHP)","Total Disbursed (PHP)","Disb. Rate (%)","Backlog Amount (PHP)"];
-    const rows = filtered.map(d=>[
-      d.no, d.name, d.loc, d.cat, d.status,
-      d.phys==null ? "" : Number(d.phys.toFixed(2)),
-      Number(d.cost.toFixed(2)),
-      Number(d.disb.toFixed(2)),
-      Number(d.rate.toFixed(2)),
-      Number(d.backlogAmt.toFixed(2))
-    ]);
-    const dateStr = new Date().toISOString().slice(0,10);
-    downloadCSV(rows, headers, `ibuild-subprojects-${dateStr}.csv`);
-  });
-
-  document.getElementById("exportBillingBtn").addEventListener("click", ()=>{
-    const subproject = document.getElementById("billSubproject").value;
-    if (!subproject) return;
-    const tableRows = Array.from(document.querySelectorAll("#billHistoryTable tbody tr")).map(tr=>({
-      date: tr.children[0] ? tr.children[0].textContent.trim() : "",
-      billing: tr.children[1] ? tr.children[1].textContent.trim() : "",
-      amount: Number(tr.querySelector(".edit-amount") ? tr.querySelector(".edit-amount").value : 0) || 0,
-      paid: tr.querySelector(".edit-paid") ? tr.querySelector(".edit-paid").checked : false
-    }));
-    const headers = ["Date","Subproject","Billing","Amount","Status"];
-    const rows = tableRows.map(r => [r.date, subproject, r.billing, r.amount, r.paid ? "Paid" : "Unpaid"]);
-    downloadCSV(rows, headers, `billing-history-${sanitizeFilename(subproject)}.csv`);
-  });
-
-  // Initialize
-  loadData();
-  loadUnpaidBillingTotal();
-
-  // Set the hidden drive folder link if available
-  document.getElementById("driveFolderLink").value = DRIVE_FOLDER_LINK;
+loadData();
+loadUnpaidBillingTotal();
 </script>
 </body>
 </html>
