@@ -176,6 +176,13 @@
     cursor:pointer;color:var(--ink-soft);
   }
   .filters button.clear:hover{border-color:var(--rust);color:var(--rust);}
+  .export-btn{
+    background:var(--forest);color:#fff;border:none;padding:8px 16px;font-size:0.8rem;
+    cursor:pointer;font-family:inherit;
+  }
+  .export-btn:hover{background:var(--forest-deep);}
+  .export-btn:disabled{background:#B7B2A2;cursor:not-allowed;}
+  .section-head-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
   tr.hidden-row{display:none;}
 
   .tabs{display:flex;gap:6px;margin-bottom:26px;border-bottom:1px solid var(--line);}
@@ -267,6 +274,7 @@
   <div class="tabs">
     <button class="tab-btn active" id="tabBtnOverview">Overview</button>
     <button class="tab-btn" id="tabBtnBilling">Add Billing</button>
+    <button class="tab-btn" id="tabBtnJIT">JIT</button>
   </div>
 
   <div class="tab-panel active" id="tabOverview">
@@ -302,6 +310,7 @@
         <option value="neg">Negative backlog</option>
       </select>
       <button class="clear" id="fClear">Clear filters</button>
+      <button class="clear" id="exportOverviewBtn">Export to Excel</button>
       <span class="count" id="fCount"></span>
     </div>
     <table id="regTable">
@@ -348,7 +357,10 @@
         </div>
       </div>
 
-      <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">Billing history</h3>
+      <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <span>Billing history</span>
+        <button class="clear" id="exportBillingBtn" disabled style="font-size:0.72rem;padding:5px 10px;">Export to Excel</button>
+      </h3>
       <table id="billHistoryTable">
         <thead>
           <tr><th>Date</th><th>Billing</th><th class="num">Amount</th><th>Paid</th><th>Action</th></tr>
@@ -380,6 +392,42 @@
     </section>
   </div><!-- /tabBilling -->
 
+  <div class="tab-panel" id="tabJIT">
+    <section>
+      <h2>JIT (Just-In-Time fund release)</h2>
+      <select class="billing-select" id="jitSubproject">
+        <option value="">Select a subproject…</option>
+      </select>
+
+      <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">JIT history</h3>
+      <table id="jitHistoryTable">
+        <thead>
+          <tr><th>Date</th><th class="num">JIT %</th><th class="num">JIT Amount</th><th>Action</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="empty-state" id="jitHistoryEmpty" style="display:none;">Select a subproject to see its JIT history.</div>
+
+      <h3 style="margin:20px 0 4px;font-size:0.9rem;color:var(--forest-deep);">New JIT entry</h3>
+      <div class="billing-form">
+        <div>
+          <label>Date</label>
+          <input type="date" id="jitDate">
+        </div>
+        <div>
+          <label>JIT %</label>
+          <input type="number" id="jitPct" placeholder="0.00" step="0.01" min="0" max="100">
+        </div>
+        <div>
+          <label>JIT Amount</label>
+          <input type="number" id="jitAmount" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <button id="jitSubmit">Save JIT entry</button>
+      </div>
+      <div class="form-msg" id="jitMsg"></div>
+    </section>
+  </div><!-- /tabJIT -->
+
 </div>
 
 <script>
@@ -389,7 +437,11 @@ const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=
 
 const DISB_SHEET_NAME = "Disbursement";
 const DISB_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(DISB_SHEET_NAME)}`;
-// Paste the deployed Apps Script Web App URL here (see apps-script-disbursement.gs) to enable saving new billings.
+
+const JIT_SHEET_NAME = "JIT";
+const JIT_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(JIT_SHEET_NAME)}`;
+
+// Paste the deployed Apps Script Web App URL here (see apps-script-backend.gs) to enable saving new billings/JIT entries.
 const APPS_SCRIPT_URL = "";
 
 const FALLBACK_DATA = [
@@ -709,8 +761,9 @@ document.getElementById("fClear").addEventListener("click", ()=>{
 // ---------- Tabs ----------
 document.getElementById("tabBtnOverview").addEventListener("click", ()=>switchTab("Overview"));
 document.getElementById("tabBtnBilling").addEventListener("click", ()=>switchTab("Billing"));
+document.getElementById("tabBtnJIT").addEventListener("click", ()=>switchTab("JIT"));
 function switchTab(name){
-  ["Overview","Billing"].forEach(n=>{
+  ["Overview","Billing","JIT"].forEach(n=>{
     document.getElementById("tab"+n).classList.toggle("active", n===name);
     document.getElementById("tabBtn"+n).classList.toggle("active", n===name);
   });
@@ -718,11 +771,13 @@ function switchTab(name){
 
 // ---------- Billing tab ----------
 function populateBillingSubprojects(dataset){
-  const sel = document.getElementById("billSubproject");
-  const current = sel.value;
   const names = dataset.map(d=>d.name).filter(Boolean);
-  sel.innerHTML = `<option value="">Select a subproject…</option>` + names.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join("");
-  if (names.includes(current)) sel.value = current;
+  ["billSubproject","jitSubproject"].forEach(id=>{
+    const sel = document.getElementById(id);
+    const current = sel.value;
+    sel.innerHTML = `<option value="">Select a subproject…</option>` + names.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join("");
+    if (names.includes(current)) sel.value = current;
+  });
 }
 
 function billNum(v){
@@ -898,6 +953,7 @@ function loadBillingHistory(subprojectName){
 document.getElementById("billSubproject").addEventListener("change", (e)=>{
   renderBillSpSummary(e.target.value);
   loadBillingHistory(e.target.value);
+  document.getElementById("exportBillingBtn").disabled = !e.target.value;
 });
 
 function renderBillSpSummary(subprojectName){
@@ -1003,7 +1059,7 @@ document.getElementById("billSubmit").addEventListener("click", ()=>{
   if (!amount || Number(amount) <= 0){ msg.className="form-msg err"; msg.textContent="Enter a valid billing amount."; return; }
   if (!APPS_SCRIPT_URL){
     msg.className="form-msg err";
-    msg.textContent = "Saving isn't wired up yet — deploy apps-script-disbursement.gs and paste its Web App URL into APPS_SCRIPT_URL in this file.";
+    msg.textContent = "Saving isn't wired up yet — deploy apps-script-backend.gs and paste its Web App URL into APPS_SCRIPT_URL in this file.";
     return;
   }
 
@@ -1035,6 +1091,176 @@ document.getElementById("billSubmit").addEventListener("click", ()=>{
     .finally(()=>{ btn.disabled = false; });
 });
 
+// ---------- JIT tab ----------
+function jitNum(v){
+  if (v==null) return null;
+  const cleaned = String(v).replace(/[₱,%\s]/g,"").trim();
+  if (cleaned === "" || cleaned === "-") return null;
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? null : n;
+}
+
+function jitCsvToRows(rawRows){
+  if (!rawRows.length) return [];
+  const headers = rawRows[0].map(h=>h.trim().toLowerCase());
+  const colId  = findCol(headers, h=>h.includes("id"), 0);
+  const colSub = findCol(headers, h=>h.includes("subproject")||h.includes("name"), 1);
+  const colDate= findCol(headers, h=>h.includes("date"), 2);
+  const colPct = findCol(headers, h=>h.includes("%"), 3);
+  const colAmt = findCol(headers, h=>h.includes("amount"), 4);
+  return rawRows.slice(1).map(r=>({
+    id: (colId>=0 ? r[colId] : "").trim(),
+    subproject: (colSub>=0 ? r[colSub] : "").trim(),
+    date: (colDate>=0 ? r[colDate] : "").trim(),
+    jitPct: colPct>=0 ? jitNum(r[colPct]) : null,
+    jitAmount: colAmt>=0 ? (jitNum(r[colAmt]) ?? 0) : 0
+  })).filter(r=>r.subproject !== "");
+}
+
+function renderJitHistory(rows){
+  const tbody = document.querySelector("#jitHistoryTable tbody");
+  const empty = document.getElementById("jitHistoryEmpty");
+  tbody.innerHTML = "";
+  if (!rows.length){
+    empty.style.display = "block";
+    empty.textContent = "No JIT history found for this subproject yet.";
+    return;
+  }
+  empty.style.display = "none";
+  rows.forEach(r=>{
+    const tr = document.createElement("tr");
+    tr.dataset.id = r.id || "";
+    tr.dataset.origDate = r.date;
+    tr.dataset.origPct = r.jitPct==null ? "" : r.jitPct;
+    tr.dataset.origAmount = r.jitAmount;
+    const noId = !r.id;
+    tr.innerHTML = `
+      <td><input type="date" class="edit-jit-date" value="${r.date || ""}" ${noId?"disabled":""}></td>
+      <td class="num"><input type="number" class="edit-jit-pct" value="${r.jitPct==null?"":r.jitPct}" step="0.01" min="0" max="100" ${noId?"disabled":""}></td>
+      <td class="num"><input type="number" class="edit-jit-amount" value="${r.jitAmount}" step="0.01" min="0" ${noId?"disabled":""}></td>
+      <td><button class="row-save" ${noId?"disabled title='This entry predates row IDs and can\\'t be edited here — update it directly in the sheet.'":""}>Save</button><span class="row-msg"></span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function loadJitHistory(subprojectName){
+  const empty = document.getElementById("jitHistoryEmpty");
+  if (!subprojectName){
+    document.querySelector("#jitHistoryTable tbody").innerHTML = "";
+    empty.style.display = "block";
+    empty.textContent = "Select a subproject to see its JIT history.";
+    return;
+  }
+  empty.style.display = "block";
+  empty.textContent = "Loading JIT history…";
+  fetch(JIT_CSV_URL)
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+    .then(text=>{
+      const rows = jitCsvToRows(parseCSV(text));
+      const matched = rows.filter(r=>r.subproject.trim().toLowerCase() === subprojectName.trim().toLowerCase());
+      renderJitHistory(matched);
+    })
+    .catch(err=>{
+      empty.style.display = "block";
+      empty.textContent = `Could not load JIT history (${err.message}). Make sure the "${JIT_SHEET_NAME}" sheet exists and is shared as "Anyone with the link – Viewer".`;
+      document.querySelector("#jitHistoryTable tbody").innerHTML = "";
+    });
+}
+
+document.getElementById("jitSubproject").addEventListener("change", (e)=>{
+  loadJitHistory(e.target.value);
+});
+
+document.querySelector("#jitHistoryTable tbody").addEventListener("input", (e)=>{
+  if (e.target.classList.contains("edit-jit-date") || e.target.classList.contains("edit-jit-pct") || e.target.classList.contains("edit-jit-amount")){
+    e.target.closest("tr").classList.add("row-dirty");
+  }
+});
+
+document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>{
+  if (!e.target.classList.contains("row-save")) return;
+  const tr = e.target.closest("tr");
+  const id = tr.dataset.id;
+  const msg = tr.querySelector(".row-msg");
+  if (!id){ msg.className="row-msg err"; msg.textContent="No ID — edit in the sheet instead."; return; }
+  if (!APPS_SCRIPT_URL){
+    msg.className="row-msg err";
+    msg.textContent = "Set APPS_SCRIPT_URL first.";
+    return;
+  }
+  const date = tr.querySelector(".edit-jit-date").value;
+  const jitPct = tr.querySelector(".edit-jit-pct").value;
+  const jitAmount = tr.querySelector(".edit-jit-amount").value;
+
+  const btn = e.target;
+  btn.disabled = true;
+  msg.className = "row-msg"; msg.textContent = "Saving…";
+
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    headers: {"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify({ action:"updateJIT", id, date, jitPct, jitAmount })
+  })
+    .then(r=>r.json())
+    .then(res=>{
+      if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
+      msg.className = "row-msg ok";
+      msg.textContent = "Saved.";
+      tr.classList.remove("row-dirty");
+      tr.dataset.origDate = date;
+      tr.dataset.origPct = jitPct;
+      tr.dataset.origAmount = jitAmount;
+    })
+    .catch(err=>{
+      msg.className = "row-msg err";
+      msg.textContent = "Error: " + err.message;
+    })
+    .finally(()=>{ btn.disabled = false; });
+});
+
+document.getElementById("jitSubmit").addEventListener("click", ()=>{
+  const msg = document.getElementById("jitMsg");
+  const subproject = document.getElementById("jitSubproject").value;
+  const date = document.getElementById("jitDate").value;
+  const jitPct = document.getElementById("jitPct").value;
+  const jitAmount = document.getElementById("jitAmount").value;
+
+  if (!subproject){ msg.className="form-msg err"; msg.textContent="Select a subproject first."; return; }
+  if (!date){ msg.className="form-msg err"; msg.textContent="Pick a date."; return; }
+  if (jitPct === "" && jitAmount === ""){ msg.className="form-msg err"; msg.textContent="Enter a JIT % and/or JIT Amount."; return; }
+  if (!APPS_SCRIPT_URL){
+    msg.className="form-msg err";
+    msg.textContent = "Saving isn't wired up yet — deploy apps-script-backend.gs and paste its Web App URL into APPS_SCRIPT_URL in this file.";
+    return;
+  }
+
+  const btn = document.getElementById("jitSubmit");
+  btn.disabled = true;
+  msg.className = "form-msg"; msg.textContent = "Saving…";
+
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    headers: {"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify({ action:"createJIT", subproject, date, jitPct, jitAmount })
+  })
+    .then(r=>r.json())
+    .then(res=>{
+      if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
+      msg.className = "form-msg ok";
+      msg.textContent = "JIT entry saved.";
+      document.getElementById("jitDate").value = "";
+      document.getElementById("jitPct").value = "";
+      document.getElementById("jitAmount").value = "";
+      loadJitHistory(subproject);
+    })
+    .catch(err=>{
+      msg.className = "form-msg err";
+      msg.textContent = "Could not save: " + err.message;
+    })
+    .finally(()=>{ btn.disabled = false; });
+});
+
 // ---------- Load data ----------
 function loadData(){
   document.getElementById("dataBar").innerHTML = "Loading data…";
@@ -1050,6 +1276,55 @@ function loadData(){
       renderAll(FALLBACK_DATA, {live:false, error: err.message});
     });
 }
+
+// ---------- Export to Excel (CSV, opens directly in Excel) ----------
+function sanitizeFilename(s){
+  return (s||"export").toString().trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60) || "export";
+}
+
+function downloadCSV(rows, headers, filename){
+  const esc = v => `"${String(v==null?"":v).replace(/"/g,'""')}"`;
+  const lines = [headers.map(esc).join(",")];
+  rows.forEach(r => lines.push(r.map(esc).join(",")));
+  const csv = lines.join("\r\n");
+  const blob = new Blob(["\ufeff" + csv], {type:"text/csv;charset=utf-8;"}); // BOM so Excel reads UTF-8 correctly
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById("exportOverviewBtn").addEventListener("click", ()=>{
+  const headers = ["No.","Subproject","Location","Category","Status","Physical %","Total Cost (PHP)","Total Disbursed (PHP)","Disb. Rate (%)","Backlog Amount (PHP)"];
+  const rows = filtered.map(d=>[
+    d.no, d.name, d.loc, d.cat, d.status,
+    d.phys==null ? "" : Number(d.phys.toFixed(2)),
+    Number(d.cost.toFixed(2)),
+    Number(d.disb.toFixed(2)),
+    Number(d.rate.toFixed(2)),
+    Number(d.backlogAmt.toFixed(2))
+  ]);
+  const dateStr = new Date().toISOString().slice(0,10);
+  downloadCSV(rows, headers, `ibuild-subprojects-${dateStr}.csv`);
+});
+
+document.getElementById("exportBillingBtn").addEventListener("click", ()=>{
+  const subproject = document.getElementById("billSubproject").value;
+  if (!subproject) return;
+  const tableRows = Array.from(document.querySelectorAll("#billHistoryTable tbody tr")).map(tr=>({
+    date: tr.children[0] ? tr.children[0].textContent.trim() : "",
+    billing: tr.children[1] ? tr.children[1].textContent.trim() : "",
+    amount: Number(tr.querySelector(".edit-amount") ? tr.querySelector(".edit-amount").value : 0) || 0,
+    paid: tr.querySelector(".edit-paid") ? tr.querySelector(".edit-paid").checked : false
+  }));
+  const headers = ["Date","Subproject","Billing","Amount","Status"];
+  const rows = tableRows.map(r => [r.date, subproject, r.billing, r.amount, r.paid ? "Paid" : "Unpaid"]);
+  downloadCSV(rows, headers, `billing-history-${sanitizeFilename(subproject)}.csv`);
+});
 
 loadData();
 loadUnpaidBillingTotal();
