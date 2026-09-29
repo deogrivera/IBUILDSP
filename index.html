@@ -227,7 +227,6 @@
     width:110px;padding:4px 6px;border:1px solid var(--line);font-size:0.8rem;
     font-family:"IBM Plex Mono",Consolas,monospace;
   }
-  .row-msg{font-size:0.72px;margin-top:3px;}
   .row-msg.ok{color:var(--forest);}
   .row-msg.err{color:var(--rust);}
   .billing-select{
@@ -271,7 +270,7 @@
   }
   .photo-link:hover{background:var(--forest);color:#fff;}
 
-  /* ---------- NEW: JIT gallery styles ---------- */
+  /* ---------- JIT gallery styles ---------- */
   .jit-gallery-row td{background:#FAF8F2;padding:0;border-bottom:1px solid var(--line);}
   .jit-gallery-inner{padding:14px 16px 18px;}
   .jit-gallery-head{
@@ -583,8 +582,8 @@ const DISB_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq
 const JIT_SHEET_NAME = "JIT";
 const JIT_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(JIT_SHEET_NAME)}`;
 
-// Paste the deployed Apps Script Web App URL here (see apps-script-backend.gs) to enable saving new billings/JIT entries.
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzS3j2wg97qvFUubhl69KvzS1S-wbyeShZ0aLtc-vgut26W8ioHHyPa8cnK8zOVpvOa/exec";
+// Paste the deployed Apps Script Web App URL here
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztlHozmCUg1njwlkR191iKlefPsUUi6R4Os8CKi-9n44qDwAEll1w5BZN9y7YgKgQL/exec";
 
 const FALLBACK_DATA = [
   {no:1,name:"San Jose Multi-Purpose Warehouse with Solar Dryer",loc:"Vintar, Ilocos Norte",cat:"VCRI",status:"Completed",phys:100.00,cost:10267127.90,disb:10267127.90,rate:100.00,backlogPct:0.00,backlogAmt:0.00},
@@ -609,11 +608,11 @@ const pesoFull = n => "₱" + n.toLocaleString("en-PH",{minimumFractionDigits:2,
 
 let currentData = FALLBACK_DATA;
 let filtered = FALLBACK_DATA;
-let totalUnpaidBilling = null;   // null = not loaded yet
+let totalUnpaidBilling = null;
 let unpaidBillingError = null;
 let unpaidBillingCount = 0;
 
-// ---------- CSV parsing (no external library) ----------
+// ---------- CSV parsing ----------
 function parseCSV(text){
   const rows = [];
   let row = [], field = "", inQuotes = false;
@@ -1262,17 +1261,6 @@ function extractFolderId(url){
   if (m && /folder/i.test(s)) return m[1];
   return null;
 }
-function extractFileId(url){
-  if (!url) return null;
-  const s = String(url).trim();
-  let m = s.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/);
-  if (m) return m[1];
-  m = s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
-  if (m) return m[1];
-  m = s.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
-  if (m) return m[1];
-  return null;
-}
 function driveThumb(fileId, size){
   const w = size || 400;
   return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${w}`;
@@ -1396,7 +1384,7 @@ function renderJitHistory(rows){
   });
 }
 
-// Toggle inline gallery under a JIT row
+// Toggle inline gallery under a JIT row + handle Save
 document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>{
   const galBtn = e.target.closest(".row-gallery-toggle");
   if (galBtn){
@@ -1407,7 +1395,6 @@ document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>
       next.remove();
       return;
     }
-    // close any other open gallery
     document.querySelectorAll(".jit-gallery-row").forEach(el=>el.remove());
     const galRow = document.createElement("tr");
     galRow.className = "jit-gallery-row";
@@ -1449,7 +1436,7 @@ document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>
       });
     return;
   }
-  // save button for JIT row
+
   if (!e.target.classList.contains("row-save")) return;
   const tr = e.target.closest("tr");
   const id = tr.dataset.id;
@@ -1494,7 +1481,7 @@ document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>
       } else if (existingLink){
         existingLink.remove();
       }
-      // refresh the gallery toggle based on new link
+      // Refresh gallery toggle based on new link
       const galHolder = tr.querySelector("td:nth-child(4)");
       const oldBtn = galHolder.querySelector(".row-gallery-toggle");
       const newFolderId = extractFolderId(photoLink);
@@ -1502,6 +1489,14 @@ document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>
       if (newFolderId){
         galHolder.insertAdjacentHTML("beforeend", `<div style="margin-top:4px;"><button type="button" class="row-gallery-toggle" data-folder="${newFolderId}">📷 View gallery</button></div>`);
       }
+      // Invalidate cache for old folder if it changed
+      if (tr.dataset.origPhoto && tr.dataset.origPhoto !== photoLink){
+        const oldId = extractFolderId(tr.dataset.origPhoto);
+        if (oldId) delete drivePhotoCache[oldId];
+      }
+      // Refresh currentJitRows so "View all" uses fresh data
+      const subproject = document.getElementById("jitSubproject").value;
+      if (subproject) loadJitHistory(subproject);
     })
     .catch(err=>{
       msg.className = "row-msg err";
@@ -1540,7 +1535,9 @@ function loadJitHistory(subprojectName){
       const matched = rows.filter(r=>r.subproject.trim().toLowerCase() === subprojectName.trim().toLowerCase());
       currentJitRows = matched;
       renderJitHistory(matched);
-      viewAllBtn.disabled = matched.filter(r=>extractFolderId(r.photoLink)).length === 0;
+      const folderCount = matched.filter(r=>extractFolderId(r.photoLink)).length;
+      viewAllBtn.disabled = folderCount === 0;
+      console.log("[loadJitHistory]", subprojectName, "→", matched.length, "rows,", folderCount, "with folder links");
     })
     .catch(err=>{
       empty.style.display = "block";
@@ -1562,16 +1559,21 @@ function openAllPhotosModal(subprojectName, rows){
   const sub = document.getElementById("gmSub");
   const body = document.getElementById("gmBody");
 
+  const withFolders = rows.filter(r => extractFolderId(r.photoLink));
+
   title.textContent = "All JIT photos";
-  sub.textContent = subprojectName + " — " + rows.filter(r=>extractFolderId(r.photoLink)).length + " JIT entr" + (rows.filter(r=>extractFolderId(r.photoLink)).length===1?"y":"ies") + " with photos";
+  sub.textContent = subprojectName + " — " + withFolders.length + " JIT entr" + (withFolders.length===1?"y":"ies") + " with photos";
   body.innerHTML = `<div class="gm-loading">Loading photos…</div>`;
   modal.classList.add("open");
 
-  const withFolders = rows.filter(r=>extractFolderId(r.photoLink));
-  const groupsHtml = [];
-  let pending = withFolders.length;
+  if (!withFolders.length){
+    body.innerHTML = `<div class="gm-loading">No JIT entries for this subproject have a Google Drive <em>folder</em> link yet. ` +
+      `Open the JIT tab, edit a row, and paste a link like <code>https://drive.google.com/drive/folders/…</code> into the Photo link field.</div>`;
+    return;
+  }
 
-  withFolders.forEach((r, gi)=>{
+  body.innerHTML = "";
+  withFolders.forEach((r)=>{
     const folderId = extractFolderId(r.photoLink);
     const groupEl = document.createElement("div");
     groupEl.className = "gm-group";
@@ -1613,20 +1615,38 @@ function openAllPhotosModal(subprojectName, rows){
         groupEl.querySelector(".gcount").textContent = "";
       });
   });
-
-  // remove the initial loading text once we've added group blocks
-  const loadingEl = body.querySelector(".gm-loading");
-  if (loadingEl && withFolders.length) loadingEl.remove();
-  if (!withFolders.length){
-    body.innerHTML = `<div class="gm-loading">No JIT entries with a Drive folder link for this subproject.</div>`;
-  }
 }
 
 document.getElementById("jitViewAllBtn").addEventListener("click", ()=>{
   const subproject = document.getElementById("jitSubproject").value;
-  if (!subproject) return;
+  const modal = document.getElementById("galleryModal");
+  const title = document.getElementById("gmTitle");
+  const sub = document.getElementById("gmSub");
+  const body = document.getElementById("gmBody");
+
+  if (!subproject){
+    alert("Select a subproject first.");
+    return;
+  }
+
+  const withFolders = currentJitRows.filter(r => extractFolderId(r.photoLink));
+  console.log("[ViewAll] subproject:", subproject);
+  console.log("[ViewAll] total JIT rows:", currentJitRows.length);
+  console.log("[ViewAll] rows with folder link:", withFolders.length, withFolders);
+
+  if (!withFolders.length){
+    // Show modal anyway with clear explanation
+    title.textContent = "All JIT photos";
+    sub.textContent = subproject;
+    body.innerHTML = `<div class="gm-loading">No JIT entries for this subproject have a Google Drive <em>folder</em> link yet. ` +
+      `Open the JIT tab, edit a row, and paste a link like <code>https://drive.google.com/drive/folders/…</code> into the Photo link field.</div>`;
+    modal.classList.add("open");
+    return;
+  }
+
   openAllPhotosModal(subproject, currentJitRows);
 });
+
 document.getElementById("gmClose").addEventListener("click", ()=>{
   document.getElementById("galleryModal").classList.remove("open");
   document.getElementById("gmBody").innerHTML = "";
@@ -1680,7 +1700,6 @@ document.getElementById("jitSubmit").addEventListener("click", ()=>{
       document.getElementById("jitPct").value = "";
       document.getElementById("jitAmount").value = "";
       document.getElementById("jitPhotoLink").value = "";
-      // clear any cached folder we just might have
       const newFolderId = extractFolderId(photoLink);
       if (newFolderId) delete drivePhotoCache[newFolderId];
       loadJitHistory(subproject);
