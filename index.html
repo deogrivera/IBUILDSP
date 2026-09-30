@@ -246,6 +246,11 @@
   }
   .row-save:hover{background:var(--forest-deep);}
   .row-save:disabled{background:#B7B2A2;cursor:not-allowed;}
+  .row-view{
+    background:none;border:1px solid var(--forest);color:var(--forest);padding:5px 10px;font-size:0.76rem;cursor:pointer;margin-left:6px;
+  }
+  .row-view:hover{background:var(--forest);color:#fff;}
+  .row-view.active{background:var(--forest);color:#fff;}
   .row-msg{font-size:0.72rem;margin-left:8px;}
   .row-msg.ok{color:var(--forest);}
   .row-msg.err{color:var(--rust);}
@@ -255,19 +260,22 @@
   #jitHistoryTable th:nth-child(1),#jitHistoryTable td:nth-child(1){width:160px;}
   #jitHistoryTable th:nth-child(2),#jitHistoryTable td:nth-child(2){width:110px;}
   #jitHistoryTable th:nth-child(3),#jitHistoryTable td:nth-child(3){width:150px;}
-  #jitHistoryTable th:nth-child(4),#jitHistoryTable td:nth-child(4){width:220px;}
-  #jitHistoryTable th:nth-child(5),#jitHistoryTable td:nth-child(5){width:130px;}
+  #jitHistoryTable th:nth-child(4),#jitHistoryTable td:nth-child(4){width:260px;}
+  #jitHistoryTable th:nth-child(5),#jitHistoryTable td:nth-child(5){width:190px;}
   #jitHistoryTable tr.row-dirty td{background:#FBF6E8;}
+  #jitHistoryTable tr.row-selected td{background:#EAF1EC;}
+  .photo-link.view-gallery{border-color:var(--gold);color:var(--gold);}
+  .photo-link.view-gallery:hover{background:var(--gold);color:#fff;}
   .edit-jit-date,.edit-jit-pct,.edit-jit-amount,.edit-jit-photo{
     width:100%;box-sizing:border-box;padding:5px 7px;border:1px solid var(--line);
     font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.8rem;background:#fff;color:var(--ink);
   }
   .jit-form{grid-template-columns:1fr 0.7fr 0.9fr 1.6fr auto;}
-  .photo-cell{display:flex;gap:6px;align-items:center;}
-  .photo-cell input{flex:1;}
+  .photo-cell{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+  .photo-cell input{flex:1;min-width:80px;}
   .photo-link{
     font-size:0.72rem;color:var(--forest);text-decoration:none;border:1px solid var(--forest);
-    padding:4px 8px;white-space:nowrap;
+    padding:4px 8px;white-space:nowrap;background:none;cursor:pointer;font-family:inherit;
   }
   .photo-link:hover{background:var(--forest);color:#fff;}
 
@@ -440,7 +448,7 @@
       <div class="empty-state" id="jitHistoryEmpty" style="display:none;">Select a subproject to see its JIT history.</div>
 
       <div class="panel" id="jitMediaPanel" style="display:none;margin-top:18px;">
-        <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">Photos from JIT visits</h3>
+        <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">Photos from selected JIT visit <span id="jitMediaWhich" style="font-weight:400;color:var(--ink-soft);"></span></h3>
         <div class="empty-state" id="jitMediaStatus" style="display:none;padding:8px 0;"></div>
         <div class="jit-gallery" id="jitGallery"></div>
         <div id="jitMapContainer"></div>
@@ -1186,11 +1194,12 @@ function renderJitHistory(rows){
     const noId = !r.id;
     const safeLink = (r.photoLink||"").replace(/"/g,"&quot;");
     const openLink = r.photoLink ? `<a class="photo-link" href="${safeLink}" target="_blank" rel="noopener">Open</a>` : "";
+    const galleryBtn = r.photoLink ? `<button type="button" class="photo-link view-gallery">Gallery</button>` : "";
     tr.innerHTML = `
       <td><input type="date" class="edit-jit-date" value="${r.date || ""}" ${noId?"disabled":""}></td>
       <td class="num"><input type="number" class="edit-jit-pct" value="${r.jitPct==null?"":r.jitPct}" step="0.01" min="0" max="100" ${noId?"disabled":""}></td>
       <td class="num"><input type="number" class="edit-jit-amount" value="${r.jitAmount}" step="0.01" min="0" ${noId?"disabled":""}></td>
-      <td><div class="photo-cell"><input type="url" class="edit-jit-photo" value="${safeLink}" placeholder="https://drive.google.com/…" ${noId?"disabled":""}>${openLink}</div></td>
+      <td><div class="photo-cell"><input type="url" class="edit-jit-photo" value="${safeLink}" placeholder="https://drive.google.com/…" ${noId?"disabled":""}>${openLink}${galleryBtn}</div></td>
       <td><button class="row-save" ${noId?"disabled title='This entry predates row IDs and can\\'t be edited here — update it directly in the sheet.'":""}>Save</button><span class="row-msg"></span></td>
     `;
     tbody.appendChild(tr);
@@ -1311,13 +1320,20 @@ async function loadJitMedia(subprojectName, rows){
   }
 }
 
+function resetJitMedia(){
+  document.getElementById("jitMediaPanel").style.display = "none";
+  document.getElementById("jitGallery").innerHTML = "";
+  document.getElementById("jitMapContainer").innerHTML = "";
+  document.getElementById("jitMediaStatus").style.display = "none";
+}
+
 function loadJitHistory(subprojectName){
   const empty = document.getElementById("jitHistoryEmpty");
   if (!subprojectName){
     document.querySelector("#jitHistoryTable tbody").innerHTML = "";
     empty.style.display = "block";
     empty.textContent = "Select a subproject to see its JIT history.";
-    document.getElementById("jitMediaPanel").style.display = "none";
+    resetJitMedia();
     return;
   }
   empty.style.display = "block";
@@ -1328,7 +1344,7 @@ function loadJitHistory(subprojectName){
       const rows = jitCsvToRows(parseCSV(text));
       const matched = rows.filter(r=>r.subproject.trim().toLowerCase() === subprojectName.trim().toLowerCase());
       renderJitHistory(matched);
-      loadJitMedia(subprojectName, matched);
+      resetJitMedia();
     })
     .catch(err=>{
       empty.style.display = "block";
@@ -1348,6 +1364,15 @@ document.querySelector("#jitHistoryTable tbody").addEventListener("input", (e)=>
 });
 
 document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>{
+  if (e.target.classList.contains("view-gallery")){
+    const tr = e.target.closest("tr");
+    Array.from(document.querySelectorAll("#jitHistoryTable tbody tr")).forEach(t=>t.classList.remove("row-selected"));
+    tr.classList.add("row-selected");
+    const link = tr.querySelector(".edit-jit-photo").value.trim();
+    const subproject = document.getElementById("jitSubproject").value;
+    loadJitMedia(subproject, [{photoLink: link}]);
+    return;
+  }
   if (!e.target.classList.contains("row-save")) return;
   const tr = e.target.closest("tr");
   const id = tr.dataset.id;
@@ -1383,18 +1408,22 @@ document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>
       tr.dataset.origAmount = jitAmount;
       tr.dataset.origPhoto = photoLink;
       const cell = tr.querySelector(".photo-cell");
-      const existingLink = cell.querySelector(".photo-link");
+      const existingOpen = cell.querySelector(".photo-link:not(.view-gallery)");
+      const existingGallery = cell.querySelector(".photo-link.view-gallery");
       if (photoLink){
         const safeLink = photoLink.replace(/"/g,"&quot;");
-        if (existingLink) existingLink.setAttribute("href", safeLink);
+        if (existingOpen) existingOpen.setAttribute("href", safeLink);
         else cell.insertAdjacentHTML("beforeend", `<a class="photo-link" href="${safeLink}" target="_blank" rel="noopener">Open</a>`);
-      } else if (existingLink){
-        existingLink.remove();
+        if (!existingGallery) cell.insertAdjacentHTML("beforeend", `<button type="button" class="photo-link view-gallery">Gallery</button>`);
+      } else {
+        if (existingOpen) existingOpen.remove();
+        if (existingGallery) existingGallery.remove();
       }
-      const rowsNow = Array.from(document.querySelectorAll("#jitHistoryTable tbody tr")).map(t=>({
-        photoLink: t.dataset.origPhoto || ""
-      }));
-      loadJitMedia(document.getElementById("jitSubproject").value, rowsNow);
+      // If this row's gallery/map is the one currently on screen, refresh it with the new link
+      if (tr.classList.contains("row-selected")){
+        const subproject = document.getElementById("jitSubproject").value;
+        loadJitMedia(subproject, [{photoLink}]);
+      }
     })
     .catch(err=>{
       msg.className = "row-msg err";
