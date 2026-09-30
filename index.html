@@ -290,6 +290,30 @@
   #jitMapContainer:empty{display:none;}
   .leaflet-popup-content img{display:block;margin-bottom:4px;}
 
+  .billing-form textarea{
+    width:100%;padding:8px 10px;border:1px solid var(--line);font-size:0.86rem;
+    font-family:inherit;background:#fff;color:var(--ink);resize:vertical;
+  }
+  .fm-note-form{grid-template-columns:160px 1fr auto;}
+  .fm-issue-form{grid-template-columns:1fr 1fr 1fr auto;}
+
+  #fmNotesTable{table-layout:fixed;}
+  #fmNotesTable th:nth-child(1),#fmNotesTable td:nth-child(1){width:120px;}
+  #fmNotesTable th:nth-child(3),#fmNotesTable td:nth-child(3){width:80px;}
+  #fmNotesTable th:nth-child(4),#fmNotesTable td:nth-child(4){width:90px;}
+  #fmNotesTable td:nth-child(2){white-space:normal;word-break:break-word;}
+  #fmNotesTable tr.row-selected td{background:#EAF1EC;}
+  #fmNotesTable tr{cursor:default;}
+
+  #fmIssuesTable{table-layout:fixed;}
+  #fmIssuesTable th:nth-child(1),#fmIssuesTable td:nth-child(1){width:30%;}
+  #fmIssuesTable th:nth-child(2),#fmIssuesTable td:nth-child(2){width:30%;}
+  #fmIssuesTable th:nth-child(3),#fmIssuesTable td:nth-child(3){width:28%;}
+  #fmIssuesTable th:nth-child(4),#fmIssuesTable td:nth-child(4){width:12%;}
+  #fmIssuesTable textarea{width:100%;box-sizing:border-box;padding:5px 7px;border:1px solid var(--line);font-size:0.8rem;font-family:inherit;background:#fff;color:var(--ink);resize:vertical;min-height:44px;}
+  #fmIssuesTable tr.row-dirty td{background:#FBF6E8;}
+  .fm-notes-preview{font-size:0.82rem;color:var(--ink-soft);}
+
   @media (max-width:900px){
     .kpis{grid-template-columns:repeat(2,1fr);}
     .grid2{grid-template-columns:1fr;}
@@ -314,6 +338,7 @@
     <button class="tab-btn active" id="tabBtnOverview">Overview</button>
     <button class="tab-btn" id="tabBtnBilling">Add Billing</button>
     <button class="tab-btn" id="tabBtnJIT">JIT</button>
+    <button class="tab-btn" id="tabBtnFieldMon">Field Monitoring</button>
   </div>
 
   <div class="tab-panel active" id="tabOverview">
@@ -433,7 +458,7 @@
 
   <div class="tab-panel" id="tabJIT">
     <section>
-      <h2>Joint Inspection Activity (JIT)</h2>
+      <h2>JIT (Just-In-Time fund release)</h2>
       <select class="billing-select" id="jitSubproject">
         <option value="">Select a subproject…</option>
       </select>
@@ -478,6 +503,83 @@
     </section>
   </div><!-- /tabJIT -->
 
+  <div class="tab-panel" id="tabFieldMon">
+    <section>
+      <h2>Field Monitoring Activity</h2>
+      <select class="billing-select" id="fmSubproject">
+        <option value="">Select a subproject…</option>
+      </select>
+
+      <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">Field monitoring notes</h3>
+      <table id="fmNotesTable">
+        <thead>
+          <tr><th>Date</th><th>General Notes</th><th>Issues</th><th>Action</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="empty-state" id="fmNotesEmpty" style="display:none;">Select a subproject to see its field monitoring notes.</div>
+
+      <div class="panel" id="fmDetailPanel" style="display:none;margin-top:18px;">
+        <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <span>Note detail</span>
+          <span class="form-msg" id="fmNoteMsg"></span>
+        </h3>
+        <div class="billing-form fm-note-form">
+          <div>
+            <label>Date</label>
+            <input type="date" id="fmDetailDate">
+          </div>
+          <div>
+            <label>General Notes</label>
+            <textarea id="fmDetailNotes" rows="2"></textarea>
+          </div>
+          <button id="fmNoteSave">Save note</button>
+        </div>
+
+        <h3 style="margin:18px 0 10px;font-size:0.9rem;color:var(--forest-deep);">Issues</h3>
+        <table id="fmIssuesTable">
+          <thead>
+            <tr><th>Issue</th><th>Corrective Action</th><th>Remarks</th><th>Action</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="empty-state" id="fmIssuesEmpty" style="display:none;">No issues logged for this note yet.</div>
+
+        <h3 style="margin:18px 0 6px;font-size:0.9rem;color:var(--forest-deep);">Add issue</h3>
+        <div class="billing-form fm-issue-form">
+          <div>
+            <label>Issue</label>
+            <textarea id="fmNewIssue" rows="2"></textarea>
+          </div>
+          <div>
+            <label>Corrective action</label>
+            <textarea id="fmNewCorrective" rows="2"></textarea>
+          </div>
+          <div>
+            <label>Remarks</label>
+            <textarea id="fmNewRemarks" rows="2"></textarea>
+          </div>
+          <button id="fmIssueSubmit">Add issue</button>
+        </div>
+        <div class="form-msg" id="fmIssueMsg"></div>
+      </div>
+
+      <h3 style="margin:22px 0 4px;font-size:0.9rem;color:var(--forest-deep);">New field monitoring note</h3>
+      <div class="billing-form fm-note-form">
+        <div>
+          <label>Date</label>
+          <input type="date" id="fmNewDate">
+        </div>
+        <div>
+          <label>General notes</label>
+          <textarea id="fmNewNotes" rows="2"></textarea>
+        </div>
+        <button id="fmNoteSubmit">Save note</button>
+      </div>
+      <div class="form-msg" id="fmNewNoteMsg"></div>
+    </section>
+  </div><!-- /tabFieldMon -->
+
 </div>
 
 <script>
@@ -491,13 +593,19 @@ const DISB_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq
 const JIT_SHEET_NAME = "JIT";
 const JIT_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(JIT_SHEET_NAME)}`;
 
+const FIELDNOTES_SHEET_NAME = "FieldMonNotes";
+const FIELDNOTES_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(FIELDNOTES_SHEET_NAME)}`;
+
+const ISSUES_SHEET_NAME = "Issues";
+const ISSUES_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(ISSUES_SHEET_NAME)}`;
+
 // Paste a Google Cloud API key here (Drive API enabled, restricted to that API only,
 // no HTTP-referrer restriction since this file may be opened locally) to enable the
 // JIT photo gallery and geotagged map. See the setup notes in the chat reply.
 const DRIVE_API_KEY = "AIzaSyCjmZVFS9boAUZO0QMp22cRp20bEJ0Vsbc";
 
 // Paste the deployed Apps Script Web App URL here (see apps-script-backend.gs) to enable saving new billings/JIT entries.
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzS3j2wg97qvFUubhl69KvzS1S-wbyeShZ0aLtc-vgut26W8ioHHyPa8cnK8zOVpvOa/exec";
+const APPS_SCRIPT_URL = const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzS3j2wg97qvFUubhl69KvzS1S-wbyeShZ0aLtc-vgut26W8ioHHyPa8cnK8zOVpvOa/exec";
 
 const FALLBACK_DATA = [
   {no:1,name:"San Jose Multi-Purpose Warehouse with Solar Dryer",loc:"Vintar, Ilocos Norte",cat:"VCRI",status:"Completed",phys:100.00,cost:10267127.90,disb:10267127.90,rate:100.00,backlogPct:0.00,backlogAmt:0.00},
@@ -817,8 +925,9 @@ document.getElementById("fClear").addEventListener("click", ()=>{
 document.getElementById("tabBtnOverview").addEventListener("click", ()=>switchTab("Overview"));
 document.getElementById("tabBtnBilling").addEventListener("click", ()=>switchTab("Billing"));
 document.getElementById("tabBtnJIT").addEventListener("click", ()=>switchTab("JIT"));
+document.getElementById("tabBtnFieldMon").addEventListener("click", ()=>switchTab("FieldMon"));
 function switchTab(name){
-  ["Overview","Billing","JIT"].forEach(n=>{
+  ["Overview","Billing","JIT","FieldMon"].forEach(n=>{
     document.getElementById("tab"+n).classList.toggle("active", n===name);
     document.getElementById("tabBtn"+n).classList.toggle("active", n===name);
   });
@@ -827,7 +936,7 @@ function switchTab(name){
 // ---------- Billing tab ----------
 function populateBillingSubprojects(dataset){
   const names = dataset.map(d=>d.name).filter(Boolean);
-  ["billSubproject","jitSubproject"].forEach(id=>{
+  ["billSubproject","jitSubproject","fmSubproject"].forEach(id=>{
     const sel = document.getElementById(id);
     const current = sel.value;
     sel.innerHTML = `<option value="">Select a subproject…</option>` + names.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join("");
@@ -1475,6 +1584,329 @@ document.getElementById("jitSubmit").addEventListener("click", ()=>{
     })
     .finally(()=>{ btn.disabled = false; });
 });
+
+// ---------- Field Monitoring tab ----------
+let fmSelectedNote = null; // currently opened note {id, subproject, date, genNotes}
+
+function fieldNotesCsvToRows(rawRows){
+  if (!rawRows.length) return [];
+  const headers = rawRows[0].map(h=>h.trim().toLowerCase());
+  const colId   = findCol(headers, h=>h==="id", 0);
+  const colSub  = findCol(headers, h=>h.includes("subproject")||h.includes("name"), 1);
+  const colDate = findCol(headers, h=>h.includes("date"), 2);
+  const colNotes= findCol(headers, h=>h.includes("gennotes")||h.includes("notes"), 3);
+  const colIssuesId = findCol(headers, h=>h.includes("issuesid")||(h.includes("issues")&&h.includes("id")), 4);
+  return rawRows.slice(1).map(r=>({
+    id: (colId>=0 ? r[colId] : "").trim(),
+    subproject: (colSub>=0 ? r[colSub] : "").trim(),
+    date: (colDate>=0 ? r[colDate] : "").trim(),
+    genNotes: (colNotes>=0 ? r[colNotes] : "").trim(),
+    issuesId: (colIssuesId>=0 ? r[colIssuesId] : "").trim()
+  })).filter(r=>r.subproject !== "");
+}
+
+function issuesCsvToRows(rawRows){
+  if (!rawRows.length) return [];
+  const headers = rawRows[0].map(h=>h.trim().toLowerCase());
+  const colId       = findCol(headers, h=>h==="id", 0);
+  const colParentId = findCol(headers, h=>h.includes("fieldmonnotesid")||h.includes("fieldmon"), 1);
+  const colIssue    = findCol(headers, h=>h==="issue"||(h.includes("issue")&&!h.includes("id")), 2);
+  const colCorrective = findCol(headers, h=>h.includes("corrective"), 3);
+  const colRemarks  = findCol(headers, h=>h.includes("remarks"), 4);
+  return rawRows.slice(1).map(r=>({
+    id: (colId>=0 ? r[colId] : "").trim(),
+    fieldMonNotesId: (colParentId>=0 ? r[colParentId] : "").trim(),
+    issue: (colIssue>=0 ? r[colIssue] : "").trim(),
+    correctiveAction: (colCorrective>=0 ? r[colCorrective] : "").trim(),
+    remarks: (colRemarks>=0 ? r[colRemarks] : "").trim()
+  })).filter(r=>r.fieldMonNotesId !== "");
+}
+
+function truncateText(s, n){
+  s = s || "";
+  return s.length > n ? s.slice(0, n).trim() + "…" : s;
+}
+
+function renderFmNotesTable(notes, allIssues){
+  const tbody = document.querySelector("#fmNotesTable tbody");
+  const empty = document.getElementById("fmNotesEmpty");
+  tbody.innerHTML = "";
+  if (!notes.length){
+    empty.style.display = "block";
+    empty.textContent = "No field monitoring notes found for this subproject yet.";
+    return;
+  }
+  empty.style.display = "none";
+  notes.forEach(note=>{
+    const count = allIssues.filter(i=>i.fieldMonNotesId === note.id).length;
+    const tr = document.createElement("tr");
+    tr.dataset.id = note.id;
+    tr.innerHTML = `
+      <td>${note.date || "—"}</td>
+      <td class="fm-notes-preview">${truncateText(note.genNotes, 90) || "—"}</td>
+      <td>${count}</td>
+      <td><button type="button" class="mini-btn view-note">View</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderFmIssuesTable(issues){
+  const tbody = document.querySelector("#fmIssuesTable tbody");
+  const empty = document.getElementById("fmIssuesEmpty");
+  tbody.innerHTML = "";
+  if (!issues.length){
+    empty.style.display = "block";
+    return;
+  }
+  empty.style.display = "none";
+  issues.forEach(iss=>{
+    const tr = document.createElement("tr");
+    tr.dataset.id = iss.id || "";
+    const noId = !iss.id;
+    tr.innerHTML = `
+      <td><textarea class="edit-issue-text" rows="2" ${noId?"disabled":""}>${iss.issue||""}</textarea></td>
+      <td><textarea class="edit-issue-corrective" rows="2" ${noId?"disabled":""}>${iss.correctiveAction||""}</textarea></td>
+      <td><textarea class="edit-issue-remarks" rows="2" ${noId?"disabled":""}>${iss.remarks||""}</textarea></td>
+      <td><button type="button" class="row-save" ${noId?"disabled title='This entry predates row IDs and can\\'t be edited here — update it directly in the sheet.'":""}>Save</button><span class="row-msg"></span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function openFmNote(note, allIssues){
+  fmSelectedNote = note;
+  document.getElementById("fmDetailPanel").style.display = "block";
+  document.getElementById("fmDetailDate").value = note.date || "";
+  document.getElementById("fmDetailNotes").value = note.genNotes || "";
+  document.getElementById("fmNoteMsg").textContent = "";
+  document.getElementById("fmIssueMsg").textContent = "";
+  document.getElementById("fmNewIssue").value = "";
+  document.getElementById("fmNewCorrective").value = "";
+  document.getElementById("fmNewRemarks").value = "";
+  const issuesForNote = allIssues.filter(i=>i.fieldMonNotesId === note.id);
+  renderFmIssuesTable(issuesForNote);
+  Array.from(document.querySelectorAll("#fmNotesTable tbody tr")).forEach(t=>{
+    t.classList.toggle("row-selected", t.dataset.id === note.id);
+  });
+}
+
+function loadFieldMonNotes(subprojectName){
+  const empty = document.getElementById("fmNotesEmpty");
+  document.getElementById("fmDetailPanel").style.display = "none";
+  fmSelectedNote = null;
+  if (!subprojectName){
+    document.querySelector("#fmNotesTable tbody").innerHTML = "";
+    empty.style.display = "block";
+    empty.textContent = "Select a subproject to see its field monitoring notes.";
+    return;
+  }
+  empty.style.display = "block";
+  empty.textContent = "Loading field monitoring notes…";
+  Promise.all([
+    fetch(FIELDNOTES_CSV_URL).then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); }),
+    fetch(ISSUES_CSV_URL).then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+  ]).then(([notesText, issuesText])=>{
+    const allNotes = fieldNotesCsvToRows(parseCSV(notesText));
+    const allIssues = issuesCsvToRows(parseCSV(issuesText));
+    const matched = allNotes.filter(n=>n.subproject.trim().toLowerCase() === subprojectName.trim().toLowerCase());
+    renderFmNotesTable(matched, allIssues);
+    document.querySelector("#fmNotesTable tbody").dataset.allIssues = JSON.stringify(allIssues);
+    document.querySelector("#fmNotesTable tbody")._allIssuesCache = allIssues;
+    document.querySelector("#fmNotesTable tbody")._notesCache = matched;
+  }).catch(err=>{
+    empty.style.display = "block";
+    empty.textContent = `Could not load field monitoring notes (${err.message}). Make sure the "${FIELDNOTES_SHEET_NAME}" and "${ISSUES_SHEET_NAME}" sheets exist and are shared as "Anyone with the link – Viewer".`;
+    document.querySelector("#fmNotesTable tbody").innerHTML = "";
+  });
+}
+
+document.getElementById("fmSubproject").addEventListener("change", (e)=>{
+  loadFieldMonNotes(e.target.value);
+});
+
+document.querySelector("#fmNotesTable tbody").addEventListener("click", (e)=>{
+  if (!e.target.classList.contains("view-note")) return;
+  const tr = e.target.closest("tr");
+  const tbody = document.querySelector("#fmNotesTable tbody");
+  const notesCache = tbody._notesCache || [];
+  const issuesCache = tbody._allIssuesCache || [];
+  const note = notesCache.find(n=>n.id === tr.dataset.id);
+  if (note) openFmNote(note, issuesCache);
+});
+
+// Save an edited note (date/general notes)
+document.getElementById("fmNoteSave").addEventListener("click", ()=>{
+  const msg = document.getElementById("fmNoteMsg");
+  if (!fmSelectedNote){ return; }
+  if (!fmSelectedNote.id){ msg.className="form-msg err"; msg.textContent="No ID — edit in the sheet instead."; return; }
+  if (!APPS_SCRIPT_URL){ msg.className="form-msg err"; msg.textContent="Set APPS_SCRIPT_URL first."; return; }
+  const date = document.getElementById("fmDetailDate").value;
+  const genNotes = document.getElementById("fmDetailNotes").value;
+  const btn = document.getElementById("fmNoteSave");
+  btn.disabled = true;
+  msg.className = "form-msg"; msg.textContent = "Saving…";
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    headers: {"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify({ action:"updateFieldNote", id: fmSelectedNote.id, date, genNotes })
+  })
+    .then(r=>r.json())
+    .then(res=>{
+      if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
+      msg.className = "form-msg ok";
+      msg.textContent = "Saved.";
+      const subproject = document.getElementById("fmSubproject").value;
+      loadFieldMonNotes(subproject);
+    })
+    .catch(err=>{
+      msg.className = "form-msg err";
+      msg.textContent = "Error: " + err.message;
+    })
+    .finally(()=>{ btn.disabled = false; });
+});
+
+// Add a new issue under the currently open note
+document.getElementById("fmIssueSubmit").addEventListener("click", ()=>{
+  const msg = document.getElementById("fmIssueMsg");
+  if (!fmSelectedNote || !fmSelectedNote.id){ msg.className="form-msg err"; msg.textContent="Open a saved note first."; return; }
+  const issue = document.getElementById("fmNewIssue").value.trim();
+  const correctiveAction = document.getElementById("fmNewCorrective").value.trim();
+  const remarks = document.getElementById("fmNewRemarks").value.trim();
+  if (!issue){ msg.className="form-msg err"; msg.textContent="Enter the issue."; return; }
+  if (!APPS_SCRIPT_URL){
+    msg.className="form-msg err";
+    msg.textContent = "Saving isn't wired up yet — deploy apps-script-backend.gs and paste its Web App URL into APPS_SCRIPT_URL in this file.";
+    return;
+  }
+  const btn = document.getElementById("fmIssueSubmit");
+  btn.disabled = true;
+  msg.className = "form-msg"; msg.textContent = "Saving…";
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    headers: {"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify({ action:"createIssue", fieldMonNotesId: fmSelectedNote.id, issue, correctiveAction, remarks })
+  })
+    .then(r=>r.json())
+    .then(res=>{
+      if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
+      msg.className = "form-msg ok";
+      msg.textContent = "Issue added.";
+      document.getElementById("fmNewIssue").value = "";
+      document.getElementById("fmNewCorrective").value = "";
+      document.getElementById("fmNewRemarks").value = "";
+      const subproject = document.getElementById("fmSubproject").value;
+      const noteId = fmSelectedNote.id;
+      loadFieldMonNotesThenReopen(subproject, noteId);
+    })
+    .catch(err=>{
+      msg.className = "form-msg err";
+      msg.textContent = "Could not save: " + err.message;
+    })
+    .finally(()=>{ btn.disabled = false; });
+});
+
+// Edit/save an existing issue row
+document.querySelector("#fmIssuesTable tbody").addEventListener("input", (e)=>{
+  if (e.target.tagName === "TEXTAREA") e.target.closest("tr").classList.add("row-dirty");
+});
+
+document.querySelector("#fmIssuesTable tbody").addEventListener("click", (e)=>{
+  if (!e.target.classList.contains("row-save")) return;
+  const tr = e.target.closest("tr");
+  const id = tr.dataset.id;
+  const msg = tr.querySelector(".row-msg");
+  if (!id){ msg.className="row-msg err"; msg.textContent="No ID — edit in the sheet instead."; return; }
+  if (!APPS_SCRIPT_URL){
+    msg.className="row-msg err";
+    msg.textContent = "Set APPS_SCRIPT_URL first.";
+    return;
+  }
+  const issue = tr.querySelector(".edit-issue-text").value;
+  const correctiveAction = tr.querySelector(".edit-issue-corrective").value;
+  const remarks = tr.querySelector(".edit-issue-remarks").value;
+  const btn = e.target;
+  btn.disabled = true;
+  msg.className = "row-msg"; msg.textContent = "Saving…";
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    headers: {"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify({ action:"updateIssue", id, issue, correctiveAction, remarks })
+  })
+    .then(r=>r.json())
+    .then(res=>{
+      if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
+      msg.className = "row-msg ok";
+      msg.textContent = "Saved.";
+      tr.classList.remove("row-dirty");
+    })
+    .catch(err=>{
+      msg.className = "row-msg err";
+      msg.textContent = "Error: " + err.message;
+    })
+    .finally(()=>{ btn.disabled = false; });
+});
+
+// New field monitoring note
+document.getElementById("fmNoteSubmit").addEventListener("click", ()=>{
+  const msg = document.getElementById("fmNewNoteMsg");
+  const subproject = document.getElementById("fmSubproject").value;
+  const date = document.getElementById("fmNewDate").value;
+  const genNotes = document.getElementById("fmNewNotes").value.trim();
+  if (!subproject){ msg.className="form-msg err"; msg.textContent="Select a subproject first."; return; }
+  if (!date){ msg.className="form-msg err"; msg.textContent="Pick a date."; return; }
+  if (!genNotes){ msg.className="form-msg err"; msg.textContent="Enter general notes."; return; }
+  if (!APPS_SCRIPT_URL){
+    msg.className="form-msg err";
+    msg.textContent = "Saving isn't wired up yet — deploy apps-script-backend.gs and paste its Web App URL into APPS_SCRIPT_URL in this file.";
+    return;
+  }
+  const btn = document.getElementById("fmNoteSubmit");
+  btn.disabled = true;
+  msg.className = "form-msg"; msg.textContent = "Saving…";
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    headers: {"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify({ action:"createFieldNote", subproject, date, genNotes })
+  })
+    .then(r=>r.json())
+    .then(res=>{
+      if (!res || res.result !== "success") throw new Error(res && res.message ? res.message : "unknown error");
+      msg.className = "form-msg ok";
+      msg.textContent = "Note saved.";
+      document.getElementById("fmNewDate").value = "";
+      document.getElementById("fmNewNotes").value = "";
+      loadFieldMonNotesThenReopen(subproject, res.id);
+    })
+    .catch(err=>{
+      msg.className = "form-msg err";
+      msg.textContent = "Could not save: " + err.message;
+    })
+    .finally(()=>{ btn.disabled = false; });
+});
+
+// Reload the notes list for a subproject, then re-open a specific note by ID (used after
+// adding a note or an issue, so the detail panel reflects the freshly saved data).
+function loadFieldMonNotesThenReopen(subprojectName, noteId){
+  Promise.all([
+    fetch(FIELDNOTES_CSV_URL).then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); }),
+    fetch(ISSUES_CSV_URL).then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+  ]).then(([notesText, issuesText])=>{
+    const allNotes = fieldNotesCsvToRows(parseCSV(notesText));
+    const allIssues = issuesCsvToRows(parseCSV(issuesText));
+    const matched = allNotes.filter(n=>n.subproject.trim().toLowerCase() === subprojectName.trim().toLowerCase());
+    renderFmNotesTable(matched, allIssues);
+    const tbody = document.querySelector("#fmNotesTable tbody");
+    tbody._notesCache = matched;
+    tbody._allIssuesCache = allIssues;
+    const note = matched.find(n=>n.id === noteId);
+    if (note) openFmNote(note, allIssues);
+  }).catch(err=>{
+    const empty = document.getElementById("fmNotesEmpty");
+    empty.style.display = "block";
+    empty.textContent = `Could not reload field monitoring notes (${err.message}).`;
+  });
+}
 
 // ---------- Load data ----------
 function loadData(){
