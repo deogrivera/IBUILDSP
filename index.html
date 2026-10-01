@@ -286,15 +286,15 @@
     width:100%;height:90px;object-fit:cover;border:1px solid var(--line);cursor:pointer;background:#EFEBDF;
   }
   .jit-gallery img:hover{outline:2px solid var(--forest);}
-  #jitMapContainer{height:360px;border:1px solid var(--line);background:#EFEBDF;}
-  #jitMapContainer:empty{display:none;}
+  #jitMapContainer,.media-map{height:360px;border:1px solid var(--line);background:#EFEBDF;}
+  #jitMapContainer:empty,.media-map:empty{display:none;}
   .leaflet-popup-content img{display:block;margin-bottom:4px;}
 
   .billing-form textarea{
     width:100%;padding:8px 10px;border:1px solid var(--line);font-size:0.86rem;
     font-family:inherit;background:#fff;color:var(--ink);resize:vertical;
   }
-  .fm-note-form{grid-template-columns:160px 1fr auto;}
+  .fm-note-form{grid-template-columns:130px 1fr 1.3fr auto;}
   .fm-issue-form{grid-template-columns:1fr 1fr 1fr auto;}
 
   #fmNotesTable{table-layout:fixed;}
@@ -533,7 +533,18 @@
             <label>General Notes</label>
             <textarea id="fmDetailNotes" rows="2"></textarea>
           </div>
+          <div>
+            <label>Photo link (Google Drive)</label>
+            <input type="url" id="fmDetailPhotoLink" placeholder="https://drive.google.com/…">
+          </div>
           <button id="fmNoteSave">Save note</button>
+        </div>
+
+        <div class="panel" id="fmMediaPanel" style="display:none;margin-top:14px;">
+          <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">Photos from this visit</h3>
+          <div class="empty-state" id="fmMediaStatus" style="display:none;padding:8px 0;"></div>
+          <div class="jit-gallery" id="fmGallery"></div>
+          <div id="fmMapContainer" class="media-map"></div>
         </div>
 
         <h3 style="margin:18px 0 10px;font-size:0.9rem;color:var(--forest-deep);">Issues</h3>
@@ -574,6 +585,10 @@
           <label>General notes</label>
           <textarea id="fmNewNotes" rows="2"></textarea>
         </div>
+        <div>
+          <label>Photo link (Google Drive)</label>
+          <input type="url" id="fmNewPhotoLink" placeholder="https://drive.google.com/…">
+        </div>
         <button id="fmNoteSubmit">Save note</button>
       </div>
       <div class="form-msg" id="fmNewNoteMsg"></div>
@@ -596,7 +611,7 @@ const JIT_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?
 const FIELDNOTES_SHEET_NAME = "FieldMonNotes";
 const FIELDNOTES_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(FIELDNOTES_SHEET_NAME)}`;
 
-const ISSUES_SHEET_NAME = "Isuues";
+const ISSUES_SHEET_NAME = "Issues";
 const ISSUES_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(ISSUES_SHEET_NAME)}`;
 
 // Paste a Google Cloud API key here (Drive API enabled, restricted to that API only,
@@ -605,7 +620,7 @@ const ISSUES_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/
 const DRIVE_API_KEY = "AIzaSyCjmZVFS9boAUZO0QMp22cRp20bEJ0Vsbc";
 
 // Paste the deployed Apps Script Web App URL here (see apps-script-backend.gs) to enable saving new billings/JIT entries.
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziswf1Hr0fpEYTBkTitcT7BTGkzv-_Rw3htyNCWhFgdYrh23lzyoGvazGSG01JduPx/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzS3j2wg97qvFUubhl69KvzS1S-wbyeShZ0aLtc-vgut26W8ioHHyPa8cnK8zOVpvOa/exec";
 
 const FALLBACK_DATA = [
   {no:1,name:"San Jose Multi-Purpose Warehouse with Solar Dryer",loc:"Vintar, Ilocos Norte",cat:"VCRI",status:"Completed",phys:100.00,cost:10267127.90,disb:10267127.90,rate:100.00,backlogPct:0.00,backlogAmt:0.00},
@@ -1353,18 +1368,19 @@ function fetchDriveImages(folderId){
   }).then(json => json.files || []);
 }
 
-async function loadJitMedia(subprojectName, rows){
-  const panel = document.getElementById("jitMediaPanel");
-  const status = document.getElementById("jitMediaStatus");
-  const gallery = document.getElementById("jitGallery");
-  const mapEl = document.getElementById("jitMapContainer");
+// Generic gallery + geotagged map loader, shared by the JIT and Field Monitoring tabs.
+// ids = {panel, status, gallery, map} — the element IDs for that tab's panel.
+async function loadMediaGallery(photoLink, ids){
+  const panel = document.getElementById(ids.panel);
+  const status = document.getElementById(ids.status);
+  const gallery = document.getElementById(ids.gallery);
+  const mapEl = document.getElementById(ids.map);
   gallery.innerHTML = "";
   mapEl.innerHTML = "";
   status.style.display = "none";
   panel.style.display = "none";
 
-  const links = [...new Set((rows||[]).map(r=>r.photoLink).filter(Boolean))];
-  if (!links.length) return;
+  if (!photoLink) return;
 
   panel.style.display = "block";
 
@@ -1377,15 +1393,14 @@ async function loadJitMedia(subprojectName, rows){
   status.style.display = "block";
   status.textContent = "Loading photos…";
 
-  const folderIds = links.map(extractDriveFolderId).filter(Boolean);
-  if (!folderIds.length){
-    status.textContent = "Couldn't recognize a Google Drive folder link in the Photos column for this subproject.";
+  const folderId = extractDriveFolderId(photoLink);
+  if (!folderId){
+    status.textContent = "Couldn't recognize a Google Drive folder link.";
     return;
   }
 
   try {
-    const results = await Promise.all(folderIds.map(id => fetchDriveImages(id).catch(()=>[])));
-    const allFiles = results.flat();
+    const allFiles = await fetchDriveImages(folderId);
     if (!allFiles.length){
       status.textContent = 'No images found — make sure the Drive folder is shared as "Anyone with the link – Viewer".';
       return;
@@ -1427,6 +1442,18 @@ async function loadJitMedia(subprojectName, rows){
     status.style.display = "block";
     status.textContent = "Could not load photos: " + err.message;
   }
+}
+
+const JIT_MEDIA_IDS = {panel:"jitMediaPanel", status:"jitMediaStatus", gallery:"jitGallery", map:"jitMapContainer"};
+const FM_MEDIA_IDS = {panel:"fmMediaPanel", status:"fmMediaStatus", gallery:"fmGallery", map:"fmMapContainer"};
+
+function loadJitMedia(subprojectName, rows){
+  const links = [...new Set((rows||[]).map(r=>r.photoLink).filter(Boolean))];
+  return loadMediaGallery(links[0] || null, JIT_MEDIA_IDS);
+}
+
+function loadFmMedia(photoLink){
+  return loadMediaGallery(photoLink || null, FM_MEDIA_IDS);
 }
 
 function resetJitMedia(){
@@ -1596,12 +1623,14 @@ function fieldNotesCsvToRows(rawRows){
   const colDate = findCol(headers, h=>h.includes("date"), 2);
   const colNotes= findCol(headers, h=>h.includes("gennotes")||h.includes("notes"), 3);
   const colIssuesId = findCol(headers, h=>h.includes("issuesid")||(h.includes("issues")&&h.includes("id")), 4);
+  const colPhoto = findCol(headers, h=>h.includes("photo")||h.includes("drive")||h.includes("link")||h.includes("image"), 5);
   return rawRows.slice(1).map(r=>({
     id: (colId>=0 ? r[colId] : "").trim(),
     subproject: (colSub>=0 ? r[colSub] : "").trim(),
     date: (colDate>=0 ? r[colDate] : "").trim(),
     genNotes: (colNotes>=0 ? r[colNotes] : "").trim(),
-    issuesId: (colIssuesId>=0 ? r[colIssuesId] : "").trim()
+    issuesId: (colIssuesId>=0 ? r[colIssuesId] : "").trim(),
+    photoLink: (colPhoto>=0 ? r[colPhoto] : "").trim()
   })).filter(r=>r.subproject !== "");
 }
 
@@ -1679,6 +1708,8 @@ function openFmNote(note, allIssues){
   document.getElementById("fmDetailPanel").style.display = "block";
   document.getElementById("fmDetailDate").value = note.date || "";
   document.getElementById("fmDetailNotes").value = note.genNotes || "";
+  document.getElementById("fmDetailPhotoLink").value = note.photoLink || "";
+  loadFmMedia(note.photoLink);
   document.getElementById("fmNoteMsg").textContent = "";
   document.getElementById("fmIssueMsg").textContent = "";
   document.getElementById("fmNewIssue").value = "";
@@ -1743,13 +1774,14 @@ document.getElementById("fmNoteSave").addEventListener("click", ()=>{
   if (!APPS_SCRIPT_URL){ msg.className="form-msg err"; msg.textContent="Set APPS_SCRIPT_URL first."; return; }
   const date = document.getElementById("fmDetailDate").value;
   const genNotes = document.getElementById("fmDetailNotes").value;
+  const photoLink = document.getElementById("fmDetailPhotoLink").value.trim();
   const btn = document.getElementById("fmNoteSave");
   btn.disabled = true;
   msg.className = "form-msg"; msg.textContent = "Saving…";
   fetch(APPS_SCRIPT_URL, {
     method: "POST",
     headers: {"Content-Type":"text/plain;charset=utf-8"},
-    body: JSON.stringify({ action:"updateFieldNote", id: fmSelectedNote.id, date, genNotes })
+    body: JSON.stringify({ action:"updateFieldNote", id: fmSelectedNote.id, date, genNotes, photoLink })
   })
     .then(r=>r.json())
     .then(res=>{
@@ -1757,7 +1789,7 @@ document.getElementById("fmNoteSave").addEventListener("click", ()=>{
       msg.className = "form-msg ok";
       msg.textContent = "Saved.";
       const subproject = document.getElementById("fmSubproject").value;
-      loadFieldMonNotes(subproject);
+      loadFieldMonNotesThenReopen(subproject, fmSelectedNote.id);
     })
     .catch(err=>{
       msg.className = "form-msg err";
@@ -1853,6 +1885,7 @@ document.getElementById("fmNoteSubmit").addEventListener("click", ()=>{
   const subproject = document.getElementById("fmSubproject").value;
   const date = document.getElementById("fmNewDate").value;
   const genNotes = document.getElementById("fmNewNotes").value.trim();
+  const photoLink = document.getElementById("fmNewPhotoLink").value.trim();
   if (!subproject){ msg.className="form-msg err"; msg.textContent="Select a subproject first."; return; }
   if (!date){ msg.className="form-msg err"; msg.textContent="Pick a date."; return; }
   if (!genNotes){ msg.className="form-msg err"; msg.textContent="Enter general notes."; return; }
@@ -1867,7 +1900,7 @@ document.getElementById("fmNoteSubmit").addEventListener("click", ()=>{
   fetch(APPS_SCRIPT_URL, {
     method: "POST",
     headers: {"Content-Type":"text/plain;charset=utf-8"},
-    body: JSON.stringify({ action:"createFieldNote", subproject, date, genNotes })
+    body: JSON.stringify({ action:"createFieldNote", subproject, date, genNotes, photoLink })
   })
     .then(r=>r.json())
     .then(res=>{
@@ -1876,6 +1909,7 @@ document.getElementById("fmNoteSubmit").addEventListener("click", ()=>{
       msg.textContent = "Note saved.";
       document.getElementById("fmNewDate").value = "";
       document.getElementById("fmNewNotes").value = "";
+      document.getElementById("fmNewPhotoLink").value = "";
       loadFieldMonNotesThenReopen(subproject, res.id);
     })
     .catch(err=>{
