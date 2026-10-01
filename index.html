@@ -5,304 +5,490 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>I-BUILD Subprojects — Financial &amp; Physical Status</title>
 <style>
+  /* ---------- macOS 26 "Tahoe" inspired theme ---------- */
   :root{
-    --bg:#F6F4EE;
-    --panel:#FFFFFF;
-    --ink:#23281F;
-    --ink-soft:#5B6152;
-    --forest:#1E4635;
-    --forest-deep:#122A20;
-    --gold:#B9862F;
-    --rust:#A1402B;
-    --line:#DFDACB;
-    --vcri:#1E4635;
-    --fmr:#B9862F;
-    --bridge:#5A7A8C;
-    --nol:#8C8070;
+    --bg: #F2F2F7;
+    --bg-elevated: rgba(255,255,255,0.72);
+    --panel: rgba(255,255,255,0.72);
+    --ink: #1D1D1F;
+    --ink-soft: #6E6E73;
+    --accent: #007AFF;
+    --accent-hover: #0062CC;
+    --green: #34C759;
+    --orange: #FF9500;
+    --red: #FF3B30;
+    --purple: #6E7BA8;
+    --line: rgba(0,0,0,0.08);
+    --line-strong: rgba(0,0,0,0.14);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 12px 32px rgba(0,0,0,0.12);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
   }
   *{box-sizing:border-box;}
   body{
     margin:0;
-    background:var(--bg);
-    color:var(--ink);
-    font-family:"IBM Plex Sans","Segoe UI",Helvetica,Arial,sans-serif;
-    line-height:1.45;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.47;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
   }
   .wrap{max-width:1180px;margin:0 auto;padding:40px 28px 70px;}
+
+  /* ---------- Header with logo ---------- */
   header{
-    display:flex;justify-content:space-between;align-items:flex-end;
-    border-bottom:3px solid var(--forest);
-    padding-bottom:18px;margin-bottom:30px;flex-wrap:wrap;gap:12px;
+    display:flex;justify-content:space-between;align-items:center;
+    background: var(--bg-elevated);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap; gap: 12px;
+  }
+  .header-left{
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .logo{
+    height: 56px;
+    width: auto;
+    display: block;
   }
   header h1{
-    font-family:Georgia,"Times New Roman",serif;
-    font-size:1.9rem;margin:0 0 6px;color:var(--forest-deep);font-weight:600;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+    font-size: 1.6rem;
+    margin: 0 0 4px;
+    color: var(--ink);
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
-  header p{margin:0;color:var(--ink-soft);font-size:0.92rem;}
-  .meta{text-align:right;font-size:0.85rem;color:var(--ink-soft);}
+  header p{margin:0;color:var(--ink-soft);font-size:0.9rem;}
+  .meta{text-align:right;font-size:0.82rem;color:var(--ink-soft);}
 
+  /* ---------- Tabs → segmented control ---------- */
+  .tabs{
+    display: inline-flex;
+    gap: 2px;
+    margin-bottom: 24px;
+    padding: 3px;
+    background: rgba(120,120,128,0.12);
+    border-radius: 10px;
+    border: none;
+  }
+  .tab-btn{
+    background: none;
+    border: none;
+    padding: 7px 16px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--ink);
+    font-family: inherit;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+  .tab-btn.active{
+    background: #FFFFFF;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 0 0 0.5px rgba(0,0,0,0.04);
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* ---------- KPI cards ---------- */
   .kpis{
     display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:34px;
   }
   .kpi{
-    background:var(--panel);border:1px solid var(--line);
-    border-left:4px solid var(--forest);
-    padding:16px 16px 14px;
+    background: var(--panel);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
-  .kpi.warn{border-left-color:var(--rust);}
-  .kpi .label{font-size:0.74rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;}
-  .kpi .value{font-family:"IBM Plex Mono",Consolas,monospace;font-size:1.5rem;font-weight:600;color:var(--forest-deep);}
-  .kpi.warn .value{color:var(--rust);}
+  .kpi:hover{ box-shadow: var(--shadow-md); }
+  .kpi.warn{ border-color: rgba(255,59,48,0.3); }
+  .kpi .label{
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .kpi .value{
+    font-family: -apple-system, "SF Pro Display", sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi.warn .value{ color: var(--red); }
   .kpi .sub{font-size:0.78rem;color:var(--ink-soft);margin-top:4px;}
 
+  /* ---------- Sections & panels ---------- */
   section{margin-bottom:38px;}
   h2{
-    font-family:Georgia,"Times New Roman",serif;font-size:1.15rem;
-    color:var(--forest-deep);margin:0 0 14px;font-weight:600;
-    border-bottom:1px solid var(--line);padding-bottom:8px;
+    font-family: -apple-system, "SF Pro Display", sans-serif;
+    font-size: 1.15rem;
+    color: var(--ink);
+    margin: 0 0 14px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    border-bottom: none;
+    padding-bottom: 0;
   }
-
   .grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;}
-  .panel{background:var(--panel);border:1px solid var(--line);padding:18px;}
-  .panel h3{margin:0 0 14px;font-size:0.86rem;font-weight:600;color:var(--forest-deep);text-align:center;}
-  .barchart{display:flex;flex-direction:column;gap:8px;}
-  .barrow{display:grid;grid-template-columns:200px 1fr 64px;align-items:center;gap:8px;font-size:0.78rem;}
-  .barrow .lbl{color:var(--ink-soft);white-space:normal;word-break:break-word;line-height:1.2;}
-  .barrow .track{background:#EFEBDF;height:14px;position:relative;}
-  .barrow .fill{height:100%;}
-  .barrow .val{font-family:"IBM Plex Mono",Consolas,monospace;text-align:right;}
-  .legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:14px;font-size:0.8rem;color:var(--ink-soft);}
-  .legend span.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+  .panel{
+    background: var(--panel);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .panel h3{margin:0 0 14px;font-size:0.86rem;font-weight:600;color:var(--ink);text-align:center;}
+
+  /* ---------- Data bar ---------- */
+  .databar{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    background: var(--panel);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 10px 16px;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow-sm);
+  }
+  .databar.live{ border-left: none; }
+  .databar.fallback{ border-color: rgba(255,59,48,0.3); }
+  .databar button{
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    transition: background 0.15s ease;
+  }
+  .databar button:hover{ background: var(--accent-hover); }
+
+  /* ---------- Tables ---------- */
+  table{
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+    background: var(--panel);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  caption{text-align:left;caption-side:top;margin-bottom:0;}
+  th{
+    background: rgba(120,120,128,0.08);
+    color: var(--ink-soft);
+    font-weight: 600;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+  td{
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+  tr:last-child td{ border-bottom: none; }
+  tr:hover td{ background: rgba(0,122,255,0.04); }
+  td.num{text-align:right;font-family:"IBM Plex Mono",Consolas,monospace;font-variant-numeric: tabular-nums;}
+  .tag{display:inline-block;padding:2px 8px;font-size:0.74rem;border-radius:6px;color:#fff;font-weight:500;}
+  .tag.completed{ background: var(--green); }
+  .tag.ongoing{ background: var(--orange); }
+  .tag.nol{ background: rgba(120,120,128,0.6); }
+  .tag.paid{ background: var(--green); }
+  .tag.unpaid{ background: var(--red); }
+
+  .cat{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle;}
+  .cat.VCRI{ background: var(--accent); }
+  .cat.FMR{ background: var(--orange); }
+  .cat.Bridge{ background: var(--purple); }
+  .cat.FMRB{ background: var(--purple); }
+  .backlog-hi{color:var(--red);font-weight:600;}
+  .backlog-neg{color:var(--purple);font-weight:600;}
+
+  /* ---------- Table summary strip ---------- */
+  .tbl-summary{
+    display:grid;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+  .tbl-summary .sitem{
+    background: var(--panel);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    padding: 12px 14px;
+    display:flex;flex-direction:column;gap:3px;
+  }
+  .tbl-summary .slabel{
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+  .tbl-summary .sval{
+    font-family: -apple-system, "SF Pro Display", sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .tbl-summary .sitem.neg .sval{color:var(--purple);}
+  .tbl-summary.sp-summary{grid-template-columns:repeat(6,1fr);margin-top:0;margin-bottom:20px;}
+
+  /* ---------- Bar charts (grouped) ---------- */
   .grouped{display:flex;flex-direction:column;gap:10px;}
   .grouped .row{display:grid;grid-template-columns:200px 1fr;gap:10px;align-items:center;font-size:0.76rem;}
   .grouped .row .lbl{white-space:normal;word-break:break-word;line-height:1.2;color:var(--ink-soft);}
   .grouped .bars{display:flex;flex-direction:column;gap:4px;}
   .grouped .bar-line{display:flex;align-items:center;gap:8px;}
   .grouped .bar-line .track{flex:1;}
-  .grouped .track{background:#EFEBDF;height:9px;position:relative;}
-  .grouped .fill{height:100%;}
+  .grouped .track{
+    background: rgba(120,120,128,0.16);
+    border-radius: 4px;
+    height: 10px;
+    overflow: hidden;
+  }
+  .grouped .fill{
+    height:100%;
+    border-radius: 4px;
+  }
   .grouped .bar-line .val{width:52px;flex-shrink:0;text-align:right;font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.7rem;color:var(--ink-soft);}
 
-  table{width:100%;border-collapse:collapse;font-size:0.86rem;background:var(--panel);}
-  caption{text-align:left;caption-side:top;margin-bottom:0;}
-  th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;}
-  th{
-    background:var(--forest-deep);color:#F1EEE3;font-weight:500;
-    font-size:0.74rem;text-transform:uppercase;letter-spacing:.03em;
+  /* ---------- Stacked bar & timeline ---------- */
+  .stacked-bar{
+    display:flex;
+    height: 22px;
+    background: rgba(120,120,128,0.16);
+    border-radius: 6px;
+    overflow: hidden;
+    border: none;
   }
-  td.num{text-align:right;font-family:"IBM Plex Mono",Consolas,monospace;}
-  tr:hover td{background:#FAF8F2;}
-  .tag{display:inline-block;padding:2px 8px;font-size:0.74rem;border-radius:2px;color:#fff;}
-  .tag.completed{background:var(--forest);}
-  .tag.ongoing{background:var(--gold);}
-  .tag.nol{background:var(--nol);}
-  .cat{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle;}
-  .cat.VCRI{background:var(--vcri);}
-  .cat.FMR{background:var(--fmr);}
-  .cat.Bridge{background:var(--bridge);}
-  .cat.FMRB{background:var(--bridge);}
-  .backlog-hi{color:var(--rust);font-weight:600;}
-  .backlog-neg{color:#6E7BA8;font-weight:600;}
-
-  footer{margin-top:36px;font-size:0.78rem;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:14px;}
-
-  .databar{
-    display:flex;justify-content:space-between;align-items:center;gap:12px;
-    background:#EFEBDD;border:1px solid var(--line);padding:8px 14px;
-    font-size:0.8rem;color:var(--ink-soft);margin-bottom:26px;flex-wrap:wrap;
-  }
-  .databar.live{border-left:4px solid var(--forest);}
-  .databar.fallback{border-left:4px solid var(--rust);}
-  .databar button{
-    background:var(--forest-deep);color:#F1EEE3;border:none;padding:6px 14px;
-    font-size:0.78rem;cursor:pointer;
-  }
-  .databar button:hover{background:var(--forest);}
-
-  .tbl-summary{
-    display:grid;grid-template-columns:repeat(7,1fr);gap:1px;
-    background:var(--line);border:1px solid var(--line);margin-bottom:16px;
-  }
-  .tbl-summary .sitem{
-    background:var(--panel);padding:10px 12px;display:flex;flex-direction:column;gap:3px;
-  }
-  .tbl-summary .slabel{font-size:0.68rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;}
-  .tbl-summary .sval{font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.92rem;font-weight:600;color:var(--forest-deep);}
-  .tbl-summary .sitem.neg .sval{color:#6E7BA8;}
-  .tbl-summary.sp-summary{grid-template-columns:repeat(6,1fr);margin-top:0;margin-bottom:20px;}
-  @media (max-width:900px){ .tbl-summary{grid-template-columns:repeat(2,1fr);} }
-
-  .bill-charts{margin-bottom:22px;}
-  .bill-charts .grid2{gap:18px;margin-bottom:18px;}
-  .bill-charts .panel h3{margin:0 0 12px;font-size:0.86rem;font-weight:600;color:var(--forest-deep);text-align:left;}
-
-  .stacked-bar{display:flex;height:26px;background:#EFEBDF;overflow:hidden;border:1px solid var(--line);}
   .stacked-bar .seg{height:100%;}
-  .stacked-bar .seg.disbursed{background:#1E4635;}
-  .stacked-bar .seg.backlog{background:#A1402B;}
-  .stacked-bar .seg.backlog.neg{background:#6E7BA8;}
+  .stacked-bar .seg.disbursed{ background: var(--green); }
+  .stacked-bar .seg.backlog{ background: var(--orange); }
+  .stacked-bar .seg.backlog.neg{ background: var(--purple); }
   .stacked-legend{display:flex;gap:16px;margin-top:10px;font-size:0.78rem;color:var(--ink-soft);flex-wrap:wrap;}
   .stacked-legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;}
 
   .pr-bars{display:flex;flex-direction:column;gap:14px;margin-top:2px;}
   .pr-row{display:grid;grid-template-columns:80px 1fr 56px;align-items:center;gap:10px;font-size:0.82rem;}
   .pr-row .lbl{color:var(--ink-soft);}
-  .pr-row .track{background:#EFEBDF;height:14px;position:relative;}
-  .pr-row .fill{height:100%;}
+  .pr-row .track{
+    background: rgba(120,120,128,0.16);
+    border-radius: 4px;
+    height: 10px;
+    overflow: hidden;
+  }
+  .pr-row .fill{height:100%;border-radius:4px;}
   .pr-row .val{font-family:"IBM Plex Mono",Consolas,monospace;text-align:right;}
 
   .timeline-wrap{display:flex;align-items:flex-end;gap:14px;min-height:160px;padding:10px 4px 0;overflow-x:auto;}
   .timeline-bar-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:160px;min-width:50px;}
-  .timeline-bar{width:28px;border-radius:2px 2px 0 0;}
-  .timeline-bar.paid{background:#1E4635;}
-  .timeline-bar.unpaid{background:#A1402B;}
+  .timeline-bar{width:28px;border-radius:4px 4px 0 0;}
+  .timeline-bar.paid{ background: var(--green); }
+  .timeline-bar.unpaid{ background: var(--red); }
   .timeline-val{font-size:0.66rem;color:var(--ink-soft);margin-bottom:3px;font-family:"IBM Plex Mono",Consolas,monospace;white-space:nowrap;}
   .timeline-lbl{font-size:0.66rem;color:var(--ink-soft);margin-top:6px;text-align:center;max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
-  .filters{
-    display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;
+  /* ---------- Filters & forms ---------- */
+  .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+  .filters input[type=text],
+  .filters select,
+  .billing-form input,
+  .billing-form select,
+  .billing-form textarea,
+  .billing-select,
+  .edit-amount,
+  .edit-amount-input,
+  .edit-jit-date,
+  .edit-jit-pct,
+  .edit-jit-amount,
+  .edit-jit-photo{
+    background: rgba(255,255,255,0.9);
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    color: var(--ink);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    outline: none;
+    min-width: 120px;
   }
-  .filters input[type=text]{
-    padding:7px 10px;border:1px solid var(--line);font-size:0.84rem;min-width:220px;
-    font-family:inherit;background:#fff;color:var(--ink);
-  }
-  .filters select{
-    padding:7px 10px;border:1px solid var(--line);font-size:0.84rem;
-    font-family:inherit;background:#fff;color:var(--ink);
+  .filters input[type=text]{min-width:220px;}
+  .billing-select{min-width:340px;margin-bottom:16px;}
+  .filters input[type=text]:focus,
+  .filters select:focus,
+  .billing-form input:focus,
+  .billing-form select:focus,
+  .billing-form textarea:focus,
+  .billing-select:focus{
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,122,255,0.15);
   }
   .filters .count{font-size:0.78rem;color:var(--ink-soft);margin-left:auto;}
   .filters button.clear{
-    background:none;border:1px solid var(--line);padding:7px 12px;font-size:0.78rem;
-    cursor:pointer;color:var(--ink-soft);
+    background: rgba(120,120,128,0.12);
+    border: none;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--ink);
+    font-family: inherit;
+    transition: background 0.15s ease;
   }
-  .filters button.clear:hover{border-color:var(--rust);color:var(--rust);}
+  .filters button.clear:hover{ background: rgba(120,120,128,0.2); }
   .export-btn{
-    background:var(--forest);color:#fff;border:none;padding:8px 16px;font-size:0.8rem;
-    cursor:pointer;font-family:inherit;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    transition: background 0.15s ease;
   }
-  .export-btn:hover{background:var(--forest-deep);}
-  .export-btn:disabled{background:#B7B2A2;cursor:not-allowed;}
-  .section-head-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
-  tr.hidden-row{display:none;}
-
-  .tabs{display:flex;gap:6px;margin-bottom:26px;border-bottom:1px solid var(--line);}
-  .tab-btn{
-    background:none;border:none;padding:10px 18px;font-size:0.88rem;cursor:pointer;
-    color:var(--ink-soft);font-family:inherit;border-bottom:3px solid transparent;margin-bottom:-1px;
-  }
-  .tab-btn.active{color:var(--forest-deep);font-weight:600;border-bottom-color:var(--forest);}
-  .tab-panel{display:none;}
-  .tab-panel.active{display:block;}
+  .export-btn:hover{ background: var(--accent-hover); }
+  .export-btn:disabled{ background: rgba(120,120,128,0.24); color: var(--ink-soft); cursor: not-allowed; box-shadow: none; }
 
   .billing-form{
     display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end;
-    background:var(--panel);border:1px solid var(--line);padding:16px;margin-top:16px;
+    background: var(--panel);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-top: 16px;
+    box-shadow: var(--shadow-sm);
   }
-  .billing-form label{display:block;font-size:0.72rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px;}
-  .billing-form input,.billing-form select{
-    width:100%;padding:8px 10px;border:1px solid var(--line);font-size:0.86rem;font-family:inherit;background:#fff;color:var(--ink);
-  }
+  .billing-form label{display:block;font-size:0.72rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px;font-weight:600;}
   .billing-form button{
-    background:var(--forest);color:#fff;border:none;padding:9px 18px;font-size:0.85rem;cursor:pointer;height:38px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 9px 18px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    height: 38px;
+    font-family: inherit;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    transition: background 0.15s ease, transform 0.05s ease;
   }
-  .billing-form button:hover{background:var(--forest-deep);}
-  .billing-form button:disabled{background:#B7B2A2;cursor:not-allowed;}
+  .billing-form button:hover{ background: var(--accent-hover); }
+  .billing-form button:active{ transform: scale(0.98); }
+  .billing-form button:disabled{ background: rgba(120,120,128,0.24); color: var(--ink-soft); cursor: not-allowed; box-shadow: none; }
+
   .form-msg{font-size:0.8rem;margin-top:10px;}
-  .form-msg.ok{color:var(--forest);}
-  .form-msg.err{color:var(--rust);}
-  .tag.paid{background:var(--forest);}
-  .tag.unpaid{background:var(--rust);}
-  .row-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-  .mini-btn{
-    background:none;border:1px solid var(--line);padding:3px 9px;font-size:0.72rem;
-    cursor:pointer;color:var(--ink-soft);font-family:inherit;
-  }
-  .mini-btn:hover{border-color:var(--forest);color:var(--forest-deep);}
-  .mini-btn.primary{background:var(--forest);color:#fff;border-color:var(--forest);}
-  .mini-btn.primary:hover{background:var(--forest-deep);}
-  .mini-btn.toggle-paid{border-color:var(--forest);color:var(--forest);}
-  .mini-btn.toggle-unpaid{border-color:var(--rust);color:var(--rust);}
-  .mini-btn:disabled{opacity:0.5;cursor:not-allowed;}
-  .edit-amount-input{
-    width:110px;padding:4px 6px;border:1px solid var(--line);font-size:0.8rem;
-    font-family:"IBM Plex Mono",Consolas,monospace;
-  }
-  .row-msg{font-size:0.72rem;margin-top:3px;}
-  .row-msg.ok{color:var(--forest);}
-  .row-msg.err{color:var(--rust);}
-  .billing-select{
-    padding:9px 12px;border:1px solid var(--line);font-size:0.92rem;font-family:inherit;
-    background:#fff;color:var(--ink);min-width:340px;margin-bottom:16px;
-  }
-  .empty-state{color:var(--ink-soft);font-size:0.85rem;padding:14px 0;}
+  .form-msg.ok{color:var(--green);}
+  .form-msg.err{color:var(--red);}
 
-  .edit-amount{
-    width:110px;padding:5px 7px;border:1px solid var(--line);
-    font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.82rem;background:#fff;color:var(--ink);
-  }
-  .paid-toggle{display:flex;align-items:center;gap:6px;font-size:0.78rem;cursor:pointer;}
   .row-save{
-    background:var(--forest);color:#fff;border:none;padding:5px 12px;font-size:0.76rem;cursor:pointer;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 5px 12px;
+    font-size: 0.76rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    transition: background 0.15s ease;
   }
-  .row-save:hover{background:var(--forest-deep);}
-  .row-save:disabled{background:#B7B2A2;cursor:not-allowed;}
-  .row-view{
-    background:none;border:1px solid var(--forest);color:var(--forest);padding:5px 10px;font-size:0.76rem;cursor:pointer;margin-left:6px;
-  }
-  .row-view:hover{background:var(--forest);color:#fff;}
-  .row-view.active{background:var(--forest);color:#fff;}
-  .row-msg{font-size:0.72rem;margin-left:8px;}
-  .row-msg.ok{color:var(--forest);}
-  .row-msg.err{color:var(--rust);}
-  #billHistoryTable tr.row-dirty td{background:#FBF6E8;}
+  .row-save:hover{ background: var(--accent-hover); }
+  .row-save:disabled{ background: rgba(120,120,128,0.24); color: var(--ink-soft); cursor: not-allowed; box-shadow: none; }
 
+  .row-msg{font-size:0.72rem;margin-left:8px;}
+  .row-msg.ok{color:var(--green);}
+  .row-msg.err{color:var(--red);}
+
+  .mini-btn{
+    background: rgba(120,120,128,0.12);
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--ink);
+    font-family: inherit;
+    transition: background 0.15s ease;
+  }
+  .mini-btn:hover{ background: rgba(120,120,128,0.2); }
+  .mini-btn.primary{ background: var(--accent); color: #fff; }
+
+  .empty-state{color:var(--ink-soft);font-size:0.85rem;padding:16px 0;}
+
+  /* ---------- JIT / Field Monitoring tables ---------- */
   #jitHistoryTable{table-layout:fixed;}
   #jitHistoryTable th:nth-child(1),#jitHistoryTable td:nth-child(1){width:160px;}
   #jitHistoryTable th:nth-child(2),#jitHistoryTable td:nth-child(2){width:110px;}
   #jitHistoryTable th:nth-child(3),#jitHistoryTable td:nth-child(3){width:150px;}
   #jitHistoryTable th:nth-child(4),#jitHistoryTable td:nth-child(4){width:260px;}
   #jitHistoryTable th:nth-child(5),#jitHistoryTable td:nth-child(5){width:190px;}
-  #jitHistoryTable tr.row-dirty td{background:#FBF6E8;}
-  #jitHistoryTable tr.row-selected td{background:#EAF1EC;}
-  .photo-link.view-gallery{border-color:var(--gold);color:var(--gold);}
-  .photo-link.view-gallery:hover{background:var(--gold);color:#fff;}
-  .edit-jit-date,.edit-jit-pct,.edit-jit-amount,.edit-jit-photo{
-    width:100%;box-sizing:border-box;padding:5px 7px;border:1px solid var(--line);
-    font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.8rem;background:#fff;color:var(--ink);
-  }
-  .jit-form{grid-template-columns:1fr 0.7fr 0.9fr 1.6fr auto;}
-  .photo-cell{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-  .photo-cell input{flex:1;min-width:80px;}
-  .photo-link{
-    font-size:0.72rem;color:var(--forest);text-decoration:none;border:1px solid var(--forest);
-    padding:4px 8px;white-space:nowrap;background:none;cursor:pointer;font-family:inherit;
-  }
-  .photo-link:hover{background:var(--forest);color:#fff;}
+  #jitHistoryTable tr.row-dirty td{ background: rgba(255,149,0,0.08); }
+  #jitHistoryTable tr.row-selected td{ background: rgba(0,122,255,0.08); }
 
-  .jit-gallery{
-    display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:14px;
-  }
-  .jit-gallery img{
-    width:100%;height:90px;object-fit:cover;border:1px solid var(--line);cursor:pointer;background:#EFEBDF;
-  }
-  .jit-gallery img:hover{outline:2px solid var(--forest);}
-  #jitMapContainer,.media-map{height:360px;border:1px solid var(--line);background:#EFEBDF;}
-  #jitMapContainer:empty,.media-map:empty{display:none;}
-  .leaflet-popup-content img{display:block;margin-bottom:4px;}
-
-  .billing-form textarea{
-    width:100%;padding:8px 10px;border:1px solid var(--line);font-size:0.86rem;
-    font-family:inherit;background:#fff;color:var(--ink);resize:vertical;
-  }
-  .fm-note-form{grid-template-columns:130px 1fr 1.3fr auto;}
-  .fm-issue-form{grid-template-columns:1fr 1fr 1fr auto;}
+  #billHistoryTable tr.row-dirty td{ background: rgba(255,149,0,0.08); }
 
   #fmNotesTable{table-layout:fixed;}
   #fmNotesTable th:nth-child(1),#fmNotesTable td:nth-child(1){width:120px;}
   #fmNotesTable th:nth-child(3),#fmNotesTable td:nth-child(3){width:80px;}
   #fmNotesTable th:nth-child(4),#fmNotesTable td:nth-child(4){width:90px;}
   #fmNotesTable td:nth-child(2){white-space:normal;word-break:break-word;}
-  #fmNotesTable tr.row-selected td{background:#EAF1EC;}
+  #fmNotesTable tr.row-selected td{ background: rgba(0,122,255,0.08); }
   #fmNotesTable tr{cursor:default;}
 
   #fmIssuesTable{table-layout:fixed;}
@@ -310,16 +496,72 @@
   #fmIssuesTable th:nth-child(2),#fmIssuesTable td:nth-child(2){width:30%;}
   #fmIssuesTable th:nth-child(3),#fmIssuesTable td:nth-child(3){width:28%;}
   #fmIssuesTable th:nth-child(4),#fmIssuesTable td:nth-child(4){width:12%;}
-  #fmIssuesTable textarea{width:100%;box-sizing:border-box;padding:5px 7px;border:1px solid var(--line);font-size:0.8rem;font-family:inherit;background:#fff;color:var(--ink);resize:vertical;min-height:44px;}
-  #fmIssuesTable tr.row-dirty td{background:#FBF6E8;}
+  #fmIssuesTable textarea{width:100%;box-sizing:border-box;padding:5px 7px;border:1px solid var(--line-strong);border-radius:6px;font-size:0.8rem;font-family:inherit;background:rgba(255,255,255,0.9);color:var(--ink);resize:vertical;min-height:44px;}
+  #fmIssuesTable tr.row-dirty td{ background: rgba(255,149,0,0.08); }
   .fm-notes-preview{font-size:0.82rem;color:var(--ink-soft);}
+
+  .photo-link{
+    font-size: 0.72rem;
+    color: var(--accent);
+    text-decoration: none;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 4px 9px;
+    background: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: background 0.15s ease;
+  }
+  .photo-link:hover{ background: var(--accent); color: #fff; }
+  .photo-link.view-gallery{ border-color: var(--orange); color: var(--orange); }
+  .photo-link.view-gallery:hover{ background: var(--orange); color: #fff; }
+  .photo-cell{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+  .photo-cell input{flex:1;min-width:80px;}
+
+  .jit-gallery{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:14px;
+  }
+  .jit-gallery img{
+    width:100%;height:90px;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:pointer;background:#EFEBDF;
+    box-shadow: var(--shadow-sm);
+  }
+  .jit-gallery img:hover{ outline:2px solid var(--accent); }
+  #jitMapContainer,.media-map{
+    height:360px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background:#EFEBDF;
+  }
+  #jitMapContainer:empty,.media-map:empty{display:none;}
+  .leaflet-popup-content img{display:block;margin-bottom:4px;}
+
+  .edit-jit-date,.edit-jit-pct,.edit-jit-amount,.edit-jit-photo{
+    width:100%;box-sizing:border-box;padding:5px 7px;border:1px solid var(--line-strong);border-radius:6px;
+    font-family:"IBM Plex Mono",Consolas,monospace;font-size:0.8rem;background:rgba(255,255,255,0.9);color:var(--ink);
+  }
+  .jit-form{grid-template-columns:1fr 0.7fr 0.9fr 1.6fr auto;}
+  .fm-note-form{grid-template-columns:130px 1fr 1.3fr auto;}
+  .fm-issue-form{grid-template-columns:1fr 1fr 1fr auto;}
+
+  footer{
+    margin-top: 32px;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+  }
 
   @media (max-width:900px){
     .kpis{grid-template-columns:repeat(2,1fr);}
     .grid2{grid-template-columns:1fr;}
     .billing-form{grid-template-columns:1fr;}
     .grouped .row{grid-template-columns:110px 1fr;}
-    .barrow{grid-template-columns:110px 1fr 56px;}
+    .tbl-summary{grid-template-columns:repeat(2,1fr);}
+    .header-left{flex-wrap:wrap;}
+    .logo{height:44px;}
+    header h1{font-size:1.3rem;}
   }
 </style>
 </head>
@@ -327,9 +569,15 @@
 <div class="wrap">
 
   <header>
-    <div>
-      <h1>I-BUILD Subprojects — Financial &amp; Physical Status</h1>
-      <p>PRDP RPCO I · Region I coverage · <span id="spCount">15</span> subprojects tracked</p>
+    <div class="header-left">
+      <!-- PRDP Logo -->
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Philippine_Rural_Development_Program_%28PRDP%29_logo.png/240px-Philippine_Rural_Development_Program_%28PRDP%29_logo.png"
+           alt="PRDP Logo" class="logo"
+           onerror="this.style.display='none'">
+      <div>
+        <h1>I-BUILD Subprojects — Financial &amp; Physical Status</h1>
+        <p>PRDP RPCO I · Region I coverage · <span id="spCount">15</span> subprojects tracked</p>
+      </div>
     </div>
     <div class="meta">Source: Google Sheet — "Summary" &amp; "Disbursement"</div>
   </header>
@@ -341,60 +589,63 @@
     <button class="tab-btn" id="tabBtnFieldMon">Field Monitoring</button>
   </div>
 
+  <!-- ================= OVERVIEW ================= -->
   <div class="tab-panel active" id="tabOverview">
+    <div class="databar" id="dataBar">Loading data…</div>
 
-  <div class="databar" id="dataBar">Loading data…</div>
+    <div class="kpis" id="kpis"></div>
 
-  <div class="kpis" id="kpis"></div>
-
-  <section>
-    <h2>Physical vs. financial accomplishment</h2>
-    <div class="grid2">
-      <div class="panel">
-        <div class="grouped" id="physFinChart"></div>
-        <div class="legend"><span><span class="dot" style="background:#5A7A8C"></span>Physical accomplishment</span><span><span class="dot" style="background:#B9862F"></span>Disbursement rate</span></div>
+    <section>
+      <h2>Physical vs. financial accomplishment</h2>
+      <div class="grid2">
+        <div class="panel">
+          <div class="grouped" id="physFinChart"></div>
+          <div class="legend" style="margin-top:14px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap;font-size:0.8rem;color:var(--ink-soft);">
+            <span><span class="dot" style="background:#5A7A8C;display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Physical accomplishment</span>
+            <span><span class="dot" style="background:#B9862F;display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Disbursement rate</span>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Status mix (count of subprojects)</h3>
+          <div id="statusChart"></div>
+        </div>
       </div>
-      <div class="panel">
-        <h3>Status mix (count of subprojects)</h3>
-        <div id="statusChart"></div>
+    </section>
+
+    <section>
+      <h2>Subproject register</h2>
+      <div class="tbl-summary" id="tblSummary"></div>
+      <div class="filters">
+        <input type="text" id="fSearch" placeholder="Search name or location…">
+        <select id="fCategory"><option value="">All categories</option></select>
+        <select id="fStatus"><option value="">All statuses</option></select>
+        <select id="fBacklog">
+          <option value="">All backlog levels</option>
+          <option value="high">Backlog &gt; 20%</option>
+          <option value="neg">Negative backlog</option>
+        </select>
+        <button class="clear" id="fClear">Clear filters</button>
+        <button class="clear" id="exportOverviewBtn">Export to Excel</button>
+        <span class="count" id="fCount"></span>
       </div>
-    </div>
-  </section>
+      <table id="regTable">
+        <thead>
+          <tr>
+            <th>No.</th><th>Subproject</th><th>Location</th><th>Category</th><th>Status</th>
+            <th class="num">Physical %</th><th class="num">Total Cost</th><th class="num">Disbursed</th>
+            <th class="num">Disb. Rate</th><th class="num">Backlog</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
 
-  <section>
-    <h2>Subproject register</h2>
-    <div class="tbl-summary" id="tblSummary"></div>
-    <div class="filters">
-      <input type="text" id="fSearch" placeholder="Search name or location…">
-      <select id="fCategory"><option value="">All categories</option></select>
-      <select id="fStatus"><option value="">All statuses</option></select>
-      <select id="fBacklog">
-        <option value="">All backlog levels</option>
-        <option value="high">Backlog &gt; 20%</option>
-        <option value="neg">Negative backlog</option>
-      </select>
-      <button class="clear" id="fClear">Clear filters</button>
-      <button class="clear" id="exportOverviewBtn">Export to Excel</button>
-      <span class="count" id="fCount"></span>
-    </div>
-    <table id="regTable">
-      <thead>
-        <tr>
-          <th>No.</th><th>Subproject</th><th>Location</th><th>Category</th><th>Status</th>
-          <th class="num">Physical %</th><th class="num">Total Cost</th><th class="num">Disbursed</th>
-          <th class="num">Disb. Rate</th><th class="num">Backlog</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
-
-  <footer id="footerNote">
-    Negative backlog values indicate disbursement recorded ahead of the physical accomplishment on file and are worth a data-quality check with the subproject's finance officer.
-  </footer>
-
+    <footer id="footerNote">
+      Negative backlog values indicate disbursement recorded ahead of the physical accomplishment on file and are worth a data-quality check with the subproject's finance officer.
+    </footer>
   </div><!-- /tabOverview -->
 
+  <!-- ================= BILLING ================= -->
   <div class="tab-panel" id="tabBilling">
     <section>
       <h2>Add a billing entry</h2>
@@ -421,7 +672,7 @@
         </div>
       </div>
 
-      <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--ink);display:flex;align-items:center;justify-content:space-between;gap:12px;">
         <span>Billing history</span>
         <button class="clear" id="exportBillingBtn" disabled style="font-size:0.72rem;padding:5px 10px;">Export to Excel</button>
       </h3>
@@ -433,7 +684,7 @@
       </table>
       <div class="empty-state" id="billHistoryEmpty" style="display:none;">Select a subproject to see its billing history.</div>
 
-      <h3 style="margin:20px 0 4px;font-size:0.9rem;color:var(--forest-deep);">New billing</h3>
+      <h3 style="margin:20px 0 4px;font-size:0.9rem;color:var(--ink);">New billing</h3>
       <div class="billing-form">
         <div>
           <label>Billing</label>
@@ -456,6 +707,7 @@
     </section>
   </div><!-- /tabBilling -->
 
+  <!-- ================= JIT ================= -->
   <div class="tab-panel" id="tabJIT">
     <section>
       <h2>JIT (Just-In-Time fund release)</h2>
@@ -463,7 +715,7 @@
         <option value="">Select a subproject…</option>
       </select>
 
-      <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">JIT history</h3>
+      <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--ink);">JIT history</h3>
       <table id="jitHistoryTable">
         <thead>
           <tr><th>Date</th><th class="num">JIT %</th><th class="num">JIT Amount</th><th>Photos</th><th>Action</th></tr>
@@ -473,13 +725,13 @@
       <div class="empty-state" id="jitHistoryEmpty" style="display:none;">Select a subproject to see its JIT history.</div>
 
       <div class="panel" id="jitMediaPanel" style="display:none;margin-top:18px;">
-        <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">Photos from selected JIT visit <span id="jitMediaWhich" style="font-weight:400;color:var(--ink-soft);"></span></h3>
+        <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--ink);">Photos from selected JIT visit <span id="jitMediaWhich" style="font-weight:400;color:var(--ink-soft);"></span></h3>
         <div class="empty-state" id="jitMediaStatus" style="display:none;padding:8px 0;"></div>
         <div class="jit-gallery" id="jitGallery"></div>
         <div id="jitMapContainer"></div>
       </div>
 
-      <h3 style="margin:20px 0 4px;font-size:0.9rem;color:var(--forest-deep);">New JIT entry</h3>
+      <h3 style="margin:20px 0 4px;font-size:0.9rem;color:var(--ink);">New JIT entry</h3>
       <div class="billing-form jit-form">
         <div>
           <label>Date</label>
@@ -503,6 +755,7 @@
     </section>
   </div><!-- /tabJIT -->
 
+  <!-- ================= FIELD MONITORING ================= -->
   <div class="tab-panel" id="tabFieldMon">
     <section>
       <h2>Field Monitoring Activity</h2>
@@ -510,7 +763,7 @@
         <option value="">Select a subproject…</option>
       </select>
 
-      <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">Field monitoring notes</h3>
+      <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--ink);">Field monitoring notes</h3>
       <table id="fmNotesTable">
         <thead>
           <tr><th>Date</th><th>General Notes</th><th>Issues</th><th>Action</th></tr>
@@ -520,7 +773,7 @@
       <div class="empty-state" id="fmNotesEmpty" style="display:none;">Select a subproject to see its field monitoring notes.</div>
 
       <div class="panel" id="fmDetailPanel" style="display:none;margin-top:18px;">
-        <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--ink);display:flex;align-items:center;justify-content:space-between;gap:12px;">
           <span>Note detail</span>
           <span class="form-msg" id="fmNoteMsg"></span>
         </h3>
@@ -541,13 +794,13 @@
         </div>
 
         <div class="panel" id="fmMediaPanel" style="display:none;margin-top:14px;">
-          <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--forest-deep);">Photos from this visit</h3>
+          <h3 style="margin:0 0 10px;font-size:0.9rem;color:var(--ink);">Photos from this visit</h3>
           <div class="empty-state" id="fmMediaStatus" style="display:none;padding:8px 0;"></div>
           <div class="jit-gallery" id="fmGallery"></div>
           <div id="fmMapContainer" class="media-map"></div>
         </div>
 
-        <h3 style="margin:18px 0 10px;font-size:0.9rem;color:var(--forest-deep);">Issues</h3>
+        <h3 style="margin:18px 0 10px;font-size:0.9rem;color:var(--ink);">Issues</h3>
         <table id="fmIssuesTable">
           <thead>
             <tr><th>Issue</th><th>Corrective Action</th><th>Remarks</th><th>Action</th></tr>
@@ -556,7 +809,7 @@
         </table>
         <div class="empty-state" id="fmIssuesEmpty" style="display:none;">No issues logged for this note yet.</div>
 
-        <h3 style="margin:18px 0 6px;font-size:0.9rem;color:var(--forest-deep);">Add issue</h3>
+        <h3 style="margin:18px 0 6px;font-size:0.9rem;color:var(--ink);">Add issue</h3>
         <div class="billing-form fm-issue-form">
           <div>
             <label>Issue</label>
@@ -575,7 +828,7 @@
         <div class="form-msg" id="fmIssueMsg"></div>
       </div>
 
-      <h3 style="margin:22px 0 4px;font-size:0.9rem;color:var(--forest-deep);">New field monitoring note</h3>
+      <h3 style="margin:22px 0 4px;font-size:0.9rem;color:var(--ink);">New field monitoring note</h3>
       <div class="billing-form fm-note-form">
         <div>
           <label>Date</label>
@@ -614,12 +867,8 @@ const FIELDNOTES_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/g
 const ISSUES_SHEET_NAME = "Issues";
 const ISSUES_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(ISSUES_SHEET_NAME)}`;
 
-// Paste a Google Cloud API key here (Drive API enabled, restricted to that API only,
-// no HTTP-referrer restriction since this file may be opened locally) to enable the
-// JIT photo gallery and geotagged map. See the setup notes in the chat reply.
 const DRIVE_API_KEY = "AIzaSyCjmZVFS9boAUZO0QMp22cRp20bEJ0Vsbc";
 
-// Paste the deployed Apps Script Web App URL here (see apps-script-backend.gs) to enable saving new billings/JIT entries.
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVrMwcDoGsVHuiO5S-aslpwpqBE1cwVuoYLLPpLiw6OnQKQSI1e64emdoGeR6b_KRO/exec";
 
 const FALLBACK_DATA = [
@@ -645,11 +894,11 @@ const pesoFull = n => "₱" + n.toLocaleString("en-PH",{minimumFractionDigits:2,
 
 let currentData = FALLBACK_DATA;
 let filtered = FALLBACK_DATA;
-let totalUnpaidBilling = null;   // null = not loaded yet
+let totalUnpaidBilling = null;
 let unpaidBillingError = null;
 let unpaidBillingCount = 0;
 
-// ---------- CSV parsing (no external library) ----------
+// ---------- CSV parsing ----------
 function parseCSV(text){
   const rows = [];
   let row = [], field = "", inQuotes = false;
@@ -685,11 +934,6 @@ function findCol(headers, matcher, fallbackIndex){
   return idx>=0 ? idx : (fallbackIndex!=null ? fallbackIndex : -1);
 }
 
-// Column layout as given in the sheet: A No. | B Subproject Name | C Location | D Category
-// | E Status | F Physical Accomp. (%) | G Total Cost (PHP) | H Total Disbursed (PHP)
-// | I Disb. Rate (%) | J Payment Backlog (%) | K Payment Backlog (Amount)
-// Header-text matching is tried first (resilient to reordered columns); if a header
-// can't be matched, it falls back to the fixed position below so J/K are always captured.
 function csvToData(rawRows){
   const headers = rawRows[0].map(h=>h.trim().toLowerCase());
   const colNo      = findCol(headers, h=>h==="no."||h==="no"||h==="#", 0);
@@ -701,8 +945,8 @@ function csvToData(rawRows){
   const colCost    = findCol(headers, h=>h.includes("total cost"), 6);
   const colDisb    = findCol(headers, h=>h.includes("total disbursed"), 7);
   const colRate    = findCol(headers, h=>h.includes("disb") && h.includes("rate"), 8);
-  const colBackPct = findCol(headers, h=>h.includes("backlog") && h.includes("%"), 9);   // Column J
-  const colBackAmt = findCol(headers, h=>h.includes("backlog") && h.includes("amount"), 10); // Column K
+  const colBackPct = findCol(headers, h=>h.includes("backlog") && h.includes("%"), 9);
+  const colBackAmt = findCol(headers, h=>h.includes("backlog") && h.includes("amount"), 10);
 
   return rawRows.slice(1).map((r,i)=>({
     no: colNo>=0 ? (num(r[colNo]) ?? i+1) : i+1,
@@ -807,7 +1051,7 @@ function renderCharts(data){
   // Status donut
   const statusGroups = {};
   data.forEach(d=>{ statusGroups[d.status] = (statusGroups[d.status]||0)+1; });
-  const palette = ["#1E4635","#B9862F","#8C8070","#5A7A8C","#A1402B"];
+  const palette = ["#007AFF","#FF9500","#8C8070","#5A7A8C","#FF3B30"];
   const statusData = Object.keys(statusGroups).map((k,i)=>({label:k,count:statusGroups[k],color:palette[i%palette.length]}));
   const total = data.length;
   const r=60, cx=90, cy=90, circ=2*Math.PI*r;
@@ -820,10 +1064,10 @@ function renderCharts(data){
   document.getElementById("statusChart").innerHTML = `
     <svg viewBox="0 0 180 180" style="display:block;margin:0 auto;max-width:220px;">
       ${arcs}
-      <text x="90" y="84" text-anchor="middle" font-size="26" font-family="IBM Plex Mono, monospace" fill="#23281F" font-weight="600">${total}</text>
-      <text x="90" y="102" text-anchor="middle" font-size="11" fill="#5B6152">subprojects</text>
+      <text x="90" y="84" text-anchor="middle" font-size="26" font-family="-apple-system, SF Pro Display, sans-serif" fill="#1D1D1F" font-weight="700">${total}</text>
+      <text x="90" y="102" text-anchor="middle" font-size="11" fill="#6E6E73">subprojects</text>
     </svg>
-    <div class="legend">${statusData.map(d=>`<span><span class="dot" style="background:${d.color}"></span>${d.label} (${d.count})</span>`).join("")}</div>
+    <div class="legend" style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:14px;font-size:0.8rem;color:var(--ink-soft);">${statusData.map(d=>`<span><span class="dot" style="background:${d.color};display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>${d.label} (${d.count})</span>`).join("")}</div>
   `;
 
   // Physical vs financial
@@ -1012,7 +1256,7 @@ function renderBillingHistory(rows){
       <td>${r.billing || "—"}</td>
       <td class="num"><input type="number" class="edit-amount" value="${r.amount}" step="0.01" min="0" ${noId?"disabled":""}></td>
       <td>
-        <label class="paid-toggle">
+        <label class="paid-toggle" style="display:flex;align-items:center;gap:6px;font-size:0.78rem;cursor:pointer;">
           <input type="checkbox" class="edit-paid" ${r.paid ? "checked" : ""} ${noId?"disabled":""}>
           <span class="paid-label">${r.paid ? "Paid" : "Unpaid"}</span>
         </label>
@@ -1023,10 +1267,6 @@ function renderBillingHistory(rows){
   });
 }
 
-// Recomputes a subproject's Total Disbursed / Disb. Rate / Backlog % / Backlog Amount
-// in the browser (based on the Physical % and Total Cost already loaded from the
-// Summary sheet) and refreshes every place that shows them. This is a live in-session
-// preview only — it does not write back to the Summary sheet itself.
 function recalcSubprojectDisb(subprojectName, deltaAmount){
   if (!deltaAmount) return;
   const rec = currentData.find(d=>d.name.trim().toLowerCase()===subprojectName.trim().toLowerCase());
@@ -1178,8 +1418,8 @@ function renderBillCostBreakdown(rec){
       <div class="seg backlog ${backlogIsNeg?'neg':''}" style="width:${remainingPct}%;"></div>
     </div>
     <div class="stacked-legend">
-      <span><span class="dot" style="background:#1E4635;"></span>Disbursed: ${pesoFull(rec.disb)} (${disbPct.toFixed(1)}%)</span>
-      <span><span class="dot" style="background:${backlogIsNeg?'#6E7BA8':'#A1402B'};"></span>Backlog: ${pesoFull(rec.backlogAmt)}</span>
+      <span><span class="dot" style="background:#34C759;display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Disbursed: ${pesoFull(rec.disb)} (${disbPct.toFixed(1)}%)</span>
+      <span><span class="dot" style="background:${backlogIsNeg?'#6E7BA8':'#FF9500'};display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Backlog: ${pesoFull(rec.backlogAmt)}</span>
     </div>
   `;
 }
@@ -1222,7 +1462,7 @@ function renderBillTimeline(rows){
   }).join("");
   el.innerHTML = `
     <div class="timeline-wrap">${bars}</div>
-    <div class="legend"><span><span class="dot" style="background:#1E4635"></span>Paid</span><span><span class="dot" style="background:#A1402B"></span>Unpaid</span></div>
+    <div class="legend" style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:14px;font-size:0.8rem;color:var(--ink-soft);"><span><span class="dot" style="background:#34C759;display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Paid</span><span><span class="dot" style="background:#FF3B30;display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Unpaid</span></div>
   `;
 }
 
@@ -1330,7 +1570,7 @@ function renderJitHistory(rows){
   });
 }
 
-// ---------- JIT photo gallery + geotagged map ----------
+// ---------- Media gallery (JIT & FM) ----------
 function extractDriveFolderId(url){
   if (!url) return null;
   let m = url.match(/\/folders\/([a-zA-Z0-9_-]+)/);
@@ -1368,8 +1608,6 @@ function fetchDriveImages(folderId){
   }).then(json => json.files || []);
 }
 
-// Generic gallery + geotagged map loader, shared by the JIT and Field Monitoring tabs.
-// ids = {panel, status, gallery, map} — the element IDs for that tab's panel.
 async function loadMediaGallery(photoLink, ids){
   const panel = document.getElementById(ids.panel);
   const status = document.getElementById(ids.status);
@@ -1381,12 +1619,11 @@ async function loadMediaGallery(photoLink, ids){
   panel.style.display = "none";
 
   if (!photoLink) return;
-
   panel.style.display = "block";
 
   if (!DRIVE_API_KEY){
     status.style.display = "block";
-    status.textContent = "Set DRIVE_API_KEY in this file to load photo galleries and maps from Google Drive (see the chat for setup steps).";
+    status.textContent = "Set DRIVE_API_KEY in this file to load photo galleries and maps from Google Drive.";
     return;
   }
 
@@ -1555,7 +1792,6 @@ document.querySelector("#jitHistoryTable tbody").addEventListener("click", (e)=>
         if (existingOpen) existingOpen.remove();
         if (existingGallery) existingGallery.remove();
       }
-      // If this row's gallery/map is the one currently on screen, refresh it with the new link
       if (tr.classList.contains("row-selected")){
         const subproject = document.getElementById("jitSubproject").value;
         loadJitMedia(subproject, [{photoLink}]);
@@ -1613,7 +1849,7 @@ document.getElementById("jitSubmit").addEventListener("click", ()=>{
 });
 
 // ---------- Field Monitoring tab ----------
-let fmSelectedNote = null; // currently opened note {id, subproject, date, genNotes}
+let fmSelectedNote = null;
 
 function fieldNotesCsvToRows(rawRows){
   if (!rawRows.length) return [];
@@ -1742,7 +1978,6 @@ function loadFieldMonNotes(subprojectName){
     const allIssues = issuesCsvToRows(parseCSV(issuesText));
     const matched = allNotes.filter(n=>n.subproject.trim().toLowerCase() === subprojectName.trim().toLowerCase());
     renderFmNotesTable(matched, allIssues);
-    document.querySelector("#fmNotesTable tbody").dataset.allIssues = JSON.stringify(allIssues);
     document.querySelector("#fmNotesTable tbody")._allIssuesCache = allIssues;
     document.querySelector("#fmNotesTable tbody")._notesCache = matched;
   }).catch(err=>{
@@ -1766,7 +2001,6 @@ document.querySelector("#fmNotesTable tbody").addEventListener("click", (e)=>{
   if (note) openFmNote(note, issuesCache);
 });
 
-// Save an edited note (date/general notes)
 document.getElementById("fmNoteSave").addEventListener("click", ()=>{
   const msg = document.getElementById("fmNoteMsg");
   if (!fmSelectedNote){ return; }
@@ -1798,7 +2032,6 @@ document.getElementById("fmNoteSave").addEventListener("click", ()=>{
     .finally(()=>{ btn.disabled = false; });
 });
 
-// Add a new issue under the currently open note
 document.getElementById("fmIssueSubmit").addEventListener("click", ()=>{
   const msg = document.getElementById("fmIssueMsg");
   if (!fmSelectedNote || !fmSelectedNote.id){ msg.className="form-msg err"; msg.textContent="Open a saved note first."; return; }
@@ -1838,7 +2071,6 @@ document.getElementById("fmIssueSubmit").addEventListener("click", ()=>{
     .finally(()=>{ btn.disabled = false; });
 });
 
-// Edit/save an existing issue row
 document.querySelector("#fmIssuesTable tbody").addEventListener("input", (e)=>{
   if (e.target.tagName === "TEXTAREA") e.target.closest("tr").classList.add("row-dirty");
 });
@@ -1879,7 +2111,6 @@ document.querySelector("#fmIssuesTable tbody").addEventListener("click", (e)=>{
     .finally(()=>{ btn.disabled = false; });
 });
 
-// New field monitoring note
 document.getElementById("fmNoteSubmit").addEventListener("click", ()=>{
   const msg = document.getElementById("fmNewNoteMsg");
   const subproject = document.getElementById("fmSubproject").value;
@@ -1919,8 +2150,6 @@ document.getElementById("fmNoteSubmit").addEventListener("click", ()=>{
     .finally(()=>{ btn.disabled = false; });
 });
 
-// Reload the notes list for a subproject, then re-open a specific note by ID (used after
-// adding a note or an issue, so the detail panel reflects the freshly saved data).
 function loadFieldMonNotesThenReopen(subprojectName, noteId){
   Promise.all([
     fetch(FIELDNOTES_CSV_URL).then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); }),
@@ -1958,7 +2187,7 @@ function loadData(){
     });
 }
 
-// ---------- Export to Excel (CSV, opens directly in Excel) ----------
+// ---------- Export to Excel ----------
 function sanitizeFilename(s){
   return (s||"export").toString().trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60) || "export";
 }
@@ -1968,7 +2197,7 @@ function downloadCSV(rows, headers, filename){
   const lines = [headers.map(esc).join(",")];
   rows.forEach(r => lines.push(r.map(esc).join(",")));
   const csv = lines.join("\r\n");
-  const blob = new Blob(["\ufeff" + csv], {type:"text/csv;charset=utf-8;"}); // BOM so Excel reads UTF-8 correctly
+  const blob = new Blob(["\ufeff" + csv], {type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
