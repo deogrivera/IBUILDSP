@@ -69,7 +69,7 @@
   .meta{text-align:right;font-size:0.78rem;color:var(--ink-soft);}
 
   .kpis{
-    display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:34px;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:34px;
   }
   .kpi{
     background:var(--panel);
@@ -85,7 +85,7 @@
   .kpi.warn::before{background:var(--rust);}
   .kpi:hover{box-shadow:var(--shadow-2);}
   .kpi .label{font-size:0.72rem;color:var(--ink-soft);letter-spacing:.01em;margin-bottom:6px;font-weight:550;}
-  .kpi .value{font-family:"SF Mono","IBM Plex Mono",Consolas,monospace;font-size:1.5rem;font-weight:650;color:var(--ink);letter-spacing:-0.02em;}
+  .kpi .value{font-family:"SF Mono","IBM Plex Mono",Consolas,monospace;font-size:1.5rem;font-weight:650;color:var(--ink);letter-spacing:-0.02em;word-break:break-all;}
   .kpi.warn .value{color:var(--rust);}
   .kpi .sub{font-size:0.76rem;color:var(--ink-soft);margin-top:4px;}
 
