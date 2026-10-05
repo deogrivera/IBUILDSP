@@ -534,6 +534,12 @@
   <div class="tab-panel" id="tabBilling">
     <section>
       <h2>Add a billing entry</h2>
+
+      <div class="panel" style="margin-bottom:20px;">
+        <h3 style="margin:0 0 12px;font-size:0.9rem;color:var(--forest-deep);">Billings conducted per subproject</h3>
+        <div class="barchart" id="billCountChart"></div>
+      </div>
+
       <select class="billing-select" id="billSubproject">
         <option value="">Select a subproject…</option>
       </select>
@@ -595,6 +601,12 @@
   <div class="tab-panel" id="tabJIT">
     <section>
       <h2>JIT (Just-In-Time fund release)</h2>
+
+      <div class="panel" style="margin-bottom:20px;">
+        <h3 style="margin:0 0 12px;font-size:0.9rem;color:var(--forest-deep);">JIT entries conducted per subproject</h3>
+        <div class="barchart" id="jitCountChart"></div>
+      </div>
+
       <select class="billing-select" id="jitSubproject">
         <option value="">Select a subproject…</option>
       </select>
@@ -642,6 +654,12 @@
   <div class="tab-panel" id="tabFieldMon">
     <section>
       <h2>Field Monitoring Activity</h2>
+
+      <div class="panel" style="margin-bottom:20px;">
+        <h3 style="margin:0 0 12px;font-size:0.9rem;color:var(--forest-deep);">Field monitoring visits conducted per subproject</h3>
+        <div class="barchart" id="fmCountChart"></div>
+      </div>
+
       <select class="billing-select" id="fmSubproject">
         <option value="">Select a subproject…</option>
       </select>
@@ -1439,6 +1457,7 @@ document.getElementById("billSubmit").addEventListener("click", ()=>{
       loadBillingHistory(subproject);
       if (status === "Paid") recalcSubprojectDisb(subproject, Number(amount));
       loadUnpaidBillingTotal();
+      loadBillingCountChart();
     })
     .catch(err=>{
       msg.className = "form-msg err";
@@ -1781,6 +1800,7 @@ document.getElementById("jitSubmit").addEventListener("click", ()=>{
       document.getElementById("jitAmount").value = "";
       document.getElementById("jitPhotoLink").value = "";
       loadJitHistory(subproject);
+      loadJitCountChart();
     })
     .catch(err=>{
       msg.className = "form-msg err";
@@ -2088,6 +2108,7 @@ document.getElementById("fmNoteSubmit").addEventListener("click", ()=>{
       document.getElementById("fmNewNotes").value = "";
       document.getElementById("fmNewPhotoLink").value = "";
       loadFieldMonNotesThenReopen(subproject, res.id);
+      loadFieldMonCountChart();
     })
     .catch(err=>{
       msg.className = "form-msg err";
@@ -2184,8 +2205,80 @@ document.getElementById("exportBillingBtn").addEventListener("click", ()=>{
   downloadCSV(rows, headers, `billing-history-${sanitizeFilename(subproject)}.csv`);
 });
 
+// ---------- Per-subproject activity-count charts (Billing / JIT / Field Monitoring tabs) ----------
+function countBySubproject(rows){
+  const counts = {};
+  rows.forEach(r=>{
+    const name = (r.subproject || "").trim();
+    if (!name) return;
+    counts[name] = (counts[name] || 0) + 1;
+  });
+  return Object.keys(counts)
+    .map(name => ({name, count: counts[name]}))
+    .sort((a,b) => b.count - a.count);
+}
+
+function renderCountBarChart(containerId, counts, color){
+  const el = document.getElementById(containerId);
+  el.innerHTML = "";
+  if (!counts.length){
+    el.innerHTML = '<div class="empty-state">No entries recorded yet.</div>';
+    return;
+  }
+  const max = Math.max(...counts.map(c=>c.count), 1);
+  counts.forEach(c=>{
+    const pct = (c.count/max)*100;
+    const row = document.createElement("div");
+    row.className = "barrow";
+    row.innerHTML = `
+      <div class="lbl">${c.name}</div>
+      <div class="track"><div class="fill" style="width:${pct}%;background:${color};"></div></div>
+      <div class="val">${c.count}</div>`;
+    el.appendChild(row);
+  });
+}
+
+function loadBillingCountChart(){
+  fetch(DISB_CSV_URL)
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+    .then(text=>{
+      const rows = billCsvToRows(parseCSV(text));
+      renderCountBarChart("billCountChart", countBySubproject(rows), "#1E4635");
+    })
+    .catch(()=>{
+      document.getElementById("billCountChart").innerHTML = '<div class="empty-state">Could not load billing counts.</div>';
+    });
+}
+
+function loadJitCountChart(){
+  fetch(JIT_CSV_URL)
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+    .then(text=>{
+      const rows = jitCsvToRows(parseCSV(text));
+      renderCountBarChart("jitCountChart", countBySubproject(rows), "#B9862F");
+    })
+    .catch(()=>{
+      document.getElementById("jitCountChart").innerHTML = '<div class="empty-state">Could not load JIT counts.</div>';
+    });
+}
+
+function loadFieldMonCountChart(){
+  fetch(FIELDNOTES_CSV_URL)
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+    .then(text=>{
+      const rows = fieldNotesCsvToRows(parseCSV(text));
+      renderCountBarChart("fmCountChart", countBySubproject(rows), "#5A7A8C");
+    })
+    .catch(()=>{
+      document.getElementById("fmCountChart").innerHTML = '<div class="empty-state">Could not load field monitoring counts.</div>';
+    });
+}
+
 loadData();
 loadUnpaidBillingTotal();
+loadBillingCountChart();
+loadJitCountChart();
+loadFieldMonCountChart();
 </script>
 </body>
 </html>
