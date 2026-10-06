@@ -111,6 +111,12 @@
   .barrow .track{background:rgba(0,0,0,0.06);height:10px;border-radius:6px;position:relative;overflow:hidden;}
   .barrow .fill{height:100%;border-radius:6px;}
   .barrow .val{font-family:"SF Mono","IBM Plex Mono",Consolas,monospace;text-align:right;}
+  .barrow .track.stacked{display:flex;border-radius:6px;overflow:hidden;}
+  .barrow .track.stacked .seg{height:100%;}
+  .barrow .track.stacked .seg.paid{background:#1E4635;}
+  .barrow .track.stacked .seg.unpaid{background:#A1402B;}
+  .barrow .val .paid-n{color:#1E4635;}
+  .barrow .val .unpaid-n{color:#A1402B;}
   .legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:14px;font-size:0.8rem;color:var(--ink-soft);}
   .legend span.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;}
   .grouped{display:flex;flex-direction:column;gap:10px;}
@@ -536,7 +542,7 @@
       <h2>Add a billing entry</h2>
 
       <div class="panel" style="margin-bottom:20px;">
-        <h3 style="margin:0 0 12px;font-size:0.9rem;color:var(--forest-deep);">Billings conducted per subproject</h3>
+        <h3 style="margin:0 0 12px;font-size:0.9rem;color:var(--forest-deep);">Billings conducted per subproject (Paid vs. Pending)</h3>
         <div class="barchart" id="billCountChart"></div>
       </div>
 
@@ -811,7 +817,7 @@ const ISSUES_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/
 // Paste a Google Cloud API key here (Drive API enabled, restricted to that API only,
 // no HTTP-referrer restriction since this file may be opened locally) to enable the
 // JIT photo gallery and geotagged map. See the setup notes in the chat reply.
-const DRIVE_API_KEY = "AIzaSyCjmZVFS9boAUZO0QMp22cRp20bEJ0Vsbc";
+const DRIVE_API_KEY = "AIzaSyCjmZVFS9boAUZO0QMp22cRp20bEJ0Vsb";
 
 // Paste the deployed Apps Script Web App URL here (see apps-script-backend.gs) to enable saving new billings/JIT entries.
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXGnYr3jCPxiFpfp5Tog_KpRrAcF7GvY0T_f10oNSiRZqQmW9lGPLX3gJJSIDmSLaU/exec";
@@ -2238,12 +2244,53 @@ function renderCountBarChart(containerId, counts, color){
   });
 }
 
+function countBySubprojectPaidStatus(rows){
+  const counts = {};
+  rows.forEach(r=>{
+    const name = (r.subproject || "").trim();
+    if (!name) return;
+    if (!counts[name]) counts[name] = {paid:0, unpaid:0};
+    if (r.paid) counts[name].paid++; else counts[name].unpaid++;
+  });
+  return Object.keys(counts)
+    .map(name => ({name, paid:counts[name].paid, unpaid:counts[name].unpaid, total:counts[name].paid+counts[name].unpaid}))
+    .sort((a,b) => b.total - a.total);
+}
+
+function renderBillingCountChart(containerId, counts){
+  const el = document.getElementById(containerId);
+  el.innerHTML = "";
+  if (!counts.length){
+    el.innerHTML = '<div class="empty-state">No billings recorded yet.</div>';
+    return;
+  }
+  const max = Math.max(...counts.map(c=>c.total), 1);
+  counts.forEach(c=>{
+    const paidPct = (c.paid/max)*100;
+    const unpaidPct = (c.unpaid/max)*100;
+    const row = document.createElement("div");
+    row.className = "barrow";
+    row.innerHTML = `
+      <div class="lbl">${c.name}</div>
+      <div class="track stacked">
+        <div class="seg paid" style="width:${paidPct}%;" title="${c.paid} paid"></div>
+        <div class="seg unpaid" style="width:${unpaidPct}%;" title="${c.unpaid} pending"></div>
+      </div>
+      <div class="val"><span class="paid-n">${c.paid}</span> / <span class="unpaid-n">${c.unpaid}</span></div>`;
+    el.appendChild(row);
+  });
+  const legend = document.createElement("div");
+  legend.className = "legend";
+  legend.innerHTML = `<span><span class="dot" style="background:#1E4635"></span>Paid</span><span><span class="dot" style="background:#A1402B"></span>Pending payment</span>`;
+  el.appendChild(legend);
+}
+
 function loadBillingCountChart(){
   fetch(DISB_CSV_URL)
     .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
     .then(text=>{
       const rows = billCsvToRows(parseCSV(text));
-      renderCountBarChart("billCountChart", countBySubproject(rows), "#1E4635");
+      renderBillingCountChart("billCountChart", countBySubprojectPaidStatus(rows));
     })
     .catch(()=>{
       document.getElementById("billCountChart").innerHTML = '<div class="empty-state">Could not load billing counts.</div>';
