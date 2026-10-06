@@ -961,7 +961,7 @@ function renderKPIs(data){
 
   const kpis = [
     {label:"Subprojects tracked",value:data.length,sub:`${completed} completed · ${ongoing} on-going · ${withNol} with NOL1`},
-    {label:"Total programmed cost",value:peso(totalCost),sub:`Across ${data.length} subprojects`},
+    {label:"Total cost (LP+GOP)",value:peso(totalCost),sub:`Across ${data.length} subprojects`},
     {label:"Total disbursed",value:peso(totalDisb),sub:`${overallRate.toFixed(1)}% of programmed cost`},
     {label:"Undisbursed / backlog",value:peso(totalBacklog),sub:"Sum of payment backlog, all subprojects",warn:true},
     {label:"Avg. physical accomplishment",value:avgPhys.toFixed(1)+"%",sub:"Subprojects with reported progress"},
