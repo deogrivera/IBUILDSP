@@ -117,6 +117,13 @@
   .barrow .track.stacked .seg.unpaid{background:#A1402B;}
   .barrow .val .paid-n{color:#1E4635;}
   .barrow .val .unpaid-n{color:#A1402B;}
+  .bar-stack{display:flex;flex-direction:column;gap:4px;}
+  .bar-stack .amt-line{
+    display:flex;justify-content:space-between;gap:10px;
+    font-size:0.68rem;font-family:"SF Mono","IBM Plex Mono",Consolas,monospace;
+  }
+  .bar-stack .amt-line .amt-paid{color:#1E4635;}
+  .bar-stack .amt-line .amt-unpaid{color:#A1402B;}
   .legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:14px;font-size:0.8rem;color:var(--ink-soft);}
   .legend span.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;}
   .grouped{display:flex;flex-direction:column;gap:10px;}
@@ -817,7 +824,7 @@ const ISSUES_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/
 // Paste a Google Cloud API key here (Drive API enabled, restricted to that API only,
 // no HTTP-referrer restriction since this file may be opened locally) to enable the
 // JIT photo gallery and geotagged map. See the setup notes in the chat reply.
-const DRIVE_API_KEY = "AIzaSyCjmZVFS9boAUZO0QMp22cRp20bEJ0Vsb";
+const DRIVE_API_KEY = "AIzaSyCjmZVFS9boAUZO0QMp22cRp20bEJ0Vsbc";
 
 // Paste the deployed Apps Script Web App URL here (see apps-script-backend.gs) to enable saving new billings/JIT entries.
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXGnYr3jCPxiFpfp5Tog_KpRrAcF7GvY0T_f10oNSiRZqQmW9lGPLX3gJJSIDmSLaU/exec";
@@ -2249,11 +2256,17 @@ function countBySubprojectPaidStatus(rows){
   rows.forEach(r=>{
     const name = (r.subproject || "").trim();
     if (!name) return;
-    if (!counts[name]) counts[name] = {paid:0, unpaid:0};
-    if (r.paid) counts[name].paid++; else counts[name].unpaid++;
+    if (!counts[name]) counts[name] = {paid:0, unpaid:0, paidAmt:0, unpaidAmt:0};
+    if (r.paid){ counts[name].paid++; counts[name].paidAmt += (r.amount||0); }
+    else { counts[name].unpaid++; counts[name].unpaidAmt += (r.amount||0); }
   });
   return Object.keys(counts)
-    .map(name => ({name, paid:counts[name].paid, unpaid:counts[name].unpaid, total:counts[name].paid+counts[name].unpaid}))
+    .map(name => ({
+      name,
+      paid:counts[name].paid, unpaid:counts[name].unpaid,
+      paidAmt:counts[name].paidAmt, unpaidAmt:counts[name].unpaidAmt,
+      total:counts[name].paid+counts[name].unpaid
+    }))
     .sort((a,b) => b.total - a.total);
 }
 
@@ -2272,9 +2285,15 @@ function renderBillingCountChart(containerId, counts){
     row.className = "barrow";
     row.innerHTML = `
       <div class="lbl">${c.name}</div>
-      <div class="track stacked">
-        <div class="seg paid" style="width:${paidPct}%;" title="${c.paid} paid"></div>
-        <div class="seg unpaid" style="width:${unpaidPct}%;" title="${c.unpaid} pending"></div>
+      <div class="bar-stack">
+        <div class="amt-line">
+          <span class="amt-paid">Paid: ${peso(c.paidAmt)}</span>
+          <span class="amt-unpaid">Pending: ${peso(c.unpaidAmt)}</span>
+        </div>
+        <div class="track stacked">
+          <div class="seg paid" style="width:${paidPct}%;" title="${c.paid} paid — ${peso(c.paidAmt)}"></div>
+          <div class="seg unpaid" style="width:${unpaidPct}%;" title="${c.unpaid} pending — ${peso(c.unpaidAmt)}"></div>
+        </div>
       </div>
       <div class="val"><span class="paid-n">${c.paid}</span> / <span class="unpaid-n">${c.unpaid}</span></div>`;
     el.appendChild(row);
