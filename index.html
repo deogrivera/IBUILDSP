@@ -67,6 +67,18 @@
   }
   header p{margin:0;color:var(--ink-soft);font-size:0.84rem;font-weight:450;}
   .meta{text-align:right;font-size:0.78rem;color:var(--ink-soft);}
+  .data-status{
+    display:flex;align-items:center;justify-content:flex-end;gap:7px;
+    margin-top:8px;font-size:0.76rem;color:var(--ink-soft);
+  }
+  .data-status .status-dot{
+    width:9px;height:9px;border-radius:50%;flex-shrink:0;
+    box-shadow:0 0 0 3px rgba(0,0,0,0.04);
+  }
+  .data-status .status-dot.green{background:#1E7A52;box-shadow:0 0 0 3px rgba(30,122,82,0.18);}
+  .data-status .status-dot.red{background:#C0392B;box-shadow:0 0 0 3px rgba(192,57,43,0.18);}
+  .data-status .status-dot.pending{background:#B9862F;box-shadow:0 0 0 3px rgba(185,134,47,0.18);}
+  .data-status .status-text{font-weight:560;}
 
   .kpis{
     display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:34px;
@@ -479,7 +491,13 @@
         <p>PRDP RPCO I · Region I coverage · <span id="spCount">15</span> subprojects tracked</p>
       </div>
     </div>
-    <div class="meta">Source: Google Sheet — "Summary" &amp; "Disbursement"</div>
+    <div>
+      <div class="meta">Source: Google Sheet — "Summary" &amp; "Disbursement"</div>
+      <div class="data-status" id="dataStatusBadge">
+        <span class="status-dot pending"></span>
+        <span class="status-text">Checking data status…</span>
+      </div>
+    </div>
   </header>
 
   <div class="tabs">
@@ -818,6 +836,9 @@ const JIT_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?
 const FIELDNOTES_SHEET_NAME = "FieldMonNotes";
 const FIELDNOTES_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(FIELDNOTES_SHEET_NAME)}`;
 
+const DATASOURCE_SHEET_NAME = "Data Source";
+const DATASOURCE_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(DATASOURCE_SHEET_NAME)}`;
+
 const ISSUES_SHEET_NAME = "Issues";
 const ISSUES_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(ISSUES_SHEET_NAME)}`;
 
@@ -857,7 +878,10 @@ let unpaidBillingError = null;
 let unpaidBillingCount = 0;
 
 // ---------- CSV parsing (no external library) ----------
-function parseCSV(text){
+// keepBlankRows=true preserves every row (including fully-empty ones) so row position
+// stays accurate — needed when reading a specific cell by row/column index rather than
+// by header name (see loadDataStatus, which reads "Data Source" sheet cell Q5).
+function parseCSV(text, keepBlankRows){
   const rows = [];
   let row = [], field = "", inQuotes = false;
   for (let i=0;i<text.length;i++){
@@ -876,7 +900,7 @@ function parseCSV(text){
     }
   }
   if (field.length || row.length){ row.push(field); rows.push(row); }
-  return rows.filter(r => r.some(c => c.trim() !== ""));
+  return keepBlankRows ? rows : rows.filter(r => r.some(c => c.trim() !== ""));
 }
 
 function num(v){
@@ -2340,7 +2364,36 @@ function loadFieldMonCountChart(){
     });
 }
 
+// ---------- Data Status badge (reads "Data Source" sheet, cell Q5) ----------
+function renderDataStatus(value, errorMsg){
+  const el = document.getElementById("dataStatusBadge");
+  if (!el) return;
+  if (errorMsg){
+    el.innerHTML = `<span class="status-dot red"></span><span class="status-text">Status unavailable</span>`;
+    el.title = errorMsg;
+    return;
+  }
+  const matched = value === "Data Matched";
+  el.innerHTML = `<span class="status-dot ${matched?'green':'red'}"></span><span class="status-text">${value ? value : "No status found in Q5"}</span>`;
+  el.title = `From "${DATASOURCE_SHEET_NAME}" sheet, cell Q5`;
+}
+
+function loadDataStatus(){
+  fetch(DATASOURCE_CSV_URL)
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+    .then(text=>{
+      const rows = parseCSV(text, true); // keep blank rows so row 5 stays at index 4
+      const row5 = rows[4] || [];
+      const q5 = (row5[16] || "").toString().trim(); // column Q = index 16 (A=0)
+      renderDataStatus(q5);
+    })
+    .catch(err=>{
+      renderDataStatus(null, err.message);
+    });
+}
+
 loadData();
+loadDataStatus();
 loadUnpaidBillingTotal();
 loadBillingCountChart();
 loadJitCountChart();
